@@ -121,6 +121,40 @@
   </div>
 
   <div class="card" style="margin-top:26px;">
+    <h3 style="margin-bottom:14px;">⏱ Cronómetros</h3>
+
+    <div class="timer-block">
+      <div class="timer-block-head">
+        <strong>Preparación</strong>
+        <span class="timer-display" id="prepTimerDisplay">01:00</span>
+      </div>
+      <div class="timer-controls">
+        <label style="margin:0;">Duración
+          <input type="number" id="prepDurationInput" min="1" value="60" style="width:80px;"> s
+        </label>
+        <button type="button" class="btn btn-outline" id="prepStartBtn">▶ Iniciar</button>
+        <button type="button" class="btn btn-outline" id="prepPauseBtn">⏸ Pausar</button>
+        <button type="button" class="btn btn-outline" id="prepResetBtn">↺ Reiniciar</button>
+      </div>
+    </div>
+
+    <div class="timer-block">
+      <div class="timer-block-head">
+        <strong>Tiempo de elección</strong>
+        <span class="timer-display" id="pickTimerDisplay">00:15</span>
+      </div>
+      <p class="hint" id="pickTimerTeamLabel" style="margin:-6px 0 10px;">Sin turno activo todavía.</p>
+      <div class="timer-controls">
+        <button type="button" class="btn btn-outline" id="pickStartBtn">▶ Iniciar</button>
+        <button type="button" class="btn btn-outline" id="pickPauseBtn">⏸ Pausar</button>
+        <button type="button" class="btn btn-outline" id="pickResetBtn">↺ Reiniciar</button>
+      </div>
+      <p class="hint" style="margin-top:14px;">Segundos para elegir de cada equipo (se aplican automáticamente en su turno):</p>
+      <div class="pick-duration-grid" id="pickDurationGrid"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:26px;">
     <h3 style="margin-bottom:6px;">📋 Resumen de PINs</h3>
     <p style="opacity:.7;font-size:.85rem;margin-bottom:6px;">Para repartir a cada equipo. Se actualiza al escribir arriba.</p>
     <div class="pin-summary-grid" id="pinSummaryGrid"></div>
@@ -501,11 +535,15 @@
     }
 
     const order = teams.map(t => t.id);
+    const perTeam = (latestState && latestState.timers && latestState.timers.pick && latestState.timers.pick.perTeam) || {};
+    const firstTeamId = order[0];
+    const firstDuration = perTeam[firstTeamId] || MD.DEFAULT_PICK_SECONDS;
     db_ready.then(() => db.ref('megadraft').update({
         draftOrder: order,
         currentPickIndex: 0,
         pickedBrawlers: null,
         status: 'drafting',
+        'timers/pick': { perTeam: perTeam, currentTeamId: firstTeamId, duration: firstDuration, remaining: firstDuration, running: false, startedAt: null },
       }))
       .then(() => { saveMsg.textContent = '¡Sala iniciada! Los participantes ya ven la fase de draft.'; setTimeout(() => saveMsg.textContent = '', 4000); })
       .catch(err => { saveError.textContent = 'Error al iniciar la sala: ' + err.message; });
@@ -545,8 +583,87 @@
       } else {
         statusDetail.textContent = '';
       }
+      renderPickDurationGrid();
     });
   });
+
+  // ---------- CRONÓMETROS ----------
+  const prepTimerDisplay = document.getElementById('prepTimerDisplay');
+  const prepDurationInput = document.getElementById('prepDurationInput');
+  const pickTimerDisplay = document.getElementById('pickTimerDisplay');
+  const pickTimerTeamLabel = document.getElementById('pickTimerTeamLabel');
+  const pickDurationGrid = document.getElementById('pickDurationGrid');
+
+  function renderPickDurationGrid(){
+    const perTeam = (latestState && latestState.timers && latestState.timers.pick && latestState.timers.pick.perTeam) || {};
+    pickDurationGrid.innerHTML = teams.map(t => `
+      <div class="pick-duration-item">
+        <span>${t.name.trim() || t.id}</span>
+        <input type="number" min="1" value="${perTeam[t.id] || MD.DEFAULT_PICK_SECONDS}" data-pick-duration="${t.id}">
+      </div>`).join('');
+    pickDurationGrid.querySelectorAll('[data-pick-duration]').forEach(input => {
+      input.addEventListener('change', () => {
+        const val = Math.max(1, Number(input.value) || MD.DEFAULT_PICK_SECONDS);
+        db_ready.then(() => db.ref(`megadraft/timers/pick/perTeam/${input.dataset.pickDuration}`).set(val))
+          .catch(err => { saveError.textContent = 'Error al guardar la duración: ' + err.message; });
+      });
+    });
+  }
+  renderPickDurationGrid();
+
+  document.getElementById('prepStartBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    db_ready.then(() => MD.startTimer('megadraft/timers/prep', latestState && latestState.timers && latestState.timers.prep))
+      .catch(err => { saveError.textContent = 'Error al iniciar: ' + err.message; });
+  });
+  document.getElementById('prepPauseBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    db_ready.then(() => MD.pauseTimer('megadraft/timers/prep', latestState && latestState.timers && latestState.timers.prep))
+      .catch(err => { saveError.textContent = 'Error al pausar: ' + err.message; });
+  });
+  document.getElementById('prepResetBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    const duration = Math.max(1, Number(prepDurationInput.value) || MD.DEFAULT_PREP_SECONDS);
+    db_ready.then(() => MD.resetTimer('megadraft/timers/prep', duration))
+      .catch(err => { saveError.textContent = 'Error al reiniciar: ' + err.message; });
+  });
+
+  document.getElementById('pickStartBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    db_ready.then(() => MD.startTimer('megadraft/timers/pick', latestState && latestState.timers && latestState.timers.pick))
+      .catch(err => { saveError.textContent = 'Error al iniciar: ' + err.message; });
+  });
+  document.getElementById('pickPauseBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    db_ready.then(() => MD.pauseTimer('megadraft/timers/pick', latestState && latestState.timers && latestState.timers.pick))
+      .catch(err => { saveError.textContent = 'Error al pausar: ' + err.message; });
+  });
+  document.getElementById('pickResetBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    const pick = latestState && latestState.timers && latestState.timers.pick;
+    if(!pick || !pick.currentTeamId){ saveError.textContent = 'Todavía no hay ningún turno activo para reiniciar su cronómetro.'; return; }
+    const duration = (pick.perTeam && pick.perTeam[pick.currentTeamId]) || MD.DEFAULT_PICK_SECONDS;
+    db_ready.then(() => MD.resetTimer('megadraft/timers/pick', duration))
+      .catch(err => { saveError.textContent = 'Error al reiniciar: ' + err.message; });
+  });
+
+  setInterval(() => {
+    const timers = (latestState && latestState.timers) || {};
+    const prepRemaining = MD.timerRemaining(timers.prep);
+    prepTimerDisplay.textContent = MD.formatTime(prepRemaining);
+    prepTimerDisplay.classList.toggle('low', prepRemaining > 0 && prepRemaining <= 5);
+
+    const pick = timers.pick;
+    const pickRemaining = MD.timerRemaining(pick);
+    pickTimerDisplay.textContent = MD.formatTime(pickRemaining);
+    pickTimerDisplay.classList.toggle('low', pickRemaining > 0 && pickRemaining <= 5);
+    if(pick && pick.currentTeamId && latestState.teams){
+      const team = latestState.teams[pick.currentTeamId];
+      pickTimerTeamLabel.textContent = 'Turno de: ' + ((team && team.name) || pick.currentTeamId) + (pick.running ? ' (corriendo)' : ' (en pausa)');
+    } else {
+      pickTimerTeamLabel.textContent = 'Sin turno activo todavía.';
+    }
+  }, 500);
 </script>
 </body>
 </html>

@@ -19,6 +19,17 @@
 </header>
 
 <div class="wrap">
+  <div class="timers-row" id="timersRow">
+    <div class="timer-card" id="prepTimerCard">
+      <div class="tc-label">Preparación</div>
+      <div class="tc-value" id="prepTimerValue">00:00</div>
+    </div>
+    <div class="timer-card" id="pickTimerCard">
+      <div class="tc-label" id="pickTimerLabel">Tiempo de elección</div>
+      <div class="tc-value" id="pickTimerValue">00:00</div>
+    </div>
+  </div>
+
   <div class="turn-banner" id="turnBanner">
     <div class="round" id="roundLabel">Esperando…</div>
     <div class="team-name" id="turnTeamLabel">—</div>
@@ -99,11 +110,35 @@
 
   let brawlers = [];
   let brawlersById = {};
+  let latestState = null;
+
+  setInterval(() => {
+    const timers = (latestState && latestState.timers) || {};
+    const prepRemaining = MD.timerRemaining(timers.prep);
+    const prepValue = document.getElementById('prepTimerValue');
+    prepValue.textContent = MD.formatTime(prepRemaining);
+    prepValue.classList.toggle('low', prepRemaining > 0 && prepRemaining <= 5);
+    document.getElementById('prepTimerCard').classList.toggle('paused', !(timers.prep && timers.prep.running));
+
+    const pick = timers.pick;
+    const pickRemaining = MD.timerRemaining(pick);
+    const pickValue = document.getElementById('pickTimerValue');
+    pickValue.textContent = MD.formatTime(pickRemaining);
+    pickValue.classList.toggle('low', pickRemaining > 0 && pickRemaining <= 5);
+    document.getElementById('pickTimerCard').classList.toggle('paused', !(pick && pick.running));
+    const pickLabel = document.getElementById('pickTimerLabel');
+    if(pick && pick.currentTeamId && latestState.teams){
+      const team = latestState.teams[pick.currentTeamId];
+      pickLabel.textContent = 'Elección: ' + ((team && team.name) || pick.currentTeamId);
+    } else {
+      pickLabel.textContent = 'Tiempo de elección';
+    }
+  }, 500);
 
   MD.loadBrawlers().then(list => {
     brawlers = list;
     brawlersById = Object.fromEntries(list.map(b => [b.id, b]));
-    MD.subscribeState(render);
+    MD.subscribeState(state => { latestState = state; render(state); });
   });
 
   function render(state){

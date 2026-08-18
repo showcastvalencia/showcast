@@ -40,7 +40,8 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
       "pickedBrawlers": { ".write": "auth != null" },
       "status": { ".write": "auth != null" },
       "draftOrder": { ".write": "auth != null" },
-      "currentPickIndex": { ".write": "auth != null" }
+      "currentPickIndex": { ".write": "auth != null" },
+      "timers": { ".write": "auth != null" }
     }
   }
 }
@@ -51,6 +52,7 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
 - Solo un usuario autenticado (aunque sea anónimo) puede escribir.
 - `claimedBy` (qué dispositivo controla cada equipo) solo lo puede fijar quien lo reclamó primero con el PIN — nadie puede "robar" el asiento de otro equipo, ni desde la consola del navegador. La única excepción es **liberarlo (ponerlo a `null`)**, permitido a cualquier usuario autenticado — es lo que usa el botón "Liberar equipo" de `admin.html` cuando un capitán se queda atascado en un dispositivo que ya no tiene (ver limitación más abajo).
 - Los picks de cada equipo **no se guardan por equipo**: se derivan siempre de `pickedBrawlers` (qué equipo tiene cada personaje), que es la única fuente de verdad. Esto simplifica las reglas y evita conflictos de permisos al reiniciar el draft desde el panel de admin.
+- `timers` (cronómetros de preparación y de elección) solo guarda cuándo se inició cada cuenta atrás (hora del servidor) y cuánto quedaba en ese momento — cada pantalla calcula el tiempo restante en local, no hay ningún "tick" que escribir cada segundo.
 
 **Nota técnica**: el panel de administración (`admin.html`) escribe los datos de cada equipo con `update()` usando rutas completas (`teams/team1/name`, `teams/team1/pin`, etc.) en vez de sobrescribir todo el nodo `teams` de golpe — así cada ruta se valida por separado contra las reglas de arriba, que solo dan permiso a nivel de campo individual, no a nivel del equipo completo.
 
