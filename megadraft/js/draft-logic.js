@@ -11,6 +11,51 @@ const MD = (function () {
   const TOTAL_PICKS = TEAMS_PER_DRAFT * PICKS_PER_TEAM;
   const STATE_PATH = 'megadraft';
 
+  // Mismo proxy que usa la web principal para consultar la API de Brawl Stars
+  // (ver proxy/brawlstars.php) — solo responde a peticiones desde orígenes
+  // autorizados (showcastvalencia.github.io), así que la comprobación de tag
+  // no funciona en local (localhost/file://), solo en la web ya publicada.
+  const BRAWL_PROXY = 'https://34.10.158.213.sslip.io/proxy/brawlstars.php';
+
+  // ---------- SISTEMA DE PUNTOS (pendiente de ajustar) ----------
+  // Cambiar aquí recalcula los puntos de todo el mundo al instante, sin tener
+  // que volver a comprobar los tags: solo se guardan las estadísticas en
+  // bruto de cada jugador, la puntuación siempre se calcula a partir de ellas.
+  const POINTS_PER_TROPHY = 1;
+  const POINTS_PER_3V3_VICTORY = 10;
+  const POINTS_PER_RANKED_ELO = 50;
+
+  function fetchPlayerStats(tag) {
+    const cleanTag = String(tag || '').trim();
+    if (!cleanTag) return Promise.reject(new Error('Escribe un código de jugador.'));
+    return fetch(BRAWL_PROXY + '?tag=' + encodeURIComponent(cleanTag))
+      .then(res => res.json())
+      .then(body => {
+        if (!body.ok) throw new Error(body.error || 'No se ha podido comprobar la cuenta.');
+        return {
+          tag: body.tag || cleanTag,
+          name: body.name || '',
+          iconUrl: body.iconUrl || '',
+          trophies: body.trophies || 0,
+          victories3v3: body.victories3v3 || 0,
+          rankedAllTimePeakElo: body.rankedAllTimePeakElo || 0,
+          rankedAllTimePeakName: body.rankedAllTimePeakName || '',
+        };
+      });
+  }
+
+  function calcMemberScore(member) {
+    if (!member) return 0;
+    return (member.trophies || 0) * POINTS_PER_TROPHY
+      + (member.victories3v3 || 0) * POINTS_PER_3V3_VICTORY
+      + (member.rankedAllTimePeakElo || 0) * POINTS_PER_RANKED_ELO;
+  }
+
+  function calcTeamScore(team) {
+    const miembros = (team && Array.isArray(team.miembros)) ? team.miembros : [];
+    return miembros.reduce((sum, m) => sum + calcMemberScore(m), 0);
+  }
+
   let brawlersCache = null;
 
   function loadBrawlers() {
@@ -117,7 +162,8 @@ const MD = (function () {
     });
   }
 
-  function renderTeams(container, state, brawlersById) {
+  function renderTeams(container, state, brawlersById, opts) {
+    opts = opts || {};
     const teams = (state && state.teams) || {};
     const order = (state && state.draftOrder) || Object.keys(teams);
     const turnTeamId = currentTurnTeamId(state);
@@ -135,15 +181,36 @@ const MD = (function () {
         const b = brawlersById[brawlerId];
         return `<img src="${b ? b.icon : ''}" alt="${b ? b.name : brawlerId}" title="${b ? b.name : brawlerId}" referrerpolicy="no-referrer">`;
       }).join('');
+      const miembros = Array.isArray(team.miembros) ? team.miembros : [];
+      const miembrosHtml = miembros.length ? `
+        <ul class="t-members">
+          ${miembros.map((m, mIdx) => `
+            <li>
+              <button type="button" class="m-name" data-team="${teamId}" data-member="${mIdx}">${m.nombre || ''}</button>
+              <span class="m-score">Puntuación: ${calcMemberScore(m)}</span>
+            </li>`).join('')}
+        </ul>` : '';
       el.innerHTML = `
         <div class="t-head">
           ${team.logoUrl ? `<img src="${team.logoUrl}" alt="${team.name}">` : ''}
           <span class="t-name">${team.name}</span>
+          <span class="t-score">Puntuación: ${calcTeamScore(team)}</span>
         </div>
+        ${miembrosHtml}
         <div class="t-picks">${picksHtml}</div>
       `;
       container.appendChild(el);
     });
+
+    if (opts.onMemberClick) {
+      container.querySelectorAll('.m-name[data-member]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const team = teams[btn.dataset.team];
+          const member = team && Array.isArray(team.miembros) ? team.miembros[+btn.dataset.member] : null;
+          if (member) opts.onMemberClick(member, team);
+        });
+      });
+    }
   }
 
   return {
@@ -152,5 +219,6 @@ const MD = (function () {
     currentTurnTeamId, currentRound, isComplete, teamPickCount, picksForTeam,
     claimTeam, findTeamByPin, submitPick,
     renderPool, renderTeams,
+    fetchPlayerStats, calcMemberScore, calcTeamScore,
   };
 })();

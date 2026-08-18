@@ -31,6 +31,13 @@
     <p class="msg-error" id="pinError"></p>
   </div>
 
+  <!-- Pantalla de espera (equipo identificado, pero el anfitrión aún no ha iniciado el draft) -->
+  <div id="waitingScreen" class="center-box" style="display:none;">
+    <h1 id="waitingTeamName">¡Ya estás dentro!</h1>
+    <p style="margin:14px 0;opacity:.85;">Esperando a que el anfitrión inicie la fase de draft...</p>
+    <div class="spinner" aria-hidden="true"></div>
+  </div>
+
   <!-- Pantalla de draft (oculta hasta que el equipo se identifica) -->
   <div id="draftScreen" style="display:none;">
     <div class="turn-banner" id="turnBanner">
@@ -52,13 +59,70 @@
 
 </div>
 
+<!-- FICHA DE JUGADOR: se abre al pulsar el nombre de un miembro -->
+<div class="player-modal-overlay" id="playerCardOverlay">
+  <div class="player-modal-card">
+    <button type="button" class="player-modal-close" id="playerCardClose">✕</button>
+    <div id="playerCardEmpty" class="player-modal-empty" style="display:none;">
+      Este miembro todavía no tiene un tag de Brawl Stars comprobado.
+    </div>
+    <div id="playerCardBody" style="display:none;">
+      <div class="player-preview">
+        <img id="pc-icon" class="player-icon" src="" alt="Icono de jugador">
+        <div>
+          <h3 id="pc-name">—</h3>
+          <span id="pc-tag" class="player-tag">#000000</span>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div class="stat-box"><span class="stat-num" id="pc-trophies">0</span><span class="stat-label">Trofeos</span></div>
+        <div class="stat-box"><span class="stat-num" id="pc-v3v3">0</span><span class="stat-label">Victorias 3v3</span></div>
+        <div class="stat-box"><span class="stat-num" id="pc-elo">0</span><span class="stat-label">Elo máx. ranked</span></div>
+      </div>
+      <p id="pc-rank-name" style="text-align:center;opacity:.75;font-size:.85rem;margin-bottom:12px;"></p>
+      <div class="player-total-score">
+        <span>Puntuación</span>
+        <span id="pc-score">0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/draft-logic.js"></script>
 <script>
+  const playerCardOverlay = document.getElementById('playerCardOverlay');
+  const playerCardEmpty = document.getElementById('playerCardEmpty');
+  const playerCardBody = document.getElementById('playerCardBody');
+
+  function openPlayerCard(member){
+    playerCardOverlay.classList.add('open');
+    if(!member || !member.tag){
+      playerCardEmpty.style.display = 'block';
+      playerCardBody.style.display = 'none';
+      return;
+    }
+    playerCardEmpty.style.display = 'none';
+    playerCardBody.style.display = 'block';
+    document.getElementById('pc-icon').src = member.iconUrl || '';
+    document.getElementById('pc-name').textContent = member.nombre || '(sin nombre)';
+    document.getElementById('pc-tag').textContent = member.tag;
+    document.getElementById('pc-trophies').textContent = member.trophies || 0;
+    document.getElementById('pc-v3v3').textContent = member.victories3v3 || 0;
+    document.getElementById('pc-elo').textContent = member.rankedAllTimePeakElo || 0;
+    document.getElementById('pc-rank-name').textContent = member.rankedAllTimePeakName
+      ? ('Máximo ranked (histórico): ' + member.rankedAllTimePeakName) : '';
+    document.getElementById('pc-score').textContent = MD.calcMemberScore(member);
+  }
+  document.getElementById('playerCardClose').addEventListener('click', () => playerCardOverlay.classList.remove('open'));
+  playerCardOverlay.addEventListener('click', e => { if(e.target === playerCardOverlay) playerCardOverlay.classList.remove('open'); });
+
   const pinScreen = document.getElementById('pinScreen');
+  const waitingScreen = document.getElementById('waitingScreen');
+  const waitingTeamName = document.getElementById('waitingTeamName');
   const draftScreen = document.getElementById('draftScreen');
   const completeScreen = document.getElementById('completeScreen');
   const pinInput = document.getElementById('pinInput');
@@ -70,7 +134,10 @@
   const turnTeamLabel = document.getElementById('turnTeamLabel');
   const roundLabel = document.getElementById('roundLabel');
 
-  let myTeamId = localStorage.getItem('megadraft_teamId') || null;
+  // sessionStorage (no localStorage): así cada pestaña recuerda su propio equipo aunque
+  // el login anónimo de Firebase se comparta entre pestañas del mismo navegador — útil para
+  // simular varios equipos a la vez desde un solo ordenador sin que se pisen entre sí.
+  let myTeamId = sessionStorage.getItem('megadraft_teamId') || null;
   let myUid = null;
   let brawlers = [];
   let brawlersById = {};
@@ -112,7 +179,7 @@
     MD.claimTeam(latestState, teamId, pin, myUid)
       .then(() => {
         myTeamId = teamId;
-        localStorage.setItem('megadraft_teamId', teamId);
+        sessionStorage.setItem('megadraft_teamId', teamId);
         pinError.textContent = '';
         showDraft(latestState);
       })
@@ -123,11 +190,22 @@
     pinScreen.style.display = 'none';
 
     if(MD.isComplete(state)){
+      waitingScreen.style.display = 'none';
       draftScreen.style.display = 'none';
       completeScreen.style.display = 'block';
       return;
     }
 
+    if(state.status !== 'drafting'){
+      const myTeam = state.teams[myTeamId];
+      waitingTeamName.textContent = myTeam && myTeam.name ? `¡Vamos, ${myTeam.name}!` : '¡Ya estás dentro!';
+      waitingScreen.style.display = 'block';
+      draftScreen.style.display = 'none';
+      completeScreen.style.display = 'none';
+      return;
+    }
+
+    waitingScreen.style.display = 'none';
     draftScreen.style.display = 'block';
     completeScreen.style.display = 'none';
 
@@ -145,7 +223,7 @@
         MD.submitPick(myTeamId, brawlerId).catch(() => {});
       }
     });
-    MD.renderTeams(teamsGrid, state, brawlersById);
+    MD.renderTeams(teamsGrid, state, brawlersById, { onMemberClick: openPlayerCard });
   }
 </script>
 </body>
