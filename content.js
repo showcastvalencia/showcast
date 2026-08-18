@@ -1,13 +1,6 @@
 /*
   CONTENIDO EDITABLE DE LA WEB SHOWCAST
-  --------------------------------------
-  No edites este archivo a mano si puedes evitarlo: usa admin.html
-  (ábrelo en tu navegador) para cambiar textos y fotos con un formulario
-  visual. Al terminar, "admin.html" genera un content.js nuevo — sustituye
-  este archivo por el descargado (mismo nombre, misma carpeta que index.html).
-
-  Si lo editas a mano: es JSON válido asignado a window.SHOWCAST_CONTENT,
-  así que no dejes comas finales ni comentarios dentro del objeto.
+  Generado con admin.html — no lo edites a mano si puedes evitarlo.
 */
 window.SHOWCAST_CONTENT = {
   "formEndpoint": "https://script.google.com/macros/s/AKfycbyCgipI6moIJC4vTcqiDI6VJFhYzqGHr5KICXvuB2NofU0bTwVpkUbD84NnE1ul0TrmsA/exec",
@@ -27,7 +20,28 @@ window.SHOWCAST_CONTENT = {
       "Nacidos en Puçol en 2023, hoy seguimos creciendo hacia nuevas localidades de Valencia."
     ]
   },
-  "galeria": [],
+  "galeria": [
+    {
+      "src": "assets/uploads/1787077637000-0-1000234225-jpg.jpg",
+      "tipo": "foto",
+      "caption": ""
+    },
+    {
+      "src": "assets/uploads/1787077639220-1-1000234223-jpg.jpg",
+      "tipo": "foto",
+      "caption": ""
+    },
+    {
+      "src": "assets/uploads/1787077641572-2-1000234224-jpg.jpg",
+      "tipo": "foto",
+      "caption": ""
+    },
+    {
+      "src": "assets/uploads/1787077644034-3-1000234218-jpg.jpg",
+      "tipo": "foto",
+      "caption": ""
+    }
+  ],
   "equipo": [],
   "patrocinadores": [],
   "torneosOrganizados": [
