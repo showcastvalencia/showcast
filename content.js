@@ -11,7 +11,7 @@
 */
 window.SHOWCAST_CONTENT = {
   "formEndpoint": "https://script.google.com/macros/s/AKfycbyCgipI6moIJC4vTcqiDI6VJFhYzqGHr5KICXvuB2NofU0bTwVpkUbD84NnE1ul0TrmsA/exec",
-  "brawlProxyEndpoint": "proxy/brawlstars.php",
+  "brawlProxyEndpoint": "https://34.10.158.213.sslip.io/proxy/brawlstars.php",
   "evento": {
     "titulo": "Torneo 3v3",
     "juego": "Brawl Stars",

@@ -27,6 +27,7 @@ header('Content-Type: application/json; charset=utf-8');
   añade ese dominio a la lista de abajo.
 */
 $allowedOrigins = [
+    'https://showcastvalencia.github.io',
     // 'https://www.showcast.es',
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
