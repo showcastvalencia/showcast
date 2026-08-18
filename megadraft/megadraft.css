@@ -324,6 +324,36 @@ a{color:inherit;text-decoration:none;}
 .player-total-score span{display:block;font-size:.7rem;font-family:'Rajdhani',sans-serif;text-transform:uppercase;letter-spacing:1px;opacity:.7;margin-bottom:4px;}
 .player-modal-empty{opacity:.75;font-size:.9rem;text-align:center;padding:20px 0;}
 
+/* ---------- CRONÓMETROS (admin) ---------- */
+.timer-block{border:2px solid rgba(251,157,69,.4);padding:16px;margin-bottom:16px;}
+.timer-block:last-child{margin-bottom:0;}
+.timer-block-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:10px;}
+.timer-display{
+  font-family:'Anton',sans-serif;font-size:1.6rem;letter-spacing:2px;color:var(--naranja);
+  background:var(--negro);padding:4px 14px;border:2px solid var(--naranja);
+}
+.timer-display.low{color:#ff6b6b;border-color:#ff6b6b;}
+.timer-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.timer-controls label{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;}
+.timer-controls input[type=number]{padding:8px 10px;border:2px solid var(--naranja);background:var(--crema);color:var(--negro);font-weight:600;}
+.pick-duration-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:10px;
+}
+.pick-duration-item{display:flex;align-items:center;justify-content:space-between;gap:6px;border:1px solid rgba(251,157,69,.3);padding:6px 10px;font-size:.8rem;}
+.pick-duration-item input{width:56px;padding:6px 8px;border:2px solid var(--naranja);background:var(--crema);color:var(--negro);font-weight:600;}
+
+/* ---------- CRONÓMETROS (jugador / pantalla) ---------- */
+.timers-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+.timer-card{
+  flex:1 1 200px;border:3px solid var(--naranja);background:rgba(251,157,69,.06);
+  padding:14px 18px;text-align:center;
+}
+.timer-card .tc-label{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;opacity:.8;margin-bottom:6px;}
+.timer-card .tc-value{font-family:'Anton',sans-serif;font-size:2.2rem;letter-spacing:2px;}
+.timer-card .tc-value.low{color:#ff6b6b;}
+.timer-card .tc-sub{font-size:.75rem;opacity:.7;margin-top:4px;}
+.timer-card.paused{opacity:.55;}
+
 .spinner{
   width:40px;height:40px;
   border:5px solid var(--naranja);

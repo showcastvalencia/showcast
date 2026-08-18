@@ -56,6 +56,61 @@ const MD = (function () {
     return miembros.reduce((sum, m) => sum + calcMemberScore(m), 0);
   }
 
+  // ---------- CRONÓMETROS ----------
+  const DEFAULT_PREP_SECONDS = 60;
+  const DEFAULT_PICK_SECONDS = 15;
+
+  function formatTime(totalSeconds) {
+    const s = Math.max(0, Math.ceil(totalSeconds || 0));
+    const mm = Math.floor(s / 60);
+    const ss = s % 60;
+    return String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+  }
+
+  // Los cronómetros no dependen de un "tick" guardado en Firebase (sería
+  // carísimo en escrituras): solo se guarda cuándo empezaron a correr
+  // (startedAt, hora del servidor) y cuánto quedaba en ese momento
+  // (remaining). Cada pantalla calcula el tiempo restante en local con un
+  // setInterval propio, todas a partir del mismo dato — así no hace falta
+  // sincronizar nada salvo iniciar/pausar.
+  function timerRemaining(timer) {
+    if (!timer) return 0;
+    if (timer.running && timer.startedAt) {
+      const elapsed = (Date.now() - timer.startedAt) / 1000;
+      return Math.max(0, (timer.remaining || 0) - elapsed);
+    }
+    return timer.remaining || 0;
+  }
+
+  function startTimer(path, timer) {
+    const remaining = timerRemaining(timer);
+    return db.ref(path).update({
+      running: true,
+      remaining: remaining,
+      startedAt: firebase.database.ServerValue.TIMESTAMP,
+    });
+  }
+
+  function pauseTimer(path, timer) {
+    const remaining = timerRemaining(timer);
+    return db.ref(path).update({
+      running: false,
+      remaining: remaining,
+      startedAt: null,
+    });
+  }
+
+  // update() (no set()): en el cronómetro de elección, "path" apunta a un
+  // objeto que también guarda perTeam/currentTeamId — con set() se borrarían.
+  function resetTimer(path, duration) {
+    return db.ref(path).update({
+      duration: duration,
+      remaining: duration,
+      running: false,
+      startedAt: null,
+    });
+  }
+
   let brawlersCache = null;
 
   function loadBrawlers() {
@@ -120,21 +175,52 @@ const MD = (function () {
     return Object.keys(state.teams).find(id => String(state.teams[id].pin) === String(pin)) || null;
   }
 
-  // Transacción: valida turno + disponibilidad, añade el pick, avanza el índice.
+  // IMPORTANTE: NO se puede hacer transaction() sobre todo "megadraft" (como
+  // antes) en cuanto hay más de un equipo reclamado por dispositivos
+  // distintos: al reescribir el nodo entero, Firebase revalida las reglas de
+  // CADA equipo (incluido su claimedBy), y como el uid del que hace el pick
+  // no coincide con el claimedBy de los OTROS equipos, la escritura entera
+  // se rechaza con permission_denied — aunque esos campos no cambien de
+  // valor. Por eso aquí se valida con una lectura previa y solo se escribe,
+  // de forma atómica, el contador (transaction) y luego, con update() y
+  // rutas concretas (igual que hace admin.html), el resto — así nunca se
+  // toca "teams" y sus reglas por equipo.
   function submitPick(teamId, brawlerId) {
-    return db.ref(STATE_PATH).transaction(state => {
-      if (!state) return state;
-      if (state.status !== 'drafting') return state;
-      if (state.currentPickIndex >= TOTAL_PICKS) return state;
+    return db.ref(STATE_PATH).once('value').then(snap => {
+      const state = snap.val();
+      if (!state) throw new Error('La sala no tiene datos todavía.');
+      if (state.status !== 'drafting') throw new Error('El draft no está en marcha.');
+      if (state.currentPickIndex >= TOTAL_PICKS) throw new Error('El draft ya ha terminado.');
       const turnTeam = state.draftOrder[state.currentPickIndex % TEAMS_PER_DRAFT];
-      if (turnTeam !== teamId) return; // aborta la transacción (no es su turno)
-      if (state.pickedBrawlers && state.pickedBrawlers[brawlerId]) return; // ya elegido
+      if (turnTeam !== teamId) throw new Error('No es tu turno.');
+      if (state.pickedBrawlers && state.pickedBrawlers[brawlerId]) throw new Error('Ese personaje ya está elegido.');
 
-      state.pickedBrawlers = state.pickedBrawlers || {};
-      state.pickedBrawlers[brawlerId] = teamId;
-      state.currentPickIndex += 1;
-      if (state.currentPickIndex >= TOTAL_PICKS) state.status = 'complete';
-      return state;
+      const expectedIndex = state.currentPickIndex;
+      return db.ref(`${STATE_PATH}/currentPickIndex`).transaction(idx => {
+        if (idx !== expectedIndex) return; // alguien se ha adelantado: aborta
+        return idx + 1;
+      }).then(result => {
+        if (!result.committed) throw new Error('Alguien se ha adelantado. Vuelve a intentarlo.');
+        const newIndex = result.snapshot.val();
+
+        const updates = {};
+        updates[`pickedBrawlers/${brawlerId}`] = teamId;
+
+        // El cronómetro de elección se reinicia solo al pasar de turno (en
+        // pausa: el admin decide cuándo arrancarlo para el siguiente equipo),
+        // usando la duración configurada para ese equipo concreto.
+        const perTeam = (state.timers && state.timers.pick && state.timers.pick.perTeam) || {};
+        if (newIndex >= TOTAL_PICKS) {
+          updates.status = 'complete';
+          updates['timers/pick'] = { perTeam: perTeam, currentTeamId: null, duration: 0, remaining: 0, running: false, startedAt: null };
+        } else {
+          const nextTeamId = state.draftOrder[newIndex % TEAMS_PER_DRAFT];
+          const duration = perTeam[nextTeamId] || DEFAULT_PICK_SECONDS;
+          updates['timers/pick'] = { perTeam: perTeam, currentTeamId: nextTeamId, duration: duration, remaining: duration, running: false, startedAt: null };
+        }
+
+        return db.ref(STATE_PATH).update(updates);
+      });
     });
   }
 
@@ -215,10 +301,12 @@ const MD = (function () {
 
   return {
     TEAMS_PER_DRAFT, PICKS_PER_TEAM, TOTAL_PICKS,
+    STATE_PATH, DEFAULT_PREP_SECONDS, DEFAULT_PICK_SECONDS,
     loadBrawlers, subscribeState, signInAnon,
     currentTurnTeamId, currentRound, isComplete, teamPickCount, picksForTeam,
     claimTeam, findTeamByPin, submitPick,
     renderPool, renderTeams,
     fetchPlayerStats, calcMemberScore, calcTeamScore,
+    formatTime, timerRemaining, startTimer, pauseTimer, resetTimer,
   };
 })();
