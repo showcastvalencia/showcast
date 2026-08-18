@@ -19,9 +19,67 @@
   .logo-upload{cursor:pointer;text-align:center;}
   .logo-upload input{display:none;}
   .team-name-input{flex:1;padding:10px;border:2px solid var(--naranja);background:var(--crema);color:var(--negro);font-weight:600;}
+
+  /* ---------- ACCESO POR PIN ---------- */
+  .pin-gate-overlay{
+    position:fixed;inset:0;z-index:2000;
+    background:var(--negro);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .pin-gate-overlay.unlocked{display:none;}
+  .pin-gate-card{
+    max-width:340px;width:100%;text-align:center;
+    border:3px solid var(--naranja);padding:34px 26px;
+    background:rgba(255,255,255,.03);
+  }
+  .pin-gate-card h1{font-size:1.3rem;margin-bottom:18px;}
+  #pinGateInput{
+    font-family:'Anton',sans-serif;letter-spacing:8px;font-size:1.4rem;text-align:center;
+    padding:12px 10px;border:2px solid var(--naranja);background:var(--crema);color:var(--negro);
+    width:100%;margin-bottom:16px;
+  }
 </style>
 </head>
 <body>
+
+<!-- ACCESO POR PIN: filtro visual, no seguridad real (el PIN vive en el código de esta página) -->
+<div class="pin-gate-overlay" id="pinGateOverlay">
+  <div class="pin-gate-card">
+    <h1>🔒 Acceso al panel</h1>
+    <input type="password" id="pinGateInput" maxlength="5" inputmode="numeric" placeholder="•••••" autocomplete="off">
+    <button type="button" class="btn" id="pinGateBtn" style="width:100%;">Entrar</button>
+    <p class="msg-error" id="pinGateError"></p>
+  </div>
+</div>
+<script>
+  (function(){
+    const CORRECT_PIN = '73921';
+    const STORAGE_KEY = 'megadraft_admin_unlocked';
+    const overlay = document.getElementById('pinGateOverlay');
+    const input = document.getElementById('pinGateInput');
+    const btn = document.getElementById('pinGateBtn');
+    const error = document.getElementById('pinGateError');
+
+    if(localStorage.getItem(STORAGE_KEY) === 'yes'){
+      overlay.classList.add('unlocked');
+    }
+
+    function tryUnlock(){
+      if(input.value.trim() === CORRECT_PIN){
+        localStorage.setItem(STORAGE_KEY, 'yes');
+        overlay.classList.add('unlocked');
+        error.textContent = '';
+      } else {
+        error.textContent = 'PIN incorrecto.';
+        input.value = '';
+        input.focus();
+      }
+    }
+    btn.addEventListener('click', tryUnlock);
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') tryUnlock(); });
+  })();
+</script>
 
 <header class="md-header">
   <a href="index.html" class="logo">
