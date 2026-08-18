@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draft — Megadraft Showcast</title>
+<link rel="stylesheet" href="megadraft.css">
+</head>
+<body>
+
+<header class="md-header">
+  <a href="index.html" class="logo">
+    <img src="../assets/logo.png" alt="Logo Showcast">
+    <span>SHOWCAST <span class="tag">Megadraft</span></span>
+  </a>
+  <nav>
+    <a href="screen.html">Pantalla principal</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- Pantalla de PIN -->
+  <div id="pinScreen" class="center-box">
+    <h1>Únete a tu equipo</h1>
+    <p style="margin:14px 0 24px;opacity:.85;">Introduce el PIN de 4 dígitos que os ha dado el organizador.</p>
+    <div class="field">
+      <input type="text" id="pinInput" class="pin-input" maxlength="4" inputmode="numeric" placeholder="0000" autocomplete="off">
+    </div>
+    <button class="btn" id="joinBtn" style="width:100%;">Entrar</button>
+    <p class="msg-error" id="pinError"></p>
+  </div>
+
+  <!-- Pantalla de draft (oculta hasta que el equipo se identifica) -->
+  <div id="draftScreen" style="display:none;">
+    <div class="turn-banner" id="turnBanner">
+      <div class="round" id="roundLabel">Ronda 1 / 12</div>
+      <div class="team-name" id="turnTeamLabel">Cargando…</div>
+    </div>
+
+    <h2 style="margin-bottom:14px;">Pool de personajes</h2>
+    <div class="pool-grid" id="poolGrid"></div>
+
+    <h2 style="margin:34px 0 6px;">Equipos</h2>
+    <div class="teams-grid" id="teamsGrid"></div>
+  </div>
+
+  <div id="completeScreen" class="center-box" style="display:none;">
+    <h1>¡Draft completado!</h1>
+    <p style="margin-top:14px;opacity:.85;">Los 8 equipos ya tienen sus 12 personajes. Buena suerte en la fase de grupos.</p>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/draft-logic.js"></script>
+<script>
+  const pinScreen = document.getElementById('pinScreen');
+  const draftScreen = document.getElementById('draftScreen');
+  const completeScreen = document.getElementById('completeScreen');
+  const pinInput = document.getElementById('pinInput');
+  const pinError = document.getElementById('pinError');
+  const joinBtn = document.getElementById('joinBtn');
+  const poolGrid = document.getElementById('poolGrid');
+  const teamsGrid = document.getElementById('teamsGrid');
+  const turnBanner = document.getElementById('turnBanner');
+  const turnTeamLabel = document.getElementById('turnTeamLabel');
+  const roundLabel = document.getElementById('roundLabel');
+
+  let myTeamId = localStorage.getItem('megadraft_teamId') || null;
+  let myUid = null;
+  let brawlers = [];
+  let brawlersById = {};
+  let latestState = null;
+
+  Promise.all([MD.signInAnon(), MD.loadBrawlers()]).then(([user, list]) => {
+    myUid = user.uid;
+    brawlers = list;
+    brawlersById = Object.fromEntries(list.map(b => [b.id, b]));
+
+    MD.subscribeState(state => {
+      latestState = state;
+      handleState(state);
+    });
+  });
+
+  function handleState(state){
+    if(!state || !state.teams){
+      pinError.textContent = 'La sala aún no está configurada. Espera a que el organizador la prepare.';
+      return;
+    }
+
+    // ¿Ya estamos identificados como un equipo válido en este dispositivo?
+    if(myTeamId && state.teams[myTeamId] && state.teams[myTeamId].claimedBy === myUid){
+      showDraft(state);
+    } else {
+      myTeamId = null;
+    }
+  }
+
+  joinBtn.addEventListener('click', () => {
+    const pin = pinInput.value.trim();
+    if(pin.length !== 4){ pinError.textContent = 'El PIN debe tener 4 dígitos.'; return; }
+    if(!latestState){ pinError.textContent = 'Todavía no hay datos de la sala. Espera unos segundos.'; return; }
+
+    const teamId = MD.findTeamByPin(latestState, pin);
+    if(!teamId){ pinError.textContent = 'PIN incorrecto.'; return; }
+
+    MD.claimTeam(latestState, teamId, pin, myUid)
+      .then(() => {
+        myTeamId = teamId;
+        localStorage.setItem('megadraft_teamId', teamId);
+        pinError.textContent = '';
+        showDraft(latestState);
+      })
+      .catch(err => { pinError.textContent = err.message; });
+  });
+
+  function showDraft(state){
+    pinScreen.style.display = 'none';
+
+    if(MD.isComplete(state)){
+      draftScreen.style.display = 'none';
+      completeScreen.style.display = 'block';
+      return;
+    }
+
+    draftScreen.style.display = 'block';
+    completeScreen.style.display = 'none';
+
+    const turnTeamId = MD.currentTurnTeamId(state);
+    const myTurn = turnTeamId === myTeamId;
+    roundLabel.textContent = `Ronda ${MD.currentRound(state)} / ${MD.PICKS_PER_TEAM}`;
+    turnTeamLabel.textContent = myTurn
+      ? '¡Es tu turno! Elige un personaje'
+      : `Turno de: ${(state.teams[turnTeamId] && state.teams[turnTeamId].name) || '—'}`;
+    turnBanner.classList.toggle('my-turn', myTurn);
+
+    MD.renderPool(poolGrid, brawlers, state, {
+      myTeamId,
+      onPick: (brawlerId) => {
+        MD.submitPick(myTeamId, brawlerId).catch(() => {});
+      }
+    });
+    MD.renderTeams(teamsGrid, state, brawlersById);
+  }
+</script>
+</body>
+</html>

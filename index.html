@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHOWCAST — Organización de eventos Gaming</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Rajdhani:wght@500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --naranja:#fb9d45;
+    --crema:#fee5ce;
+    --negro:#0c0c0c;
+    --blanco:#ffffff;
+    --naranja-dark:#e07f28;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--crema);
+    color:var(--negro);
+    font-family:'Rajdhani',sans-serif;
+    overflow-x:hidden;
+  }
+
+  h1,h2,h3,.display{
+    font-family:'Anton',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+
+  .tag{
+    font-family:'Permanent Marker',cursive;
+    color:var(--naranja);
+  }
+
+  a{color:inherit;text-decoration:none;}
+  img{max-width:100%;display:block;}
+
+  ::selection{background:var(--naranja);color:var(--negro);}
+
+  /* ---------- NAVBAR ---------- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:var(--negro);
+    border-bottom:4px solid var(--naranja);
+  }
+  .nav-wrap{
+    max-width:1280px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 24px;
+  }
+  .logo{
+    font-family:'Anton',sans-serif;
+    font-size:1.5rem;
+    color:var(--blanco);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    letter-spacing:1px;
+  }
+  .logo img{
+    height:44px;
+    width:44px;
+    object-fit:contain;
+    background:var(--blanco);
+    border-radius:50%;
+    padding:3px;
+    border:2px solid var(--naranja);
+  }
+  .logo span{color:var(--naranja);}
+  nav ul{
+    display:flex;
+    gap:22px;
+    list-style:none;
+  }
+  nav a{
+    color:var(--crema);
+    font-weight:700;
+    font-size:.95rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    position:relative;
+    padding:4px 2px;
+    transition:color .2s;
+    white-space:nowrap;
+  }
+  nav a:hover{color:var(--naranja);}
+  nav a::after{
+    content:"";
+    position:absolute;
+    left:0;bottom:-4px;
+    width:0%;
+    height:3px;
+    background:var(--naranja);
+    transition:width .25s ease;
+  }
+  nav a:hover::after{width:100%;}
+
+  .burger{
+    display:none;
+    flex-direction:column;
+    gap:5px;
+    background:none;
+    border:none;
+    cursor:pointer;
+  }
+  .burger span{
+    width:26px;height:3px;background:var(--naranja);display:block;
+  }
+
+  /* ---------- NAV "MÁS" DROPDOWN ---------- */
+  .nav-more{position:relative;}
+  .nav-more-btn{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:6px 2px;
+  }
+  .nav-more-btn span{
+    width:24px;height:3px;background:var(--naranja);display:block;
+    transition:background .2s;
+  }
+  .nav-more-btn:hover span{background:var(--blanco);}
+  .nav-more-menu{
+    position:absolute;
+    top:calc(100% + 14px);
+    right:0;
+    background:var(--negro);
+    border:2px solid var(--naranja);
+    list-style:none;
+    min-width:200px;
+    padding:10px 0;
+    display:none;
+    flex-direction:column;
+    box-shadow:6px 6px 0 rgba(251,157,69,.25);
+    z-index:50;
+  }
+  .nav-more-menu.open{display:flex;}
+  .nav-more-menu li{width:100%;}
+  .nav-more-menu a{
+    display:block;
+    padding:10px 20px;
+    white-space:nowrap;
+  }
+  .nav-more-menu a:hover{background:rgba(251,157,69,.12);}
+  .nav-more-menu a::after{display:none;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    min-height:92vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(251,157,69,.35) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(251,157,69,.3) 0%, transparent 50%),
+      var(--negro);
+    color:var(--blanco);
+    padding:60px 20px;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.02) 0 2px, transparent 2px 40px);
+    pointer-events:none;
+  }
+  .spray-splat{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(2px);
+    opacity:.5;
+  }
+  .splat1{width:260px;height:260px;background:var(--naranja);top:-60px;left:-80px;opacity:.25;border-radius:38% 62% 63% 37% / 41% 44% 56% 59%;}
+  .splat2{width:180px;height:180px;background:var(--naranja);bottom:-40px;right:-40px;opacity:.2;border-radius:63% 37% 42% 58% / 59% 47% 53% 41%;}
+
+  .hero-logo{
+    width:120px;
+    height:120px;
+    object-fit:contain;
+    background:var(--blanco);
+    border-radius:50%;
+    border:4px solid var(--naranja);
+    padding:10px;
+    margin-bottom:24px;
+    box-shadow:0 0 0 8px rgba(251,157,69,.15);
+    position:relative;
+    z-index:2;
+  }
+
+  .hero-badge{
+    display:inline-block;
+    background:var(--naranja);
+    color:var(--negro);
+    font-weight:700;
+    font-size:.85rem;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    padding:6px 16px;
+    transform:rotate(-3deg) skew(-6deg);
+    margin-bottom:22px;
+    box-shadow:4px 4px 0 var(--blanco);
+  }
+
+  .hero h1{
+    font-size:clamp(3.2rem,10vw,7.5rem);
+    line-height:.95;
+    color:var(--blanco);
+    -webkit-text-stroke:2px var(--naranja);
+    text-shadow:6px 6px 0 var(--naranja);
+    position:relative;
+    z-index:2;
+  }
+
+  .hero .subtitle{
+    font-family:'Permanent Marker',cursive;
+    color:var(--naranja);
+    font-size:clamp(1.3rem,3vw,2rem);
+    margin-top:18px;
+    transform:rotate(-2deg);
+  }
+
+  .hero .years{
+    margin-top:10px;
+    font-weight:700;
+    letter-spacing:4px;
+    color:var(--crema);
+    opacity:.75;
+  }
+
+  .hero-ctas{
+    margin-top:44px;
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    justify-content:center;
+    z-index:2;
+  }
+
+  .btn{
+    font-family:'Anton',sans-serif;
+    font-size:1.05rem;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:16px 34px;
+    border:3px solid var(--negro);
+    display:inline-block;
+    transition:transform .15s, box-shadow .15s;
+    clip-path:polygon(6% 0,100% 0,94% 100%,0 100%);
+    cursor:pointer;
+    font-size:1.05rem;
+  }
+  .btn-primary{
+    background:var(--naranja);
+    color:var(--negro);
+    box-shadow:5px 5px 0 var(--blanco);
+  }
+  .btn-primary:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 var(--blanco);}
+  .btn-outline{
+    background:transparent;
+    color:var(--blanco);
+    border-color:var(--naranja);
+    box-shadow:5px 5px 0 var(--naranja);
+  }
+  .btn-outline:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 var(--naranja);}
+  .btn-dark{
+    background:var(--negro);
+    color:var(--crema);
+    border-color:var(--negro);
+    box-shadow:5px 5px 0 var(--naranja);
+  }
+  .btn-dark:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 var(--naranja);}
+
+  /* ---------- SECTION SHELL ---------- */
+  section{
+    padding:90px 24px;
+    position:relative;
+  }
+  .section-inner{
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .section-title{
+    font-size:clamp(2.2rem,5vw,3.4rem);
+    margin-bottom:10px;
+  }
+  .section-title .accent{color:var(--naranja);}
+  .section-kicker{
+    font-family:'Permanent Marker',cursive;
+    color:var(--naranja-dark);
+    font-size:1.2rem;
+    margin-bottom:6px;
+    display:block;
+  }
+  .section-lead{
+    font-weight:600;
+    font-size:1.15rem;
+    max-width:760px;
+    margin-top:14px;
+    line-height:1.6;
+  }
+
+  .diagonal-top{
+    clip-path: polygon(0 4vw, 100% 0, 100% 100%, 0 100%);
+  }
+  .diagonal-bottom{
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 4vw));
+  }
+
+  /* ---------- NEXT EVENT ---------- */
+  .event{
+    background:var(--negro);
+    color:var(--blanco);
+  }
+  .event-card{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0;
+    background:var(--naranja);
+    color:var(--negro);
+    border:4px solid var(--blanco);
+    box-shadow:10px 10px 0 rgba(255,255,255,.15);
+  }
+  .event-card > div{
+    flex:1 1 220px;
+    padding:34px 28px;
+    border-left:3px dashed rgba(0,0,0,.25);
+  }
+  .event-card > div:first-child{border-left:none;}
+  .event-card .label{
+    font-weight:700;
+    letter-spacing:2px;
+    font-size:.85rem;
+    text-transform:uppercase;
+    opacity:.75;
+    margin-bottom:6px;
+  }
+  .event-card .value{
+    font-family:'Anton',sans-serif;
+    font-size:1.6rem;
+    text-transform:uppercase;
+  }
+
+  /* ---------- ABOUT / TEXT BLOCK ---------- */
+  .about{
+    background:var(--crema);
+  }
+  .about p{
+    font-size:1.2rem;
+    line-height:1.7;
+    font-weight:600;
+    max-width:760px;
+    margin-bottom:14px;
+  }
+  .about p:last-of-type{margin-bottom:0;}
+
+  .pillars{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-top:40px;
+  }
+  .pillar{
+    background:var(--blanco);
+    border:3px solid var(--negro);
+    padding:24px;
+    box-shadow:6px 6px 0 var(--naranja);
+  }
+  .pillar .num{
+    font-family:'Anton',sans-serif;
+    color:var(--naranja);
+    font-size:2rem;
+    display:block;
+    margin-bottom:8px;
+  }
+  .pillar p{font-weight:600;line-height:1.5;font-size:1rem;}
+
+  /* ---------- CARDS GRID ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:26px;
+    margin-top:40px;
+  }
+  .card{
+    background:var(--blanco);
+    border:3px solid var(--negro);
+    padding:32px 26px;
+    position:relative;
+    transition:transform .2s;
+  }
+  .card:hover{transform:translateY(-6px);}
+  .card::before{
+    content:"";
+    position:absolute;
+    top:-4px;left:-4px;
+    width:34px;height:34px;
+    background:var(--naranja);
+    clip-path:polygon(0 0,100% 0,0 100%);
+  }
+  .card h3{
+    font-size:1.4rem;
+    margin-bottom:12px;
+    color:var(--negro);
+  }
+  .card p{
+    font-weight:600;
+    line-height:1.5;
+    color:#333;
+  }
+  .card a.card-link{
+    display:inline-block;
+    margin-top:16px;
+    font-weight:700;
+    color:var(--naranja-dark);
+    border-bottom:2px solid var(--naranja-dark);
+  }
+
+  /* ---------- GALERÍA ---------- */
+  .gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+    margin-top:40px;
+  }
+  .gallery-tile{
+    aspect-ratio:4/3;
+    position:relative;
+    border:3px solid var(--negro);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      repeating-linear-gradient(135deg, var(--naranja) 0 14px, var(--naranja-dark) 14px 28px);
+  }
+  .gallery-tile::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(12,12,12,.55);
+  }
+  .gallery-tile span{
+    position:relative;
+    z-index:2;
+    color:var(--crema);
+    font-family:'Permanent Marker',cursive;
+    font-size:1.1rem;
+    text-align:center;
+    padding:0 14px;
+    transform:rotate(-3deg);
+  }
+  .gallery-note{
+    margin-top:22px;
+    font-weight:600;
+    font-size:.95rem;
+    opacity:.7;
+    font-style:italic;
+  }
+  .gallery-tile img{
+    width:100%;height:100%;object-fit:cover;position:relative;z-index:1;
+  }
+  .gallery-tile.has-photo::after{display:none;}
+  .gallery-tile.has-photo span{
+    position:absolute;
+    bottom:0;left:0;right:0;
+    z-index:2;
+    background:linear-gradient(to top, rgba(12,12,12,.85), transparent);
+    padding:22px 12px 10px;
+    transform:none;
+    text-align:left;
+    font-size:.95rem;
+  }
+  .avatar-placeholder img{
+    width:100%;height:100%;object-fit:cover;border-radius:50%;
+  }
+
+  /* ---------- FORM (INSCRIPCIÓN) ---------- */
+  .form-wrap{
+    background:var(--blanco);
+    border:4px solid var(--negro);
+    box-shadow:10px 10px 0 var(--naranja);
+    padding:40px;
+    margin-top:36px;
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+  }
+  .form-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .form-field.full{grid-column:1 / -1;}
+  .form-field label{
+    font-weight:700;
+    text-transform:uppercase;
+    font-size:.8rem;
+    letter-spacing:1px;
+    color:var(--negro);
+  }
+  .form-field input,
+  .form-field select,
+  .form-field textarea{
+    font-family:'Rajdhani',sans-serif;
+    font-size:1rem;
+    font-weight:600;
+    padding:12px 14px;
+    border:2px solid var(--negro);
+    background:var(--crema);
+    color:var(--negro);
+  }
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus{
+    outline:none;
+    border-color:var(--naranja);
+    background:var(--blanco);
+  }
+  .form-note{
+    margin-top:18px;
+    font-size:.9rem;
+    font-weight:600;
+    opacity:.65;
+  }
+  .form-submit{
+    margin-top:26px;
+  }
+
+  .tag-check-row{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .tag-check-row input{flex:1 1 220px;margin-bottom:0;}
+  .btn-outline-dark{
+    background:transparent;
+    color:var(--negro);
+    border:2px solid var(--negro);
+    font-family:'Anton',sans-serif;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    padding:11px 20px;
+    cursor:pointer;
+    font-size:.9rem;
+    white-space:nowrap;
+  }
+  .btn-outline-dark:hover{background:var(--negro);color:var(--crema);}
+  .tag-status{
+    display:block;
+    margin-top:8px;
+    font-weight:700;
+    font-size:.9rem;
+  }
+  .tag-status.ok{color:#2ecc71;}
+  .tag-status.pending{color:var(--naranja);}
+
+  /* ---------- MODAL ¿ES ESTA TU CUENTA? ---------- */
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(12,12,12,.8);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-card{
+    background:var(--crema);
+    border:4px solid var(--negro);
+    box-shadow:12px 12px 0 var(--naranja);
+    max-width:420px;
+    width:100%;
+    padding:36px 30px 30px;
+    position:relative;
+    max-height:90vh;
+    overflow-y:auto;
+  }
+  .modal-close{
+    position:absolute;
+    top:14px;right:14px;
+    background:var(--negro);
+    color:var(--crema);
+    border:none;
+    width:30px;height:30px;
+    cursor:pointer;
+    font-weight:700;
+  }
+  .modal-state{
+    text-align:center;
+    padding:30px 10px;
+  }
+  .modal-state p{font-weight:700;margin-top:14px;}
+  .spinner{
+    width:44px;height:44px;
+    border:5px solid var(--naranja);
+    border-top-color:transparent;
+    border-radius:50%;
+    margin:0 auto;
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .modal-error-icon{
+    width:50px;height:50px;
+    background:#e74c3c;
+    color:var(--blanco);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    font-size:1.4rem;
+    margin:0 auto;
+  }
+  .player-preview{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin:16px 0 20px;
+  }
+  .player-icon{
+    width:72px;height:72px;
+    border-radius:50%;
+    border:3px solid var(--naranja);
+    background:var(--negro);
+    object-fit:cover;
+  }
+  .player-preview h3{font-size:1.3rem;}
+  .player-tag{
+    font-family:'Permanent Marker',cursive;
+    color:var(--naranja-dark);
+    font-size:.95rem;
+  }
+  .player-stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .stat-box{
+    background:var(--blanco);
+    border:2px solid var(--negro);
+    padding:14px 8px;
+    text-align:center;
+  }
+  .stat-num{
+    display:block;
+    font-family:'Anton',sans-serif;
+    font-size:1.4rem;
+    color:var(--naranja-dark);
+  }
+  .stat-label{
+    display:block;
+    font-size:.7rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-top:4px;
+  }
+  .modal-hint{
+    font-size:.8rem;
+    opacity:.65;
+    font-weight:600;
+    margin-bottom:20px;
+    font-style:italic;
+  }
+  .modal-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .modal-actions .btn{flex:1;text-align:center;}
+
+  /* ---------- CHALLONGE EMBED ---------- */
+  .challonge-wrap{
+    margin-top:36px;
+    border:4px solid var(--negro);
+    box-shadow:10px 10px 0 rgba(0,0,0,.12);
+    background:var(--blanco);
+  }
+  .challonge-tabs{
+    display:flex;
+    border-bottom:3px solid var(--negro);
+  }
+  .challonge-tabs button{
+    flex:1;
+    font-family:'Anton',sans-serif;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:16px;
+    background:var(--crema);
+    border:none;
+    border-right:3px solid var(--negro);
+    cursor:pointer;
+    color:var(--negro);
+    font-size:.95rem;
+  }
+  .challonge-tabs button:last-child{border-right:none;}
+  .challonge-tabs button.active{
+    background:var(--naranja);
+  }
+  .challonge-frame-holder{position:relative;}
+  .challonge-frame-holder iframe{
+    width:100%;
+    height:560px;
+    border:none;
+    display:none;
+  }
+  .challonge-frame-holder iframe.active{display:block;}
+  .challonge-placeholder{
+    padding:60px 30px;
+    text-align:center;
+  }
+  .challonge-placeholder p{font-weight:600;margin-top:10px;opacity:.75;}
+  code.inline{
+    background:var(--negro);
+    color:var(--naranja);
+    padding:2px 8px;
+    font-size:.85rem;
+  }
+
+  /* ---------- TIMELINE (TORNEOS ORGANIZADOS) ---------- */
+  .timeline{
+    margin-top:40px;
+    border-left:4px solid var(--naranja);
+    padding-left:30px;
+    display:flex;
+    flex-direction:column;
+    gap:34px;
+  }
+  .timeline-item{position:relative;}
+  .timeline-item::before{
+    content:"";
+    position:absolute;
+    left:-38px;
+    top:4px;
+    width:16px;height:16px;
+    background:var(--naranja);
+    border:3px solid var(--negro);
+    border-radius:50%;
+  }
+  .timeline-item .t-date{
+    font-family:'Anton',sans-serif;
+    color:var(--naranja-dark);
+    font-size:1rem;
+    letter-spacing:1px;
+  }
+  .timeline-item h3{font-size:1.3rem;margin:4px 0 6px;}
+  .timeline-item p{font-weight:600;color:#333;line-height:1.5;}
+
+  /* ---------- TEAM ---------- */
+  .team-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:24px;
+    margin-top:40px;
+  }
+  .team-card{
+    background:var(--blanco);
+    border:3px solid var(--negro);
+    text-align:center;
+    padding:26px 18px;
+    transition:transform .2s;
+  }
+  .team-card:hover{transform:translateY(-6px);}
+  .avatar-placeholder{
+    width:96px;height:96px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    background:var(--naranja);
+    border:3px solid var(--negro);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Anton',sans-serif;
+    font-size:1.8rem;
+    color:var(--negro);
+  }
+  .team-card h4{font-size:1.1rem;text-transform:uppercase;}
+  .team-card .role{
+    font-family:'Permanent Marker',cursive;
+    color:var(--naranja-dark);
+    font-size:.95rem;
+    margin-top:4px;
+  }
+
+  /* ---------- REGISTRO CTA STRIPE ---------- */
+  .cta-stripe{
+    background:repeating-linear-gradient(-45deg,var(--negro) 0 22px,var(--naranja) 22px 44px);
+    padding:70px 24px;
+    text-align:center;
+  }
+  .cta-inner{
+    background:var(--crema);
+    max-width:760px;
+    margin:0 auto;
+    padding:50px 30px;
+    border:4px solid var(--negro);
+    box-shadow:12px 12px 0 var(--negro);
+  }
+  .cta-inner h2{font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:14px;}
+  .cta-inner p{font-weight:600;font-size:1.1rem;margin-bottom:26px;}
+
+  /* ---------- CONTACT SECTION ---------- */
+  .contact-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:26px;
+    margin-top:40px;
+  }
+  .contact-card{
+    background:rgba(255,255,255,.05);
+    border:2px solid var(--naranja);
+    padding:26px;
+    display:block;
+    text-decoration:none;
+    cursor:pointer;
+    transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  a.contact-card:hover{
+    background:var(--naranja);
+    transform:translateY(-4px);
+    box-shadow:0 8px 0 rgba(0,0,0,.35);
+  }
+  a.contact-card:active{
+    transform:translateY(0);
+    box-shadow:none;
+  }
+  a.contact-card:hover .c-label,
+  a.contact-card:hover .c-value{
+    color:var(--negro);
+  }
+  .contact-card .c-label{
+    font-family:'Permanent Marker',cursive;
+    color:var(--naranja);
+    font-size:1rem;
+    margin-bottom:8px;
+    display:block;
+    transition:color .15s ease;
+  }
+  .contact-card .c-value{
+    font-family:'Anton',sans-serif;
+    font-size:1.15rem;
+    color:var(--blanco);
+    word-break:break-word;
+    transition:color .15s ease;
+  }
+
+  /* ---------- MAP ---------- */
+  .map-wrap{
+    margin-top:40px;
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:0;
+    border:4px solid var(--negro);
+    box-shadow:10px 10px 0 var(--naranja);
+    overflow:hidden;
+  }
+  .map-wrap iframe{
+    width:100%;
+    height:420px;
+    border:none;
+    filter:grayscale(.15) contrast(1.05);
+  }
+  .locality-list{
+    background:var(--negro);
+    color:var(--crema);
+    padding:30px;
+  }
+  .locality-list h4{
+    font-family:'Anton',sans-serif;
+    color:var(--naranja);
+    margin-bottom:16px;
+    letter-spacing:1px;
+  }
+  .locality-list ul{list-style:none;}
+  .locality-list li{
+    padding:10px 0;
+    border-bottom:1px dashed rgba(254,229,206,.2);
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .locality-list li:last-child{border-bottom:none;}
+  .locality-list li .pin{color:var(--naranja);font-weight:900;}
+
+  @media(max-width:900px){
+    .map-wrap{grid-template-columns:1fr;}
+    .form-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    background:var(--negro);
+    color:var(--crema);
+    padding:50px 24px 26px;
+    border-top:4px solid var(--naranja);
+  }
+  .footer-inner{
+    max-width:1100px;
+    margin:0 auto;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:30px;
+  }
+  .footer-brand .logo{margin-bottom:10px;}
+  .footer-brand p{opacity:.7;max-width:280px;font-weight:600;}
+  .footer-col h4{
+    font-family:'Anton',sans-serif;
+    color:var(--naranja);
+    margin-bottom:14px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  .footer-col ul{list-style:none;}
+  .footer-col li{margin-bottom:10px;}
+  .footer-col a{opacity:.8;font-weight:600;}
+  .footer-col a:hover{opacity:1;color:var(--naranja);}
+  .socials{display:flex;gap:14px;margin-top:6px;flex-wrap:wrap;}
+  .socials a{
+    width:38px;height:38px;
+    border:2px solid var(--naranja);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;
+    color:var(--naranja);
+    font-size:.75rem;
+  }
+  .socials a:hover{background:var(--naranja);color:var(--negro);}
+  .bottom-bar{
+    max-width:1100px;
+    margin:40px auto 0;
+    padding-top:20px;
+    border-top:1px solid rgba(254,229,206,.15);
+    text-align:center;
+    font-size:.85rem;
+    opacity:.55;
+  }
+
+  @media(max-width:640px){
+    nav ul{gap:12px;}
+    nav a{font-size:.78rem;}
+    .logo img{height:36px;width:36px;}
+    .nav-more-menu{
+      right:auto;
+      left:50%;
+      transform:translateX(-50%);
+      min-width:220px;
+    }
+  }
+  @media(max-width:400px){
+    nav ul{gap:8px;}
+    nav a{font-size:.68rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <a href="#top" class="logo"><img src="assets/logo.png" alt="Logo Showcast"></a>
+    <nav>
+      <ul id="navList">
+        <li><a href="#top">Inicio</a></li>
+        <li><a href="#quienes-somos">Quiénes somos</a></li>
+        <li><a href="#evento">Próximo evento</a></li>
+        <li><a href="#inscripcion">Inscripción</a></li>
+        <li class="nav-more">
+          <button class="nav-more-btn" id="moreBtn" aria-label="Más secciones" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+          <ul class="nav-more-menu" id="moreMenu">
+            <li><a href="#galeria">Galería</a></li>
+            <li><a href="#clasificaciones">Clasificaciones</a></li>
+            <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
+            <li><a href="#mapa">Mapa</a></li>
+            <li><a href="#unete">Únete</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+            <li><a href="megadraft/index.html">Megadraft</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="spray-splat splat1"></div>
+  <div class="spray-splat splat2"></div>
+  <img src="assets/logo.png" alt="Showcast" class="hero-logo">
+  <span class="hero-badge">Organización de eventos gaming</span>
+  <h1>SHOWCAST</h1>
+  <div class="subtitle">¡El escenario es tuyo!</div>
+  <div class="years">2023 — HOY</div>
+  <div class="hero-ctas">
+    <a href="#inscripcion" class="btn btn-primary">Inscríbete ya</a>
+    <a href="#clasificaciones" class="btn btn-outline">Ver clasificaciones</a>
+  </div>
+</section>
+
+<!-- INTRODUCCIÓN Y GENERAL -->
+<section id="quienes-somos" style="background:var(--crema);">
+  <div class="section-inner">
+    <span class="section-kicker">Introducción</span>
+    <h2 class="section-title">¿Quiénes <span class="accent">somos</span>?</h2>
+    <p class="section-lead" id="qsIntro">Somos una organización juvenil altruista nacida en Puçol y en expansión hacia otras localidades de la provincia de Valencia. Organizamos torneos de Brawl Stars desde 2023, creando un ambiente divertido, familiar y lleno de emoción.</p>
+    <div class="pillars" id="qsPillars">
+      <div class="pillar">
+        <span class="num">01</span>
+        <p>Creemos y aprovechamos los videojuegos como herramienta para aprender, compartir y fomentar el juego en comunidad.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">02</span>
+        <p>Toda nuestra organización es de forma autodidacta, con pasión y espíritu emprendedor.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">03</span>
+        <p>Torneos infantiles y juveniles con clasificaciones en directo, pensados para que todos puedan competir y disfrutar.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">04</span>
+        <p>Nacidos en Puçol en 2023, hoy seguimos creciendo hacia nuevas localidades de Valencia.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALERÍA -->
+<section id="galeria" style="background:var(--negro);color:var(--blanco);">
+  <div class="section-inner">
+    <span class="section-kicker">🎮 Recuerdos</span>
+    <h2 class="section-title" style="color:var(--blanco);">Galería de <span class="accent">ediciones</span></h2>
+    <p class="section-lead" style="color:var(--crema);opacity:.85;">Momentos de nuestros torneos anteriores.</p>
+    <div class="gallery-grid" id="galleryGrid">
+      <div class="gallery-tile"><span>Foto próximamente</span></div>
+      <div class="gallery-tile"><span>Foto próximamente</span></div>
+      <div class="gallery-tile"><span>Foto próximamente</span></div>
+      <div class="gallery-tile"><span>Foto próximamente</span></div>
+      <div class="gallery-tile"><span>Foto próximamente</span></div>
+      <div class="gallery-tile"><span>Foto próximamente</span></div>
+    </div>
+    <p class="gallery-note" id="galleryNote">* Espacios reservados a la espera de las fotos reales de ediciones anteriores. Añádelas con <a href="admin.html" style="color:var(--naranja);border-bottom:1px solid var(--naranja);">admin.html</a>, el panel de edición sin código.</p>
+  </div>
+</section>
+
+<section class="event diagonal-top diagonal-bottom" id="evento">
+  <div class="section-inner">
+    <span class="section-kicker">🔴 Próximo evento</span>
+    <h2 class="section-title" id="eventoTitulo">Torneo <span class="accent">3v3</span></h2>
+    <div class="event-card">
+      <div>
+        <div class="label">Juego</div>
+        <div class="value" id="eventoJuego">Brawl Stars</div>
+      </div>
+      <div>
+        <div class="label">Lugar</div>
+        <div class="value" id="eventoLugar">Espai Jove Puçol</div>
+      </div>
+      <div>
+        <div class="label">Fecha</div>
+        <div class="value" id="eventoFecha">20 Junio</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="about">
+  <div class="section-inner">
+    <span class="section-kicker">Nuestra finalidad</span>
+    <h2 class="section-title">¡Prepárate para un buen<br>torneo <span class="accent">comunitario</span>!</h2>
+    <p>¡Prepárate para la batalla más divertida de Brawl Stars! 🎮 Te invitamos a participar en nuestros torneos, pensados para pasarlo en grande entre amigos y rivales.</p>
+    <p>Habrá emoción, risas y mucha acción en cada partida, ¡solo faltas tú para completar el show!</p>
+    <p>Inscríbete junto a tu equipo y demuestra tu habilidad en la arena. ¿Estás listo para ser el campeón? 🏆</p>
+  </div>
+</section>
+
+<!-- INSCRIPCIÓN -->
+<section id="inscripcion" style="background:var(--negro);color:var(--blanco);">
+  <div class="section-inner">
+    <span class="section-kicker">📝 Inscripción</span>
+    <h2 class="section-title" style="color:var(--blanco);">Apúntate al <span class="accent">torneo</span></h2>
+    <p class="section-lead" style="color:var(--crema);opacity:.85;">Rellena el formulario y resérvate tu plaza junto a tu equipo. Te contactaremos para confirmar tu inscripción.</p>
+
+    <form class="form-wrap" id="inscripcionForm">
+      <div class="form-grid">
+        <div class="form-field full">
+          <label for="playerTag">Código de jugador de Brawl Stars</label>
+          <div class="tag-check-row">
+            <input type="text" id="playerTag" name="playerTag" placeholder="Ej. #8CG8LUJ" autocomplete="off">
+            <button type="button" class="btn btn-outline-dark" id="checkTagBtn">Comprobar cuenta</button>
+          </div>
+          <span class="tag-status" id="tagStatus"></span>
+        </div>
+        <div class="form-field">
+          <label for="nombre">Nombre y apellidos</label>
+          <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
+        </div>
+        <div class="form-field">
+          <label for="edad">Edad</label>
+          <input type="number" id="edad" name="edad" min="6" max="99" required placeholder="Ej. 14">
+        </div>
+        <div class="form-field">
+          <label for="equipo">Nombre del equipo</label>
+          <input type="text" id="equipo" name="equipo" placeholder="Opcional si vienes en solitario">
+        </div>
+        <div class="form-field">
+          <label for="categoria">Categoría</label>
+          <select id="categoria" name="categoria" required>
+            <option value="">Selecciona...</option>
+            <option value="infantil">Infantil</option>
+            <option value="juvenil">Juvenil</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" name="email" required placeholder="tucorreo@ejemplo.com">
+        </div>
+        <div class="form-field">
+          <label for="telefono">Teléfono de contacto</label>
+          <input type="tel" id="telefono" name="telefono" required placeholder="600 000 000">
+        </div>
+        <div class="form-field full">
+          <label for="mensaje">Comentarios (opcional)</label>
+          <textarea id="mensaje" name="mensaje" rows="3" placeholder="Cualquier duda o petición especial"></textarea>
+        </div>
+      </div>
+      <div class="form-submit">
+        <button type="submit" class="btn btn-primary">Enviar inscripción</button>
+      </div>
+      <p class="form-note">* Formulario de ejemplo (sin backend conectado todavía). Puede sustituirse por un Google Form embebido o conectarse a un servicio de envío como Formspree / Google Apps Script.</p>
+    </form>
+  </div>
+</section>
+
+<!-- MODAL: ¿ES ESTA TU CUENTA? -->
+<div class="modal-overlay" id="tagModalOverlay">
+  <div class="modal-card" id="tagModalCard">
+    <button type="button" class="modal-close" id="tagModalClose" aria-label="Cerrar">✕</button>
+
+    <div id="tagModalLoading" class="modal-state">
+      <div class="spinner"></div>
+      <p>Buscando tu cuenta...</p>
+    </div>
+
+    <div id="tagModalError" class="modal-state" style="display:none;">
+      <div class="modal-error-icon">✕</div>
+      <p id="tagModalErrorMsg">No se ha podido comprobar la cuenta.</p>
+      <button type="button" class="btn btn-outline-dark" id="tagModalRetry">Reintentar</button>
+    </div>
+
+    <div id="tagModalResult" style="display:none;">
+      <span class="section-kicker">¿Es esta tu cuenta?</span>
+      <div class="player-preview">
+        <img id="pv-icon" class="player-icon" src="" alt="Icono de jugador">
+        <div>
+          <h3 id="pv-name">—</h3>
+          <span id="pv-tag" class="player-tag">#000000</span>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div class="stat-box">
+          <span class="stat-num" id="pv-trophies">0</span>
+          <span class="stat-label">Trofeos</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="pv-v3v3">0</span>
+          <span class="stat-label">Victorias 3v3</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="pv-rank" style="font-size:1.05rem;">—</span>
+          <span class="stat-label" id="pv-rank-label">Máximo ranked (histórico)</span>
+        </div>
+      </div>
+      <p class="modal-hint" id="pv-current-ranked"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" id="tagConfirmYes">Sí, es mi cuenta</button>
+        <button type="button" class="btn btn-outline-dark" id="tagConfirmNo">No, corregir código</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLASIFICACIONES EN VIVO -->
+<section id="clasificaciones" style="background:var(--crema);">
+  <div class="section-inner">
+    <span class="section-kicker">🔴 En directo</span>
+    <h2 class="section-title">Clasificaciones</h2>
+    <p class="section-lead">Sigue en directo la clasificación de cada categoría, con las tablas de Challonge.</p>
+
+    <div class="challonge-wrap">
+      <div class="challonge-tabs">
+        <button type="button" class="active" data-target="frame-infantil">Tabla Infantil</button>
+        <button type="button" data-target="frame-juvenil">Tabla Juvenil</button>
+      </div>
+      <div class="challonge-frame-holder">
+        <!--
+          EMBED MANUAL DE CHALLONGE:
+          Sustituye el src de cada iframe por la URL de tu torneo, por ejemplo:
+          https://challonge.com/es/NOMBRE_DEL_TORNEO/module
+        -->
+        <iframe id="frame-infantil" class="active" src="about:blank" title="Clasificación Infantil - Challonge"></iframe>
+        <iframe id="frame-juvenil" src="about:blank" title="Clasificación Juvenil - Challonge"></iframe>
+        <div class="challonge-placeholder">
+          <h3>Embed de Challonge pendiente de configurar</h3>
+          <p>Pega aquí el código <code class="inline">&lt;iframe&gt;</code> que te da Challonge para cada torneo (Compartir → Insertar). Ejemplo:</p>
+          <p><code class="inline">&lt;iframe src="https://challonge.com/es/TU_TORNEO/module" width="100%" height="560"&gt;&lt;/iframe&gt;</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOBRE NOSOTROS: EQUIPO + TORNEOS ORGANIZADOS -->
+<section id="sobre-nosotros" style="background:var(--negro);color:var(--blanco);">
+  <div class="section-inner">
+    <span class="section-kicker">¿Quiénes somos?</span>
+    <h2 class="section-title" style="color:var(--blanco);">El <span class="accent">equipo</span> detrás del show</h2>
+
+    <div class="team-grid" id="teamGrid">
+      <div class="team-card">
+        <div class="avatar-placeholder">?</div>
+        <h4>Miembro del equipo</h4>
+        <div class="role">Cargo pendiente</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar-placeholder">?</div>
+        <h4>Miembro del equipo</h4>
+        <div class="role">Cargo pendiente</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar-placeholder">?</div>
+        <h4>Miembro del equipo</h4>
+        <div class="role">Cargo pendiente</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar-placeholder">?</div>
+        <h4>Miembro del equipo</h4>
+        <div class="role">Cargo pendiente</div>
+      </div>
+    </div>
+    <p class="gallery-note" style="color:var(--crema);">* Añade nombres, cargos y fotos reales desde <a href="admin.html" style="color:var(--naranja);border-bottom:1px solid var(--naranja);">admin.html</a>.</p>
+
+    <h3 style="margin-top:70px;font-size:clamp(1.6rem,4vw,2.2rem);color:var(--blanco);">Torneos ya <span class="accent">organizados</span></h3>
+    <div class="timeline" id="timelineList">
+      <div class="timeline-item">
+        <div class="t-date">20 Junio 2026</div>
+        <h3>Torneo 3v3 — Brawl Stars</h3>
+        <p>Espai Jove Puçol. Próximo torneo comunitario de la temporada.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="t-date">2023 — Hoy</div>
+        <h3>Torneos comunitarios de Brawl Stars</h3>
+        <p>Desde nuestra fundación en Puçol organizamos torneos infantiles y juveniles de forma recurrente.</p>
+      </div>
+    </div>
+    <p class="gallery-note" style="color:var(--crema);">* Añade aquí el listado completo de ediciones anteriores (fecha, juego, sede y ganadores) desde <a href="admin.html" style="color:var(--naranja);border-bottom:1px solid var(--naranja);">admin.html</a>.</p>
+  </div>
+</section>
+
+<section class="cta-stripe" id="inscripcion-cta">
+  <div class="cta-inner">
+    <span class="section-kicker">Formulario de registro</span>
+    <h2>¡Reserva tu plaza en el torneo!</h2>
+    <p>Inscríbete junto a tu equipo, elige tu categoría y prepárate para competir en el próximo evento de Showcast.</p>
+    <a href="#inscripcion" class="btn btn-primary">Ir a inscripción</a>
+  </div>
+</section>
+
+<!-- MAPA -->
+<section id="mapa" style="background:var(--crema);">
+  <div class="section-inner">
+    <span class="section-kicker">📍 Dónde jugamos</span>
+    <h2 class="section-title">Localidades de <span class="accent">Valencia</span></h2>
+    <p class="section-lead">Nacimos en Puçol y seguimos llevando nuestros torneos a nuevas localidades de la provincia.</p>
+    <div class="map-wrap">
+      <iframe src="https://www.google.com/maps?q=Espai+Jove+Pu%C3%A7ol,+Valencia&output=embed" loading="lazy" allowfullscreen title="Mapa provincia de Valencia"></iframe>
+      <div class="locality-list">
+        <h4>Localidades con torneos</h4>
+        <ul id="localityList">
+          <li><span class="pin">📍</span> Puçol — Espai Jove Puçol (sede actual)</li>
+          <li><span class="pin">📍</span> Próxima localidad — por confirmar</li>
+          <li><span class="pin">📍</span> Próxima localidad — por confirmar</li>
+        </ul>
+      </div>
+    </div>
+    <p class="gallery-note">* Actualiza el listado a medida que Showcast se expanda a nuevas localidades de la provincia.</p>
+  </div>
+</section>
+
+<!-- ÚNETE A NOSOTROS -->
+<section id="unete" style="background:var(--negro);color:var(--blanco);">
+  <div class="section-inner" style="text-align:center;">
+    <span class="section-kicker">🤝 Forma parte del show</span>
+    <h2 class="section-title" style="color:var(--blanco);">Únete a <span class="accent">nosotros</span></h2>
+    <p class="section-lead" style="color:var(--crema);opacity:.85;margin:14px auto 0;">Buscamos gente joven, apasionada por los videojuegos y con ganas de ayudar a organizar torneos, streaming, diseño o comunidad. Si quieres formar parte del equipo Showcast, escríbenos.</p>
+    <div class="hero-ctas" style="justify-content:center;margin-top:36px;">
+      <a href="#contacto" class="btn btn-primary">Quiero unirme</a>
+      <a href="https://www.instagram.com/showcast.es" target="_blank" rel="noopener" class="btn btn-outline">Síguenos en Instagram</a>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACTO + RRSS -->
+<footer id="contacto">
+  <div class="section-inner" style="max-width:1100px;margin:0 auto 50px;">
+    <span class="section-kicker">📬 Contáctanos</span>
+    <h2 class="section-title" style="color:var(--blanco);">Hablemos</h2>
+    <div class="contact-grid">
+      <a class="contact-card" id="contactEmailCard" href="mailto:showcastvalencia.com">
+        <span class="c-label">Correo</span>
+        <span class="c-value" id="contactEmail">showcastvalencia.com</span>
+      </a>
+      <a class="contact-card" id="contactPhoneCard" href="#contacto">
+        <span class="c-label">Teléfono</span>
+        <span class="c-value" id="contactPhone">Pendiente de publicar</span>
+      </a>
+      <a class="contact-card" id="contactInstaCard" href="https://www.instagram.com/showcast.es" target="_blank" rel="noopener">
+        <span class="c-label">Instagram</span>
+        <span class="c-value">@showcast.es</span>
+      </a>
+      <a class="contact-card" id="contactTiktokCard" href="https://www.tiktok.com/@showcast.valencia" target="_blank" rel="noopener">
+        <span class="c-label">TikTok</span>
+        <span class="c-value">@showcast.valencia</span>
+      </a>
+    </div>
+    <p class="gallery-note" style="color:var(--crema);">* Correo y teléfono editables desde <a href="admin.html" style="color:var(--naranja);border-bottom:1px solid var(--naranja);">admin.html</a>.</p>
+  </div>
+
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="#top" class="logo"><img src="assets/logo.png" alt="Logo Showcast"></a>
+      <p>Organización de eventos Gaming. Torneos comunitarios desde 2023.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navegación</h4>
+      <ul>
+        <li><a href="#quienes-somos">Quiénes somos</a></li>
+        <li><a href="#galeria">Galería</a></li>
+        <li><a href="#evento">Próximo evento</a></li>
+        <li><a href="#inscripcion">Inscripción</a></li>
+        <li><a href="#clasificaciones">Clasificaciones</a></li>
+        <li><a href="#unete">Únete</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Redes sociales</h4>
+      <div class="socials">
+        <a href="https://www.instagram.com/showcast.es" target="_blank" rel="noopener" aria-label="Instagram">IG</a>
+        <a href="https://www.tiktok.com/@showcast.valencia" target="_blank" rel="noopener" aria-label="TikTok">TT</a>
+        <a href="https://www.youtube.com/@ShowCastValencia" target="_blank" rel="noopener" aria-label="YouTube">YT</a>
+        <a href="https://whatsapp.com/channel/0029VbAtgY67DAWxuiCVQq2g" target="_blank" rel="noopener" aria-label="WhatsApp">WA</a>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-bar">© 2026 Showcast — @showcast.es</div>
+</footer>
+
+<script src="content.js"></script>
+<script>
+  const moreBtn = document.getElementById('moreBtn');
+  const moreMenu = document.getElementById('moreMenu');
+  moreBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = moreMenu.classList.toggle('open');
+    moreBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+  moreMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    moreMenu.classList.remove('open');
+    moreBtn.setAttribute('aria-expanded', 'false');
+  }));
+  document.addEventListener('click', (e) => {
+    if(!moreMenu.contains(e.target) && e.target !== moreBtn){
+      moreMenu.classList.remove('open');
+      moreBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Challonge tabs
+  document.querySelectorAll('.challonge-tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.challonge-tabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.challonge-frame-holder iframe').forEach(f => f.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.target).classList.add('active');
+    });
+  });
+
+  // ---------- RENDERIZADO DINÁMICO DESDE content.js ----------
+  (function renderContent(){
+    const data = window.SHOWCAST_CONTENT;
+    if(!data) return;
+
+    if(data.evento){
+      const ev = data.evento;
+      const t = document.getElementById('eventoTitulo');
+      if(t && ev.titulo) t.innerHTML = ev.titulo.replace(/(\S+)$/, '<span class="accent">$1</span>');
+      const setText = (id, val) => { const el = document.getElementById(id); if(el && val) el.textContent = val; };
+      setText('eventoJuego', ev.juego);
+      setText('eventoLugar', ev.lugar);
+      setText('eventoFecha', ev.fecha);
+    }
+
+    if(data.quienesSomos){
+      const intro = document.getElementById('qsIntro');
+      if(intro && data.quienesSomos.intro) intro.textContent = data.quienesSomos.intro;
+      const pillarsWrap = document.getElementById('qsPillars');
+      if(pillarsWrap && Array.isArray(data.quienesSomos.pilares) && data.quienesSomos.pilares.length){
+        pillarsWrap.innerHTML = data.quienesSomos.pilares.map((texto, i) => `
+          <div class="pillar">
+            <span class="num">${String(i+1).padStart(2,'0')}</span>
+            <p>${texto}</p>
+          </div>`).join('');
+      }
+    }
+
+    if(Array.isArray(data.galeria) && data.galeria.length){
+      const grid = document.getElementById('galleryGrid');
+      grid.innerHTML = data.galeria.map(item => `
+        <div class="gallery-tile has-photo">
+          <img src="${item.src}" alt="${item.caption || 'Foto Showcast'}">
+          ${item.caption ? `<span>${item.caption}</span>` : ''}
+        </div>`).join('');
+      const note = document.getElementById('galleryNote');
+      if(note) note.style.display = 'none';
+    }
+
+    if(Array.isArray(data.equipo) && data.equipo.length){
+      const grid = document.getElementById('teamGrid');
+      grid.innerHTML = data.equipo.map(m => `
+        <div class="team-card">
+          <div class="avatar-placeholder">${m.foto ? `<img src="${m.foto}" alt="${m.nombre || ''}">` : (m.nombre ? m.nombre.charAt(0).toUpperCase() : '?')}</div>
+          <h4>${m.nombre || 'Miembro del equipo'}</h4>
+          <div class="role">${m.rol || 'Cargo pendiente'}</div>
+        </div>`).join('');
+    }
+
+    if(Array.isArray(data.torneosOrganizados) && data.torneosOrganizados.length){
+      const list = document.getElementById('timelineList');
+      list.innerHTML = data.torneosOrganizados.map(t => `
+        <div class="timeline-item">
+          <div class="t-date">${t.fecha || ''}</div>
+          <h3>${t.titulo || ''}</h3>
+          <p>${t.descripcion || ''}</p>
+        </div>`).join('');
+    }
+
+    if(Array.isArray(data.localidades) && data.localidades.length){
+      const list = document.getElementById('localityList');
+      list.innerHTML = data.localidades.map(loc => `<li><span class="pin">📍</span> ${loc}</li>`).join('');
+    }
+
+    if(data.contacto){
+      const setText = (id, val) => { const el = document.getElementById(id); if(el && val) el.textContent = val; };
+      setText('contactEmail', data.contacto.email);
+      setText('contactPhone', data.contacto.telefono);
+
+      if(data.contacto.email){
+        document.getElementById('contactEmailCard').href = 'mailto:' + data.contacto.email;
+      }
+      const phoneDigits = (data.contacto.telefono || '').replace(/[^\d+]/g, '');
+      const phoneCard = document.getElementById('contactPhoneCard');
+      if(phoneDigits){
+        phoneCard.href = 'tel:' + phoneDigits;
+      } else {
+        phoneCard.href = '#contacto';
+        phoneCard.addEventListener('click', e => e.preventDefault());
+      }
+
+      if(data.contacto.instagram) document.getElementById('contactInstaCard').href = data.contacto.instagram;
+      if(data.contacto.tiktok) document.getElementById('contactTiktokCard').href = data.contacto.tiktok;
+      document.querySelectorAll('a[href*="instagram.com/showcast"], a[aria-label="Instagram"]').forEach(a => { if(data.contacto.instagram) a.href = data.contacto.instagram; });
+      document.querySelectorAll('a[aria-label="TikTok"]').forEach(a => { if(data.contacto.tiktok) a.href = data.contacto.tiktok; });
+      document.querySelectorAll('a[aria-label="YouTube"]').forEach(a => { if(data.contacto.youtube) a.href = data.contacto.youtube; });
+      document.querySelectorAll('a[aria-label="WhatsApp"]').forEach(a => { if(data.contacto.whatsapp) a.href = data.contacto.whatsapp; });
+    }
+  })();
+
+  // ---------- COMPROBAR CUENTA DE BRAWL STARS ----------
+  (function brawlStarsCheck(){
+    const checkBtn = document.getElementById('checkTagBtn');
+    const tagInput = document.getElementById('playerTag');
+    const tagStatus = document.getElementById('tagStatus');
+    const overlay = document.getElementById('tagModalOverlay');
+    const closeBtn = document.getElementById('tagModalClose');
+    const retryBtn = document.getElementById('tagModalRetry');
+    const confirmYes = document.getElementById('tagConfirmYes');
+    const confirmNo = document.getElementById('tagConfirmNo');
+
+    const stateLoading = document.getElementById('tagModalLoading');
+    const stateError = document.getElementById('tagModalError');
+    const stateResult = document.getElementById('tagModalResult');
+    const errorMsg = document.getElementById('tagModalErrorMsg');
+
+    function getEndpoint(){
+      return (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.brawlProxyEndpoint) || 'proxy/brawlstars.php';
+    }
+
+    function showState(state){
+      stateLoading.style.display = state === 'loading' ? 'block' : 'none';
+      stateError.style.display = state === 'error' ? 'block' : 'none';
+      stateResult.style.display = state === 'result' ? 'block' : 'none';
+    }
+
+    function openModal(){
+      overlay.classList.add('open');
+    }
+    function closeModal(){
+      overlay.classList.remove('open');
+    }
+
+    function fetchAndShow(){
+      const tag = tagInput.value.trim();
+      if(!tag){
+        tagInput.focus();
+        return;
+      }
+      openModal();
+      showState('loading');
+
+      fetch(getEndpoint() + '?tag=' + encodeURIComponent(tag))
+        .then(res => res.json().then(body => ({ status: res.status, body })))
+        .then(({ body }) => {
+          if(!body.ok) throw new Error(body.error || 'No se ha podido comprobar la cuenta.');
+
+          document.getElementById('pv-icon').src = body.iconUrl || '';
+          document.getElementById('pv-name').textContent = body.name || '(sin nombre)';
+          document.getElementById('pv-tag').textContent = body.tag || tag;
+          document.getElementById('pv-trophies').textContent = body.trophies ?? 0;
+          document.getElementById('pv-v3v3').textContent = body.victories3v3 ?? 0;
+
+          document.getElementById('pv-rank').textContent = body.rankedAllTimePeakName || '—';
+
+          const currentEl = document.getElementById('pv-current-ranked');
+          if(body.rankedCurrentName){
+            currentEl.textContent = 'Ranked actual: ' + body.rankedCurrentName;
+          } else {
+            currentEl.textContent = 'Este jugador todavía no tiene partidas de Ranked registradas.';
+          }
+
+          stateResult.dataset.tag = body.tag || tag;
+          stateResult.dataset.name = body.name || '';
+          showState('result');
+        })
+        .catch(err => {
+          errorMsg.textContent = err.message || 'No se ha podido comprobar la cuenta.';
+          showState('error');
+        });
+    }
+
+    checkBtn.addEventListener('click', fetchAndShow);
+    retryBtn.addEventListener('click', fetchAndShow);
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(); });
+
+    confirmYes.addEventListener('click', () => {
+      const tag = stateResult.dataset.tag;
+      const name = stateResult.dataset.name;
+      tagInput.value = tag;
+      tagStatus.textContent = '✓ Cuenta verificada: ' + name;
+      tagStatus.className = 'tag-status ok';
+      closeModal();
+    });
+
+    confirmNo.addEventListener('click', () => {
+      closeModal();
+      tagStatus.textContent = '';
+      tagStatus.className = 'tag-status';
+      tagInput.value = '';
+      tagInput.focus();
+    });
+  })();
+
+  // ---------- INSCRIPCIÓN: envío a Google Sheets vía Apps Script ----------
+  document.getElementById('inscripcionForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const form = e.target;
+    const endpoint = (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.formEndpoint) || '';
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    if(!endpoint){
+      alert('El formulario todavía no está conectado a Google Sheets.\n\nPide a quien mantenga la web que despliegue el Apps Script (ver google-apps-script/Code.gs) y añada la URL en content.js → "formEndpoint".');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    const formData = new FormData(form);
+    fetch(endpoint, { method: 'POST', mode: 'no-cors', body: formData })
+      .then(() => {
+        alert('¡Gracias por tu inscripción! Hemos recibido tus datos.');
+        form.reset();
+      })
+      .catch(() => {
+        alert('No se ha podido enviar la inscripción. Inténtalo de nuevo o escríbenos por redes sociales.');
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar inscripción';
+      });
+  });
+</script>
+
+</body>
+</html>

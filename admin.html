@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Showcast — Panel de edición</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Rajdhani:wght@500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --naranja:#fb9d45;
+    --crema:#fee5ce;
+    --negro:#0c0c0c;
+    --blanco:#ffffff;
+    --naranja-dark:#e07f28;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--crema);
+    color:var(--negro);
+    font-family:'Rajdhani',sans-serif;
+    padding-bottom:80px;
+  }
+  header{
+    background:var(--negro);
+    border-bottom:4px solid var(--naranja);
+    padding:18px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:50;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  header h1{
+    font-family:'Anton',sans-serif;
+    color:var(--blanco);
+    font-size:1.3rem;
+    letter-spacing:1px;
+    margin:0;
+  }
+  header h1 span{color:var(--naranja);}
+  .top-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  main{max-width:900px;margin:0 auto;padding:30px 20px;}
+  .intro-box{
+    background:var(--blanco);
+    border:3px solid var(--negro);
+    padding:22px 26px;
+    margin-bottom:30px;
+    box-shadow:6px 6px 0 var(--naranja);
+  }
+  .intro-box p{margin:0 0 8px;font-weight:600;line-height:1.5;}
+  .intro-box p:last-child{margin-bottom:0;}
+  .panel{
+    background:var(--blanco);
+    border:3px solid var(--negro);
+    margin-bottom:26px;
+  }
+  .panel-head{
+    background:var(--negro);
+    color:var(--crema);
+    padding:14px 20px;
+    font-family:'Anton',sans-serif;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    font-size:1.05rem;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .panel-body{padding:22px 20px;}
+  label{
+    display:block;
+    font-weight:700;
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:6px;
+    color:#333;
+  }
+  input[type=text], input[type=email], input[type=tel], input[type=url], textarea{
+    width:100%;
+    font-family:'Rajdhani',sans-serif;
+    font-size:1rem;
+    font-weight:600;
+    padding:10px 12px;
+    border:2px solid var(--negro);
+    background:var(--crema);
+    color:var(--negro);
+    margin-bottom:14px;
+  }
+  input:focus, textarea:focus{outline:none;border-color:var(--naranja);background:var(--blanco);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  @media(max-width:640px){.row2,.row3{grid-template-columns:1fr;}}
+
+  .repeat-item{
+    border:2px dashed var(--naranja-dark);
+    padding:16px;
+    margin-bottom:14px;
+    position:relative;
+    background:#fffaf5;
+  }
+  .remove-btn{
+    position:absolute;
+    top:8px;right:8px;
+    background:var(--negro);
+    color:var(--blanco);
+    border:none;
+    width:26px;height:26px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:.9rem;
+  }
+  .remove-btn:hover{background:#c0392b;}
+
+  .btn{
+    font-family:'Anton',sans-serif;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:10px 20px;
+    border:3px solid var(--negro);
+    cursor:pointer;
+    font-size:.9rem;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .btn-primary{background:var(--naranja);color:var(--negro);}
+  .btn-primary:hover{background:var(--naranja-dark);}
+  .btn-dark{background:var(--negro);color:var(--crema);}
+  .btn-dark:hover{background:#222;}
+  .btn-ghost{background:var(--blanco);color:var(--negro);}
+  .btn-add{
+    background:var(--crema);
+    border:2px dashed var(--negro);
+    color:var(--negro);
+    font-family:'Rajdhani',sans-serif;
+    font-weight:700;
+    text-transform:none;
+    letter-spacing:0;
+  }
+
+  .thumb{
+    width:90px;height:90px;
+    object-fit:cover;
+    border:2px solid var(--negro);
+    display:block;
+    margin-bottom:10px;
+    background:#eee;
+  }
+  .thumb.round{border-radius:50%;}
+  .file-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;}
+
+  .save-bar{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    background:var(--negro);
+    border-top:4px solid var(--naranja);
+    padding:16px 24px;
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    z-index:50;
+  }
+
+  .hint{font-size:.85rem;opacity:.65;font-weight:600;margin-top:-8px;margin-bottom:14px;}
+  .status{
+    font-weight:700;
+    padding:8px 14px;
+    display:none;
+  }
+  .status.show{display:inline-block;}
+  .status.ok{background:#dff5df;border:2px solid #2ecc71;}
+  .status.err{background:#fde0e0;border:2px solid #e74c3c;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SHOW<span>CAST</span> — Panel de edición</h1>
+  <div class="top-actions">
+    <label class="btn btn-ghost" style="margin:0;">
+      Cargar content.js actual
+      <input type="file" id="loadFile" accept=".js" style="display:none;">
+    </label>
+  </div>
+</header>
+
+<main>
+  <div class="intro-box">
+    <p><strong>¿Cómo funciona este panel?</strong> Rellena los campos de abajo (textos y fotos) y pulsa "Descargar content.js" al final de la página.</p>
+    <p>Sube ese archivo a tu hosting (por FTP o el gestor de archivos de tu panel, ej. cPanel/Hostinger) en la misma carpeta que <code>index.html</code>, sustituyendo el <code>content.js</code> anterior. La web se actualizará sola, sin tocar ningún HTML.</p>
+    <p>Si ya tienes un <code>content.js</code> con datos anteriores, cárgalo primero con el botón de arriba para no perder lo que ya habías rellenado.</p>
+  </div>
+
+  <span id="statusMsg" class="status"></span>
+
+  <!-- EVENTO -->
+  <div class="panel">
+    <div class="panel-head">🔴 Próximo evento</div>
+    <div class="panel-body">
+      <div class="row3">
+        <div><label>Título del torneo</label><input type="text" id="ev_titulo"></div>
+        <div><label>Juego</label><input type="text" id="ev_juego"></div>
+        <div><label>Lugar</label><input type="text" id="ev_lugar"></div>
+      </div>
+      <label>Fecha</label><input type="text" id="ev_fecha">
+    </div>
+  </div>
+
+  <!-- QUIÉNES SOMOS -->
+  <div class="panel">
+    <div class="panel-head">Quiénes somos</div>
+    <div class="panel-body">
+      <label>Texto de introducción</label>
+      <textarea id="qs_intro" rows="3"></textarea>
+      <label>Puntos clave (pilares)</label>
+      <div id="qs_pilares_list"></div>
+      <button type="button" class="btn btn-add" onclick="addPilar()">+ Añadir punto</button>
+    </div>
+  </div>
+
+  <!-- GALERÍA -->
+  <div class="panel">
+    <div class="panel-head">Galería de fotos</div>
+    <div class="panel-body">
+      <div id="galeria_list"></div>
+      <button type="button" class="btn btn-add" onclick="addGaleriaItem()">+ Añadir foto</button>
+    </div>
+  </div>
+
+  <!-- EQUIPO -->
+  <div class="panel">
+    <div class="panel-head">Sobre nosotros — Equipo</div>
+    <div class="panel-body">
+      <div id="equipo_list"></div>
+      <button type="button" class="btn btn-add" onclick="addEquipoItem()">+ Añadir miembro</button>
+    </div>
+  </div>
+
+  <!-- TORNEOS ORGANIZADOS -->
+  <div class="panel">
+    <div class="panel-head">Torneos ya organizados</div>
+    <div class="panel-body">
+      <div id="torneos_list"></div>
+      <button type="button" class="btn btn-add" onclick="addTorneoItem()">+ Añadir torneo</button>
+    </div>
+  </div>
+
+  <!-- LOCALIDADES -->
+  <div class="panel">
+    <div class="panel-head">Mapa — Localidades</div>
+    <div class="panel-body">
+      <div id="localidades_list"></div>
+      <button type="button" class="btn btn-add" onclick="addLocalidad()">+ Añadir localidad</button>
+    </div>
+  </div>
+
+  <!-- CONTACTO -->
+  <div class="panel">
+    <div class="panel-head">Contacto y redes</div>
+    <div class="panel-body">
+      <div class="row2">
+        <div><label>Correo electrónico</label><input type="email" id="c_email"></div>
+        <div><label>Teléfono</label><input type="tel" id="c_telefono"></div>
+      </div>
+      <div class="row2">
+        <div><label>Instagram (URL)</label><input type="url" id="c_instagram"></div>
+        <div><label>TikTok (URL)</label><input type="url" id="c_tiktok"></div>
+      </div>
+      <div class="row2">
+        <div><label>YouTube (URL)</label><input type="url" id="c_youtube"></div>
+        <div><label>Canal de WhatsApp (URL)</label><input type="url" id="c_whatsapp"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="panel">
+    <div class="panel-head">Formulario de inscripción</div>
+    <div class="panel-body">
+      <label>URL de Google Apps Script (formEndpoint)</label>
+      <input type="url" id="f_endpoint" placeholder="https://script.google.com/macros/s/XXXXX/exec">
+      <p class="hint">Se obtiene desplegando google-apps-script/Code.gs como aplicación web. Déjalo vacío si aún no lo has configurado.</p>
+
+      <label>Ruta del proxy de Brawl Stars</label>
+      <input type="text" id="f_brawlproxy" placeholder="proxy/brawlstars.php">
+      <p class="hint">Ruta (relativa o URL completa) al script proxy/brawlstars.php que verifica el código de jugador. No hace falta tocarla si subes la carpeta "proxy" tal cual junto a index.html.</p>
+    </div>
+  </div>
+</main>
+
+<div class="save-bar">
+  <button type="button" class="btn btn-dark" onclick="downloadContent()">⬇ Descargar content.js</button>
+</div>
+
+<!-- Plantillas ocultas para elementos repetibles -->
+<template id="tpl-pilar">
+  <div class="repeat-item">
+    <button type="button" class="remove-btn" onclick="this.closest('.repeat-item').remove()">✕</button>
+    <label>Texto del punto</label>
+    <textarea class="pilar-text" rows="2"></textarea>
+  </div>
+</template>
+
+<template id="tpl-galeria">
+  <div class="repeat-item">
+    <button type="button" class="remove-btn" onclick="this.closest('.repeat-item').remove()">✕</button>
+    <div class="file-row">
+      <img class="thumb gal-thumb" src="" style="display:none;">
+      <div>
+        <label>Foto</label>
+        <input type="file" class="gal-file" accept="image/*">
+      </div>
+    </div>
+    <label>Pie de foto (opcional)</label>
+    <input type="text" class="gal-caption" placeholder="Ej. Final del torneo de verano 2025">
+  </div>
+</template>
+
+<template id="tpl-equipo">
+  <div class="repeat-item">
+    <button type="button" class="remove-btn" onclick="this.closest('.repeat-item').remove()">✕</button>
+    <div class="file-row">
+      <img class="thumb round eq-thumb" src="" style="display:none;">
+      <div>
+        <label>Foto (opcional)</label>
+        <input type="file" class="eq-file" accept="image/*">
+      </div>
+    </div>
+    <div class="row2">
+      <div><label>Nombre</label><input type="text" class="eq-nombre"></div>
+      <div><label>Cargo / rol</label><input type="text" class="eq-rol" placeholder="Ej. Organización, Streaming..."></div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-torneo">
+  <div class="repeat-item">
+    <button type="button" class="remove-btn" onclick="this.closest('.repeat-item').remove()">✕</button>
+    <div class="row2">
+      <div><label>Fecha</label><input type="text" class="t-fecha" placeholder="Ej. Junio 2025"></div>
+      <div><label>Título</label><input type="text" class="t-titulo" placeholder="Ej. Torneo 3v3 — Brawl Stars"></div>
+    </div>
+    <label>Descripción</label>
+    <textarea class="t-desc" rows="2"></textarea>
+  </div>
+</template>
+
+<template id="tpl-localidad">
+  <div class="repeat-item" style="padding:12px 16px;">
+    <button type="button" class="remove-btn" onclick="this.closest('.repeat-item').remove()">✕</button>
+    <input type="text" class="loc-text" placeholder="Ej. Puçol — Espai Jove Puçol (sede actual)">
+  </div>
+</template>
+
+<script>
+  function addRepeat(listId, tplId, fill){
+    const tpl = document.getElementById(tplId);
+    const node = tpl.content.cloneNode(true);
+    document.getElementById(listId).appendChild(node);
+    const item = document.getElementById(listId).lastElementChild;
+    if(fill) fill(item);
+    return item;
+  }
+
+  function addPilar(text){
+    addRepeat('qs_pilares_list', 'tpl-pilar', item => {
+      item.querySelector('.pilar-text').value = text || '';
+    });
+  }
+
+  function readFileAsDataURL(file, cb){
+    const reader = new FileReader();
+    reader.onload = () => cb(reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  function addGaleriaItem(data){
+    data = data || {};
+    addRepeat('galeria_list', 'tpl-galeria', item => {
+      const thumb = item.querySelector('.gal-thumb');
+      const fileInput = item.querySelector('.gal-file');
+      const captionInput = item.querySelector('.gal-caption');
+      if(data.src){ thumb.src = data.src; thumb.style.display='block'; item.dataset.src = data.src; }
+      captionInput.value = data.caption || '';
+      fileInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if(!file) return;
+        readFileAsDataURL(file, url => {
+          thumb.src = url; thumb.style.display = 'block';
+          item.dataset.src = url;
+        });
+      });
+    });
+  }
+
+  function addEquipoItem(data){
+    data = data || {};
+    addRepeat('equipo_list', 'tpl-equipo', item => {
+      const thumb = item.querySelector('.eq-thumb');
+      const fileInput = item.querySelector('.eq-file');
+      if(data.foto){ thumb.src = data.foto; thumb.style.display='block'; item.dataset.foto = data.foto; }
+      item.querySelector('.eq-nombre').value = data.nombre || '';
+      item.querySelector('.eq-rol').value = data.rol || '';
+      fileInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if(!file) return;
+        readFileAsDataURL(file, url => {
+          thumb.src = url; thumb.style.display = 'block';
+          item.dataset.foto = url;
+        });
+      });
+    });
+  }
+
+  function addTorneoItem(data){
+    data = data || {};
+    addRepeat('torneos_list', 'tpl-torneo', item => {
+      item.querySelector('.t-fecha').value = data.fecha || '';
+      item.querySelector('.t-titulo').value = data.titulo || '';
+      item.querySelector('.t-desc').value = data.descripcion || '';
+    });
+  }
+
+  function addLocalidad(text){
+    addRepeat('localidades_list', 'tpl-localidad', item => {
+      item.querySelector('.loc-text').value = text || '';
+    });
+  }
+
+  function clearAllLists(){
+    ['qs_pilares_list','galeria_list','equipo_list','torneos_list','localidades_list'].forEach(id => {
+      document.getElementById(id).innerHTML = '';
+    });
+  }
+
+  function fillForm(data){
+    clearAllLists();
+    data = data || {};
+    const ev = data.evento || {};
+    document.getElementById('ev_titulo').value = ev.titulo || '';
+    document.getElementById('ev_juego').value = ev.juego || '';
+    document.getElementById('ev_lugar').value = ev.lugar || '';
+    document.getElementById('ev_fecha').value = ev.fecha || '';
+
+    const qs = data.quienesSomos || {};
+    document.getElementById('qs_intro').value = qs.intro || '';
+    (qs.pilares || []).forEach(addPilar);
+
+    (data.galeria || []).forEach(addGaleriaItem);
+    (data.equipo || []).forEach(addEquipoItem);
+    (data.torneosOrganizados || []).forEach(addTorneoItem);
+    (data.localidades || []).forEach(addLocalidad);
+
+    const c = data.contacto || {};
+    document.getElementById('c_email').value = c.email || '';
+    document.getElementById('c_telefono').value = c.telefono || '';
+    document.getElementById('c_instagram').value = c.instagram || '';
+    document.getElementById('c_tiktok').value = c.tiktok || '';
+    document.getElementById('c_youtube').value = c.youtube || '';
+    document.getElementById('c_whatsapp').value = c.whatsapp || '';
+
+    document.getElementById('f_endpoint').value = data.formEndpoint || '';
+    document.getElementById('f_brawlproxy').value = data.brawlProxyEndpoint || 'proxy/brawlstars.php';
+  }
+
+  function collectForm(){
+    const pilares = Array.from(document.querySelectorAll('#qs_pilares_list .pilar-text'))
+      .map(el => el.value.trim()).filter(Boolean);
+
+    const galeria = Array.from(document.querySelectorAll('#galeria_list .repeat-item'))
+      .map(item => ({
+        src: item.dataset.src || '',
+        caption: item.querySelector('.gal-caption').value.trim()
+      }))
+      .filter(g => g.src);
+
+    const equipo = Array.from(document.querySelectorAll('#equipo_list .repeat-item'))
+      .map(item => ({
+        foto: item.dataset.foto || '',
+        nombre: item.querySelector('.eq-nombre').value.trim(),
+        rol: item.querySelector('.eq-rol').value.trim()
+      }))
+      .filter(m => m.nombre || m.foto);
+
+    const torneos = Array.from(document.querySelectorAll('#torneos_list .repeat-item'))
+      .map(item => ({
+        fecha: item.querySelector('.t-fecha').value.trim(),
+        titulo: item.querySelector('.t-titulo').value.trim(),
+        descripcion: item.querySelector('.t-desc').value.trim()
+      }))
+      .filter(t => t.titulo);
+
+    const localidades = Array.from(document.querySelectorAll('#localidades_list .loc-text'))
+      .map(el => el.value.trim()).filter(Boolean);
+
+    return {
+      formEndpoint: document.getElementById('f_endpoint').value.trim(),
+      brawlProxyEndpoint: document.getElementById('f_brawlproxy').value.trim() || 'proxy/brawlstars.php',
+      evento: {
+        titulo: document.getElementById('ev_titulo').value.trim(),
+        juego: document.getElementById('ev_juego').value.trim(),
+        lugar: document.getElementById('ev_lugar').value.trim(),
+        fecha: document.getElementById('ev_fecha').value.trim()
+      },
+      quienesSomos: {
+        intro: document.getElementById('qs_intro').value.trim(),
+        pilares: pilares
+      },
+      galeria: galeria,
+      equipo: equipo,
+      torneosOrganizados: torneos,
+      localidades: localidades,
+      contacto: {
+        email: document.getElementById('c_email').value.trim(),
+        telefono: document.getElementById('c_telefono').value.trim(),
+        instagram: document.getElementById('c_instagram').value.trim(),
+        tiktok: document.getElementById('c_tiktok').value.trim(),
+        youtube: document.getElementById('c_youtube').value.trim(),
+        whatsapp: document.getElementById('c_whatsapp').value.trim()
+      }
+    };
+  }
+
+  function showStatus(msg, ok){
+    const el = document.getElementById('statusMsg');
+    el.textContent = msg;
+    el.className = 'status show ' + (ok ? 'ok' : 'err');
+    setTimeout(() => el.classList.remove('show'), 4000);
+  }
+
+  function downloadContent(){
+    const data = collectForm();
+    const json = JSON.stringify(data, null, 2);
+    const fileContent =
+`/*
+  CONTENIDO EDITABLE DE LA WEB SHOWCAST
+  Generado con admin.html — no lo edites a mano si puedes evitarlo.
+*/
+window.SHOWCAST_CONTENT = ${json};
+`;
+    const blob = new Blob([fileContent], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'content.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showStatus('content.js descargado. Súbelo a tu hosting junto a index.html.', true);
+  }
+
+  document.getElementById('loadFile').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const text = reader.result;
+        const match = text.match(/window\.SHOWCAST_CONTENT\s*=\s*([\s\S]*?);\s*$/);
+        if(!match) throw new Error('Formato no reconocido');
+        const data = JSON.parse(match[1]);
+        fillForm(data);
+        showStatus('content.js cargado correctamente.', true);
+      }catch(err){
+        showStatus('No se ha podido leer el archivo. ¿Es un content.js válido?', false);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // Estado inicial vacío con un elemento de ejemplo en cada lista
+  fillForm({
+    evento: { titulo: 'Torneo 3v3', juego: 'Brawl Stars', lugar: 'Espai Jove Puçol', fecha: '20 Junio' },
+    quienesSomos: {
+      intro: 'Somos una organización juvenil altruista nacida en Puçol y en expansión hacia otras localidades de la provincia de Valencia.',
+      pilares: [
+        'Creemos y aprovechamos los videojuegos como herramienta para aprender, compartir y fomentar el juego en comunidad.',
+        'Toda nuestra organización es de forma autodidacta, con pasión y espíritu emprendedor.'
+      ]
+    },
+    galeria: [],
+    equipo: [],
+    torneosOrganizados: [
+      { fecha: '20 Junio 2026', titulo: 'Torneo 3v3 — Brawl Stars', descripcion: 'Espai Jove Puçol. Próximo torneo comunitario de la temporada.' }
+    ],
+    localidades: ['Puçol — Espai Jove Puçol (sede actual)'],
+    contacto: {
+      email: 'info@showcast.es',
+      telefono: '',
+      instagram: 'https://www.instagram.com/showcast.es',
+      tiktok: 'https://www.tiktok.com/@showcast.valencia',
+      youtube: 'https://www.youtube.com/@ShowCastValencia',
+      whatsapp: 'https://whatsapp.com/channel/0029VbAtgY67DAWxuiCVQq2g'
+    },
+    formEndpoint: '',
+    brawlProxyEndpoint: 'proxy/brawlstars.php'
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Megadraft Showcast</title>
+<link rel="stylesheet" href="megadraft.css">
+<style>
+  .order-btns{display:flex;flex-direction:column;gap:2px;}
+  .order-btns button{
+    background:none;border:1px solid var(--naranja);color:var(--naranja);
+    width:26px;height:22px;cursor:pointer;font-size:.7rem;
+  }
+  .order-btns button:disabled{opacity:.25;cursor:not-allowed;}
+  .seed-num{
+    font-family:'Anton',sans-serif;font-size:1.3rem;color:var(--naranja);
+    width:30px;text-align:center;
+  }
+  .logo-upload{cursor:pointer;text-align:center;}
+  .logo-upload input{display:none;}
+</style>
+</head>
+<body>
+
+<header class="md-header">
+  <a href="index.html" class="logo">
+    <img src="../assets/logo.png" alt="Logo Showcast">
+    <span>SHOWCAST <span class="tag">Megadraft — Admin</span></span>
+  </a>
+  <nav>
+    <a href="screen.html">Pantalla principal</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <h1 style="margin-bottom:6px;">Configurar equipos</h1>
+  <p style="opacity:.8;margin-bottom:24px;">
+    Orden de arriba a abajo = orden de draft (peor a mejor). Usa las flechas para reordenar antes de empezar.
+    El PIN se genera solo; comparte una tarjetita con cada equipo.
+  </p>
+
+  <div id="teamsList"></div>
+
+  <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:24px;">
+    <button class="btn" id="saveBtn">Guardar equipos</button>
+    <button class="btn btn-outline" id="startBtn">Iniciar draft</button>
+    <button class="btn btn-outline" id="resetBtn">Reiniciar draft (mantiene equipos)</button>
+  </div>
+  <p class="msg-ok" id="saveMsg"></p>
+  <p class="msg-error" id="saveError"></p>
+
+  <div class="card" style="margin-top:36px;">
+    <h3 style="margin-bottom:10px;">Estado actual</h3>
+    <p><span class="status-pill" id="statusPill">—</span></p>
+    <p style="margin-top:10px;opacity:.85;" id="statusDetail"></p>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/draft-logic.js"></script>
+<script>
+  const TEAM_SLOTS = 8;
+  const teamsList = document.getElementById('teamsList');
+  const saveMsg = document.getElementById('saveMsg');
+  const saveError = document.getElementById('saveError');
+  const statusPill = document.getElementById('statusPill');
+  const statusDetail = document.getElementById('statusDetail');
+
+  // Modelo local: array de 8 objetos {id, name, logoUrl, pin}, en orden de draft.
+  let teams = Array.from({ length: TEAM_SLOTS }, (_, i) => ({
+    id: 'team' + (i + 1),
+    name: '',
+    logoUrl: '',
+    pin: genPin(),
+  }));
+
+  function genPin(){
+    return String(Math.floor(1000 + Math.random() * 9000));
+  }
+
+  function render(){
+    teamsList.innerHTML = '';
+    teams.forEach((team, idx) => {
+      const row = document.createElement('div');
+      row.className = 'team-setup-row';
+      row.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="seed-num">${idx + 1}</span>
+          <div class="order-btns">
+            <button type="button" data-up="${idx}" ${idx === 0 ? 'disabled' : ''}>▲</button>
+            <button type="button" data-down="${idx}" ${idx === teams.length - 1 ? 'disabled' : ''}>▼</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <label class="logo-upload">
+            <img class="logo-preview" src="${team.logoUrl || '../assets/logo.png'}" alt="Logo">
+            <input type="file" accept="image/*" data-logo="${idx}">
+          </label>
+          <input type="text" placeholder="Nombre del equipo" value="${team.name}" data-name="${idx}" style="flex:1;padding:10px;border:2px solid var(--naranja);background:var(--crema);color:var(--negro);font-weight:600;">
+        </div>
+        <div class="pin-display">${team.pin}</div>
+        <button type="button" class="btn btn-outline" style="padding:8px 14px;font-size:.75rem;" data-regen="${idx}">Nuevo PIN</button>
+      `;
+      teamsList.appendChild(row);
+    });
+
+    teamsList.querySelectorAll('[data-up]').forEach(btn => btn.addEventListener('click', () => move(+btn.dataset.up, -1)));
+    teamsList.querySelectorAll('[data-down]').forEach(btn => btn.addEventListener('click', () => move(+btn.dataset.down, 1)));
+    teamsList.querySelectorAll('[data-regen]').forEach(btn => btn.addEventListener('click', () => {
+      teams[+btn.dataset.regen].pin = genPin();
+      render();
+    }));
+    teamsList.querySelectorAll('[data-name]').forEach(input => input.addEventListener('input', () => {
+      teams[+input.dataset.name].name = input.value;
+    }));
+    teamsList.querySelectorAll('[data-logo]').forEach(input => input.addEventListener('change', (e) => {
+      const idx = +input.dataset.logo;
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { teams[idx].logoUrl = reader.result; render(); };
+      reader.readAsDataURL(file);
+    }));
+  }
+
+  function move(idx, dir){
+    const target = idx + dir;
+    if(target < 0 || target >= teams.length) return;
+    [teams[idx], teams[target]] = [teams[target], teams[idx]];
+    render();
+  }
+
+  render();
+
+  let db_ready = MD.signInAnon();
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    if(teams.some(t => !t.name.trim())){
+      saveError.textContent = 'Rellena el nombre de los 8 equipos antes de guardar.';
+      return;
+    }
+    // Escritura "plana" (rutas completas) para que cada campo se valide
+    // por separado contra las reglas de seguridad — ver README-FIREBASE.md.
+    const updates = { status: 'config' };
+    teams.forEach(t => {
+      updates[`teams/${t.id}/name`] = t.name.trim();
+      updates[`teams/${t.id}/logoUrl`] = t.logoUrl || '';
+      updates[`teams/${t.id}/pin`] = t.pin;
+    });
+
+    db_ready.then(() => db.ref('megadraft').update(updates))
+      .then(() => { saveMsg.textContent = 'Equipos guardados. Ya pueden entrar en draft.html con su PIN.'; setTimeout(() => saveMsg.textContent = '', 4000); })
+      .catch(err => { saveError.textContent = 'Error al guardar: ' + err.message; });
+  });
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    const order = teams.map(t => t.id);
+    db_ready.then(() => db.ref('megadraft').update({
+        draftOrder: order,
+        currentPickIndex: 0,
+        pickedBrawlers: null,
+        status: 'drafting',
+      }))
+      .then(() => { saveMsg.textContent = '¡Draft iniciado!'; setTimeout(() => saveMsg.textContent = '', 4000); })
+      .catch(err => { saveError.textContent = 'Error al iniciar: ' + err.message; });
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if(!confirm('Esto borra todos los picks realizados (los equipos y PINs se mantienen). ¿Continuar?')) return;
+    db_ready.then(() => db.ref('megadraft').update({
+        pickedBrawlers: null,
+        currentPickIndex: 0,
+        status: 'config',
+      }))
+      .then(() => { saveMsg.textContent = 'Draft reiniciado.'; setTimeout(() => saveMsg.textContent = '', 4000); })
+      .catch(err => { saveError.textContent = 'Error al reiniciar: ' + err.message; });
+  });
+
+  db_ready.then(() => {
+    MD.subscribeState(state => {
+      if(!state){ statusPill.textContent = 'SIN DATOS'; statusDetail.textContent=''; return; }
+      statusPill.textContent = state.status || 'config';
+      if(state.status === 'drafting'){
+        const turnTeamId = MD.currentTurnTeamId(state);
+        statusDetail.textContent = `Ronda ${MD.currentRound(state)}/${MD.PICKS_PER_TEAM} — turno de ${(state.teams[turnTeamId]||{}).name || '—'}`;
+      } else if(MD.isComplete(state)){
+        statusDetail.textContent = 'Draft completado.';
+      } else {
+        statusDetail.textContent = '';
+      }
+    });
+  });
+</script>
+</body>
+</html>

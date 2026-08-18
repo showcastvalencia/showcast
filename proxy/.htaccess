@@ -1,0 +1,4 @@
+# Evita que nadie pueda abrir config.php directamente en el navegador y ver la API key.
+<Files "config.php">
+  Require all denied
+</Files>

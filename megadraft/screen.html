@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantalla principal — Megadraft Showcast</title>
+<link rel="stylesheet" href="megadraft.css">
+</head>
+<body>
+
+<header class="md-header">
+  <a href="index.html" class="logo">
+    <img src="../assets/logo.png" alt="Logo Showcast">
+    <span>SHOWCAST <span class="tag">Megadraft</span></span>
+  </a>
+  <nav>
+    <a href="draft.html">Soy capitán</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="turn-banner" id="turnBanner">
+    <div class="round" id="roundLabel">Esperando…</div>
+    <div class="team-name" id="turnTeamLabel">—</div>
+  </div>
+
+  <h2 style="margin-bottom:14px;">Pool de personajes</h2>
+  <div class="pool-grid" id="poolGrid"></div>
+
+  <h2 style="margin:34px 0 6px;">Equipos</h2>
+  <div class="teams-grid" id="teamsGrid"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/draft-logic.js"></script>
+<script>
+  const poolGrid = document.getElementById('poolGrid');
+  const teamsGrid = document.getElementById('teamsGrid');
+  const turnTeamLabel = document.getElementById('turnTeamLabel');
+  const roundLabel = document.getElementById('roundLabel');
+
+  let brawlers = [];
+  let brawlersById = {};
+
+  MD.loadBrawlers().then(list => {
+    brawlers = list;
+    brawlersById = Object.fromEntries(list.map(b => [b.id, b]));
+    MD.subscribeState(render);
+  });
+
+  function render(state){
+    if(!state || !state.teams){
+      roundLabel.textContent = 'Sala sin configurar';
+      turnTeamLabel.textContent = 'Esperando al organizador…';
+      return;
+    }
+
+    if(state.status === 'config'){
+      roundLabel.textContent = 'Antes de empezar';
+      turnTeamLabel.textContent = 'Esperando a que el organizador inicie el draft…';
+    } else if(MD.isComplete(state)){
+      roundLabel.textContent = 'Draft completado';
+      turnTeamLabel.textContent = '¡Los 8 equipos tienen sus 12 personajes!';
+    } else {
+      const turnTeamId = MD.currentTurnTeamId(state);
+      roundLabel.textContent = `Ronda ${MD.currentRound(state)} / ${MD.PICKS_PER_TEAM}`;
+      turnTeamLabel.textContent = `Turno de: ${(state.teams[turnTeamId] && state.teams[turnTeamId].name) || '—'}`;
+    }
+
+    MD.renderPool(poolGrid, brawlers, state, {});
+    MD.renderTeams(teamsGrid, state, brawlersById);
+  }
+</script>
+</body>
+</html>
