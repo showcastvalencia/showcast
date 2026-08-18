@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vista de stream — Megadraft Showcast</title>
+<link rel="stylesheet" href="megadraft.css">
+<style>
+  /*
+    Pensada para capturarla como Browser Source en OBS (o similar) a 1920x1080
+    (16:9). No fuerces el ratio con CSS: simplemente configura la fuente en
+    OBS a esas dimensiones y esta página ya rellena exactamente ese marco.
+  */
+  html, body{height:100%;margin:0;overflow:hidden;background:var(--negro);}
+  .stream-frame{display:flex;width:100vw;height:100vh;}
+
+  .stream-left{
+    flex:0 0 70%;
+    display:flex;flex-direction:column;
+    padding:22px;
+    overflow-y:auto;
+  }
+  .stream-right{
+    flex:0 0 30%;
+    border-left:4px solid var(--naranja);
+    background:radial-gradient(circle at 50% 30%, rgba(251,157,69,.14), transparent 60%);
+    display:flex;align-items:center;justify-content:center;
+    padding:26px;
+    position:relative;
+  }
+
+  .stream-turn-banner{
+    text-align:center;padding:10px;margin-bottom:16px;
+    border:3px solid var(--naranja);background:rgba(251,157,69,.08);
+    flex:0 0 auto;
+  }
+  .stream-turn-banner .round{font-size:.7rem;opacity:.8;text-transform:uppercase;letter-spacing:1px;}
+  .stream-turn-banner .team-name{font-family:'Anton',sans-serif;font-size:1.15rem;text-transform:uppercase;}
+
+  /* Reutiliza .teams-grid / .team-card de megadraft.css, pero en compacto */
+  .stream-teams.teams-grid{
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-top:0;
+    flex:1 1 auto;
+    align-content:start;
+  }
+  .stream-teams .team-card{padding:8px 10px;}
+  .stream-teams .t-head{margin-bottom:6px;gap:6px;}
+  .stream-teams .t-head img{width:24px;height:24px;}
+  .stream-teams .t-head .t-name{font-size:.8rem;}
+  .stream-teams .t-head .t-score{font-size:.6rem;}
+  .stream-teams .t-members{padding:5px 6px;margin-bottom:6px;}
+  .stream-teams .t-members li{font-size:.65rem;padding:1px 0;}
+  .stream-teams .t-picks img, .stream-teams .t-picks .empty-slot{width:18px;height:18px;}
+
+  /* ---------- ZONA DE REVELADO ---------- */
+  .reveal-empty{
+    text-align:center;opacity:.5;font-size:.95rem;padding:0 10px;
+  }
+  .reveal-card{
+    display:none;
+    flex-direction:column;align-items:center;text-align:center;
+    gap:10px;
+  }
+  .reveal-card img{
+    width:70%;max-width:220px;aspect-ratio:1;object-fit:contain;
+    filter:drop-shadow(0 0 26px rgba(251,157,69,.55));
+  }
+  .reveal-card .reveal-name{
+    font-family:'Anton',sans-serif;font-size:1.5rem;text-transform:uppercase;
+    color:var(--blanco);letter-spacing:1px;
+  }
+  .reveal-card .reveal-team{
+    font-family:'Permanent Marker',cursive;color:var(--naranja);font-size:1rem;
+  }
+  /*
+    Animación de revelado PROVISIONAL — sustituir por las animaciones del
+    Fan Kit oficial de Supercell cuando estén disponibles (ver conversación).
+    Mientras tanto: entrada con rebote + resplandor pulsante en el icono.
+  */
+  .reveal-card.pop{ display:flex; animation: reveal-pop .55s cubic-bezier(.34,1.56,.64,1); }
+  .reveal-card.pop img{ animation: reveal-glow 1.6s ease-in-out infinite; }
+  @keyframes reveal-pop{
+    0%{ transform:scale(.35); opacity:0; }
+    65%{ transform:scale(1.08); opacity:1; }
+    100%{ transform:scale(1); }
+  }
+  @keyframes reveal-glow{
+    0%,100%{ filter:drop-shadow(0 0 18px rgba(251,157,69,.45)); }
+    50%{ filter:drop-shadow(0 0 40px rgba(251,157,69,.85)); }
+  }
+</style>
+</head>
+<body>
+
+<div class="stream-frame">
+  <div class="stream-left">
+    <div class="stream-turn-banner" id="turnBanner">
+      <div class="round" id="roundLabel">Esperando…</div>
+      <div class="team-name" id="turnTeamLabel">—</div>
+    </div>
+    <div class="teams-grid stream-teams" id="teamsGrid"></div>
+  </div>
+
+  <div class="stream-right">
+    <div class="reveal-empty" id="revealEmpty">Esperando el próximo pick…</div>
+    <div class="reveal-card" id="revealCard">
+      <img id="revealIcon" src="" alt="" referrerpolicy="no-referrer">
+      <div class="reveal-name" id="revealName">—</div>
+      <div class="reveal-team" id="revealTeam"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FICHA DE JUGADOR: se abre al pulsar el nombre de un miembro -->
+<div class="player-modal-overlay" id="playerCardOverlay">
+  <div class="player-modal-card">
+    <button type="button" class="player-modal-close" id="playerCardClose">✕</button>
+    <div id="playerCardEmpty" class="player-modal-empty" style="display:none;">
+      Este miembro todavía no tiene un tag de Brawl Stars comprobado.
+    </div>
+    <div id="playerCardBody" style="display:none;">
+      <div class="player-preview">
+        <img id="pc-icon" class="player-icon" src="" alt="Icono de jugador">
+        <div>
+          <h3 id="pc-name">—</h3>
+          <span id="pc-tag" class="player-tag">#000000</span>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div class="stat-box"><span class="stat-num" id="pc-trophies">0</span><span class="stat-label">Trofeos</span></div>
+        <div class="stat-box"><span class="stat-num" id="pc-v3v3">0</span><span class="stat-label">Victorias 3v3</span></div>
+        <div class="stat-box"><span class="stat-num" id="pc-elo">0</span><span class="stat-label">Elo máx. ranked</span></div>
+      </div>
+      <p id="pc-rank-name" style="text-align:center;opacity:.75;font-size:.85rem;margin-bottom:12px;"></p>
+      <div class="player-total-score">
+        <span>Puntuación</span>
+        <span id="pc-score">0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/draft-logic.js"></script>
+<script>
+  const playerCardOverlay = document.getElementById('playerCardOverlay');
+  const playerCardEmpty = document.getElementById('playerCardEmpty');
+  const playerCardBody = document.getElementById('playerCardBody');
+
+  function openPlayerCard(member){
+    playerCardOverlay.classList.add('open');
+    if(!member || !member.tag){
+      playerCardEmpty.style.display = 'block';
+      playerCardBody.style.display = 'none';
+      return;
+    }
+    playerCardEmpty.style.display = 'none';
+    playerCardBody.style.display = 'block';
+    document.getElementById('pc-icon').src = member.iconUrl || '';
+    document.getElementById('pc-name').textContent = member.nombre || '(sin nombre)';
+    document.getElementById('pc-tag').textContent = member.tag;
+    document.getElementById('pc-trophies').textContent = member.trophies || 0;
+    document.getElementById('pc-v3v3').textContent = member.victories3v3 || 0;
+    document.getElementById('pc-elo').textContent = member.rankedAllTimePeakElo || 0;
+    document.getElementById('pc-rank-name').textContent = member.rankedAllTimePeakName
+      ? ('Máximo ranked (histórico): ' + member.rankedAllTimePeakName) : '';
+    document.getElementById('pc-score').textContent = MD.calcMemberScore(member);
+  }
+  document.getElementById('playerCardClose').addEventListener('click', () => playerCardOverlay.classList.remove('open'));
+  playerCardOverlay.addEventListener('click', e => { if(e.target === playerCardOverlay) playerCardOverlay.classList.remove('open'); });
+
+  const teamsGrid = document.getElementById('teamsGrid');
+  const turnTeamLabel = document.getElementById('turnTeamLabel');
+  const roundLabel = document.getElementById('roundLabel');
+  const revealEmpty = document.getElementById('revealEmpty');
+  const revealCard = document.getElementById('revealCard');
+
+  let brawlers = [];
+  let brawlersById = {};
+
+  // Detecta el pick "nuevo" comparando con la última foto de pickedBrawlers
+  // que hemos visto — no hace falta guardar nada más en Firebase para esto.
+  // El primer estado que llega se usa solo como punto de partida (no dispara
+  // el revelado de todo lo ya elegido de golpe si esta pantalla se abre a
+  // mitad del draft).
+  let previousPicked = null;
+
+  function maybeReveal(state){
+    const picked = (state && state.pickedBrawlers) || {};
+    if(previousPicked === null){
+      previousPicked = picked;
+      return;
+    }
+    const newIds = Object.keys(picked).filter(id => !previousPicked[id]);
+    previousPicked = picked;
+    if(!newIds.length) return;
+
+    const brawlerId = newIds[newIds.length - 1];
+    const teamId = picked[brawlerId];
+    const brawler = brawlersById[brawlerId];
+    const team = state.teams && state.teams[teamId];
+
+    document.getElementById('revealIcon').src = brawler ? brawler.icon : '';
+    document.getElementById('revealName').textContent = brawler ? brawler.name : '???';
+    document.getElementById('revealTeam').textContent = 'Elegido por ' + ((team && team.name) || teamId);
+
+    revealEmpty.style.display = 'none';
+    revealCard.classList.remove('pop');
+    void revealCard.offsetWidth; // reinicia la animación aunque sea el mismo personaje
+    revealCard.classList.add('pop');
+  }
+
+  MD.loadBrawlers().then(list => {
+    brawlers = list;
+    brawlersById = Object.fromEntries(list.map(b => [b.id, b]));
+    MD.subscribeState(state => { maybeReveal(state); render(state); });
+  });
+
+  function render(state){
+    if(!state || !state.teams){
+      roundLabel.textContent = 'Sala sin configurar';
+      turnTeamLabel.textContent = 'Esperando al anfitrión…';
+      return;
+    }
+
+    if(state.status === 'config'){
+      roundLabel.textContent = 'Antes de empezar';
+      turnTeamLabel.textContent = 'Esperando a que el anfitrión inicie la fase de draft...';
+    } else if(MD.isComplete(state)){
+      roundLabel.textContent = 'Draft completado';
+      turnTeamLabel.textContent = '¡Los 8 equipos tienen sus 12 personajes!';
+    } else {
+      const turnTeamId = MD.currentTurnTeamId(state);
+      roundLabel.textContent = `Ronda ${MD.currentRound(state)} / ${MD.PICKS_PER_TEAM}`;
+      turnTeamLabel.textContent = `Turno de: ${(state.teams[turnTeamId] && state.teams[turnTeamId].name) || '—'}`;
+    }
+
+    MD.renderTeams(teamsGrid, state, brawlersById, { onMemberClick: openPlayerCard });
+  }
+</script>
+</body>
+</html>
