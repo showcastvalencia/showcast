@@ -129,6 +129,14 @@ a{color:inherit;text-decoration:none;}
   cursor:pointer;
   transition:transform .12s ease;
   overflow:hidden;
+  /* Evita el menú/selección nativo del móvil al mantener pulsado (guardar
+     imagen, copiar, resaltado azul...) — aquí "mantener pulsado" no debe
+     hacer nada especial, solo el toque normal para elegir personaje. */
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
 }
 .brawler-card:hover:not(.taken){transform:translateY(-3px);background:var(--naranja);}
 .brawler-card.taken{
@@ -136,7 +144,13 @@ a{color:inherit;text-decoration:none;}
   opacity:.35;
   filter:grayscale(70%);
 }
-.brawler-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;}
+.brawler-card img{
+  display:block;width:100%;aspect-ratio:1;object-fit:cover;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  pointer-events:none;
+}
 .brawler-card .taken-badge{
   position:absolute;
   top:-6px;right:-6px;
