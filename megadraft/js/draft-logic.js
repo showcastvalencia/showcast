@@ -238,7 +238,7 @@ const MD = (function () {
       card.className = 'brawler-card' + (takenBy ? ' taken' : '');
       card.title = b.name;
       card.innerHTML = `
-        <img src="${b.icon}" alt="${b.name}" loading="lazy" referrerpolicy="no-referrer">
+        <img src="${b.icon}" alt="${b.name}" loading="lazy" referrerpolicy="no-referrer" draggable="false">
         ${takenBy && teams[takenBy] ? `<span class="taken-badge" title="${teams[takenBy].name}">${teams[takenBy].name.slice(0,2).toUpperCase()}</span>` : ''}
       `;
       if (!takenBy && canPick && opts.onPick) {
