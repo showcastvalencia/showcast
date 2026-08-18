@@ -29,6 +29,7 @@ window.SHOWCAST_CONTENT = {
   },
   "galeria": [],
   "equipo": [],
+  "patrocinadores": [],
   "torneosOrganizados": [
     {
       "fecha": "20 Junio 2026",

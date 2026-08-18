@@ -1,2 +1,5 @@
 # Clave secreta de la API de Brawl Stars - NUNCA subir a GitHub
 proxy/config.php
+
+# Panel de edición interno - NUNCA publicarlo (contiene el flujo de publicación con token de GitHub)
+admin.html
