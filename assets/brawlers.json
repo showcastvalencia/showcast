@@ -1,108 +1,532 @@
 [
-  {"id":"shelly","name":"Shelly","icon":"https://brawlify.com/images/profile-icons/28000003.png"},
-  {"id":"colt","name":"Colt","icon":"https://brawlify.com/images/profile-icons/28000004.png"},
-  {"id":"bull","name":"Bull","icon":"https://brawlify.com/images/profile-icons/28000010.png"},
-  {"id":"brock","name":"Brock","icon":"https://brawlify.com/images/profile-icons/28000005.png"},
-  {"id":"barley","name":"Barley","icon":"https://brawlify.com/images/profile-icons/28000012.png"},
-  {"id":"nita","name":"Nita","icon":"https://brawlify.com/images/profile-icons/28000007.png"},
-  {"id":"el-primo","name":"El Primo","icon":"https://brawlify.com/images/profile-icons/28000009.png"},
-  {"id":"poco","name":"Poco","icon":"https://brawlify.com/images/profile-icons/28000013.png"},
-  {"id":"rosa","name":"Rosa","icon":"https://brawlify.com/images/profile-icons/28000040.png"},
-  {"id":"rico","name":"Rico","icon":"https://brawlify.com/images/profile-icons/28000011.png"},
-  {"id":"jessie","name":"Jessie","icon":"https://brawlify.com/images/profile-icons/28000006.png"},
-  {"id":"dynamike","name":"Dynamike","icon":"https://brawlify.com/images/profile-icons/28000008.png"},
-  {"id":"darryl","name":"Darryl","icon":"https://brawlify.com/images/profile-icons/28000034.png"},
-  {"id":"penny","name":"Penny","icon":"https://brawlify.com/images/profile-icons/28000035.png"},
-  {"id":"tick","name":"Tick","icon":"https://brawlify.com/images/profile-icons/28000042.png"},
-  {"id":"carl","name":"Carl","icon":"https://brawlify.com/images/profile-icons/28000039.png"},
-  {"id":"8-bit","name":"8-Bit","icon":"https://brawlify.com/images/profile-icons/28000043.png"},
-  {"id":"jacky","name":"Jacky","icon":"https://brawlify.com/images/profile-icons/28000049.png"},
-  {"id":"gus","name":"Gus","icon":"https://brawlify.com/images/profile-icons/28000150.png"},
-  {"id":"bo","name":"Bo","icon":"https://brawlify.com/images/profile-icons/28000015.png"},
-  {"id":"piper","name":"Piper","icon":"https://brawlify.com/images/profile-icons/28000018.png"},
-  {"id":"pam","name":"Pam","icon":"https://brawlify.com/images/profile-icons/28000028.png"},
-  {"id":"frank","name":"Frank","icon":"https://brawlify.com/images/profile-icons/28000036.png"},
-  {"id":"bibi","name":"Bibi","icon":"https://brawlify.com/images/profile-icons/28000041.png"},
-  {"id":"bea","name":"Bea","icon":"https://brawlify.com/images/profile-icons/28000046.png"},
-  {"id":"emz","name":"Emz","icon":"https://brawlify.com/images/profile-icons/28000045.png"},
-  {"id":"gale","name":"Gale","icon":"https://brawlify.com/images/profile-icons/28000051.png"},
-  {"id":"nani","name":"Nani","icon":"https://brawlify.com/images/profile-icons/28000052.png"},
-  {"id":"colette","name":"Colette","icon":"https://brawlify.com/images/profile-icons/28000054.png"},
-  {"id":"edgar","name":"Edgar","icon":"https://brawlify.com/images/profile-icons/28000058.png"},
-  {"id":"stu","name":"Stu","icon":"https://brawlify.com/images/profile-icons/28000062.png"},
-  {"id":"belle","name":"Belle","icon":"https://brawlify.com/images/profile-icons/28000065.png"},
-  {"id":"grom","name":"Grom","icon":"https://brawlify.com/images/profile-icons/28000080.png"},
-  {"id":"griff","name":"Griff","icon":"https://brawlify.com/images/profile-icons/28000068.png"},
-  {"id":"ash","name":"Ash","icon":"https://brawlify.com/images/profile-icons/28000071.png"},
-  {"id":"lola","name":"Lola","icon":"https://brawlify.com/images/profile-icons/28000075.png"},
-  {"id":"bonnie","name":"Bonnie","icon":"https://brawlify.com/images/profile-icons/28000086.png"},
-  {"id":"sam","name":"Sam","icon":"https://brawlify.com/images/profile-icons/28000149.png"},
-  {"id":"mandy","name":"Mandy","icon":"https://brawlify.com/images/profile-icons/28000184.png"},
-  {"id":"maisie","name":"Maisie","icon":"https://brawlify.com/images/profile-icons/28000265.png"},
-  {"id":"hank","name":"Hank","icon":"https://brawlify.com/images/profile-icons/28000266.png"},
-  {"id":"pearl","name":"Pearl","icon":"https://brawlify.com/images/profile-icons/28000319.png"},
-  {"id":"larry-lawrie","name":"Larry & Lawrie","icon":"https://brawlify.com/images/profile-icons/28000387.png"},
-  {"id":"angelo","name":"Angelo","icon":"https://brawlify.com/images/profile-icons/28000430.png"},
-  {"id":"berry","name":"Berry","icon":"https://brawlify.com/images/profile-icons/28000532.png"},
-  {"id":"shade","name":"Shade","icon":"https://brawlify.com/images/profile-icons/28000649.png"},
-  {"id":"meeple","name":"Meeple","icon":"https://brawlify.com/images/profile-icons/28000704.png"},
-  {"id":"trunk","name":"Trunk","icon":"https://brawlify.com/images/profile-icons/28000899.png"},
-  {"id":"bolt","name":"Bolt","icon":"https://brawlify.com/images/profile-icons/28001254.png"},
-  {"id":"mortis","name":"Mortis","icon":"https://brawlify.com/images/profile-icons/28000014.png"},
-  {"id":"tara","name":"Tara","icon":"https://brawlify.com/images/profile-icons/28000029.png"},
-  {"id":"gene","name":"Gene","icon":"https://brawlify.com/images/profile-icons/28000038.png"},
-  {"id":"mr-p","name":"Mr. P","icon":"https://brawlify.com/images/profile-icons/28000048.png"},
-  {"id":"max","name":"Max","icon":"https://brawlify.com/images/profile-icons/28000047.png"},
-  {"id":"sprout","name":"Sprout","icon":"https://brawlify.com/images/profile-icons/28000050.png"},
-  {"id":"lou","name":"Lou","icon":"https://brawlify.com/images/profile-icons/28000056.png"},
-  {"id":"byron","name":"Byron","icon":"https://brawlify.com/images/profile-icons/28000057.png"},
-  {"id":"ruffs","name":"Ruffs","icon":"https://brawlify.com/images/profile-icons/28000059.png"},
-  {"id":"squeak","name":"Squeak","icon":"https://brawlify.com/images/profile-icons/28000066.png"},
-  {"id":"buzz","name":"Buzz","icon":"https://brawlify.com/images/profile-icons/28000067.png"},
-  {"id":"fang","name":"Fang","icon":"https://brawlify.com/images/profile-icons/28000081.png"},
-  {"id":"eve","name":"Eve","icon":"https://brawlify.com/images/profile-icons/28000082.png"},
-  {"id":"janet","name":"Janet","icon":"https://brawlify.com/images/profile-icons/28000085.png"},
-  {"id":"otis","name":"Otis","icon":"https://brawlify.com/images/profile-icons/28000105.png"},
-  {"id":"buster","name":"Buster","icon":"https://brawlify.com/images/profile-icons/28000160.png"},
-  {"id":"gray","name":"Gray","icon":"https://brawlify.com/images/profile-icons/28000183.png"},
-  {"id":"r-t","name":"R-T","icon":"https://brawlify.com/images/profile-icons/28000245.png"},
-  {"id":"willow","name":"Willow","icon":"https://brawlify.com/images/profile-icons/28000246.png"},
-  {"id":"doug","name":"Doug","icon":"https://brawlify.com/images/profile-icons/28000289.png"},
-  {"id":"chuck","name":"Chuck","icon":"https://brawlify.com/images/profile-icons/28000320.png"},
-  {"id":"charlie","name":"Charlie","icon":"https://brawlify.com/images/profile-icons/28000333.png"},
-  {"id":"mico","name":"Mico","icon":"https://brawlify.com/images/profile-icons/28000381.png"},
-  {"id":"melodie","name":"Melodie","icon":"https://brawlify.com/images/profile-icons/28000429.png"},
-  {"id":"lily","name":"Lily","icon":"https://brawlify.com/images/profile-icons/28000464.png"},
-  {"id":"clancy","name":"Clancy","icon":"https://brawlify.com/images/profile-icons/28000531.png"},
-  {"id":"moe","name":"Moe","icon":"https://brawlify.com/images/profile-icons/28000613.png"},
-  {"id":"juju","name":"Juju","icon":"https://brawlify.com/images/profile-icons/28000648.png"},
-  {"id":"ollie","name":"Ollie","icon":"https://brawlify.com/images/profile-icons/28000705.png"},
-  {"id":"lumi","name":"Lumi","icon":"https://brawlify.com/images/profile-icons/28000807.png"},
-  {"id":"finx","name":"Finx","icon":"https://brawlify.com/images/profile-icons/28000806.png"},
-  {"id":"jae-yong","name":"Jae-Yong","icon":"https://brawlify.com/images/profile-icons/28000832.png"},
-  {"id":"alli","name":"Alli","icon":"https://brawlify.com/images/profile-icons/28000923.png"},
-  {"id":"mina","name":"Mina","icon":"https://brawlify.com/images/profile-icons/28000934.png"},
-  {"id":"ziggy","name":"Ziggy","icon":"https://brawlify.com/images/profile-icons/28000935.png"},
-  {"id":"gigi","name":"Gigi","icon":"https://brawlify.com/images/profile-icons/28001006.png"},
-  {"id":"glowy","name":"Glowy","icon":"https://brawlify.com/images/profile-icons/28001074.png"},
-  {"id":"najia","name":"Najia","icon":"https://brawlify.com/images/profile-icons/28001195.png"},
-  {"id":"damian","name":"Damian","icon":"https://brawlify.com/images/profile-icons/28001225.png"},
-  {"id":"starr-nova","name":"Starr Nova","icon":"https://brawlify.com/images/profile-icons/28001227.png"},
-  {"id":"wendy","name":"Wendy","icon":"https://brawlify.com/images/profile-icons/28001287.png"},
-  {"id":"spike","name":"Spike","icon":"https://brawlify.com/images/profile-icons/28000016.png"},
-  {"id":"crow","name":"Crow","icon":"https://brawlify.com/images/profile-icons/28000017.png"},
-  {"id":"leon","name":"Leon","icon":"https://brawlify.com/images/profile-icons/28000037.png"},
-  {"id":"sandy","name":"Sandy","icon":"https://brawlify.com/images/profile-icons/28000044.png"},
-  {"id":"surge","name":"Surge","icon":"https://brawlify.com/images/profile-icons/28000053.png"},
-  {"id":"amber","name":"Amber","icon":"https://brawlify.com/images/profile-icons/28000055.png"},
-  {"id":"meg","name":"Meg","icon":"https://brawlify.com/images/profile-icons/28000074.png"},
-  {"id":"chester","name":"Chester","icon":"https://brawlify.com/images/profile-icons/28000185.png"},
-  {"id":"cordelius","name":"Cordelius","icon":"https://brawlify.com/images/profile-icons/28000288.png"},
-  {"id":"kit","name":"Kit","icon":"https://brawlify.com/images/profile-icons/28000382.png"},
-  {"id":"draco","name":"Draco","icon":"https://brawlify.com/images/profile-icons/28000465.png"},
-  {"id":"kenji","name":"Kenji","icon":"https://brawlify.com/images/profile-icons/28000593.png"},
-  {"id":"pierce","name":"Pierce","icon":"https://brawlify.com/images/profile-icons/28001073.png"},
-  {"id":"nori","name":"Nori","icon":"https://brawlify.com/images/profile-icons/28001286.png"},
-  {"id":"kaze","name":"Kaze","icon":"https://brawlify.com/images/profile-icons/28000831.png"},
-  {"id":"sirius","name":"Sirius","icon":"https://brawlify.com/images/profile-icons/28001078.png"}
+  {
+    "id": "shelly",
+    "name": "Shelly",
+    "icon": "../assets/brawlers/shelly.png"
+  },
+  {
+    "id": "colt",
+    "name": "Colt",
+    "icon": "../assets/brawlers/colt.png"
+  },
+  {
+    "id": "bull",
+    "name": "Bull",
+    "icon": "../assets/brawlers/bull.png"
+  },
+  {
+    "id": "brock",
+    "name": "Brock",
+    "icon": "../assets/brawlers/brock.png"
+  },
+  {
+    "id": "barley",
+    "name": "Barley",
+    "icon": "../assets/brawlers/barley.png"
+  },
+  {
+    "id": "nita",
+    "name": "Nita",
+    "icon": "../assets/brawlers/nita.png"
+  },
+  {
+    "id": "el-primo",
+    "name": "El Primo",
+    "icon": "../assets/brawlers/el-primo.png"
+  },
+  {
+    "id": "poco",
+    "name": "Poco",
+    "icon": "../assets/brawlers/poco.png"
+  },
+  {
+    "id": "rosa",
+    "name": "Rosa",
+    "icon": "../assets/brawlers/rosa.png"
+  },
+  {
+    "id": "rico",
+    "name": "Rico",
+    "icon": "../assets/brawlers/rico.png"
+  },
+  {
+    "id": "jessie",
+    "name": "Jessie",
+    "icon": "../assets/brawlers/jessie.png"
+  },
+  {
+    "id": "dynamike",
+    "name": "Dynamike",
+    "icon": "../assets/brawlers/dynamike.png"
+  },
+  {
+    "id": "darryl",
+    "name": "Darryl",
+    "icon": "../assets/brawlers/darryl.png"
+  },
+  {
+    "id": "penny",
+    "name": "Penny",
+    "icon": "../assets/brawlers/penny.png"
+  },
+  {
+    "id": "tick",
+    "name": "Tick",
+    "icon": "../assets/brawlers/tick.png"
+  },
+  {
+    "id": "carl",
+    "name": "Carl",
+    "icon": "../assets/brawlers/carl.png"
+  },
+  {
+    "id": "8-bit",
+    "name": "8-Bit",
+    "icon": "../assets/brawlers/8-bit.png"
+  },
+  {
+    "id": "jacky",
+    "name": "Jacky",
+    "icon": "../assets/brawlers/jacky.png"
+  },
+  {
+    "id": "gus",
+    "name": "Gus",
+    "icon": "../assets/brawlers/gus.png"
+  },
+  {
+    "id": "bo",
+    "name": "Bo",
+    "icon": "../assets/brawlers/bo.png"
+  },
+  {
+    "id": "piper",
+    "name": "Piper",
+    "icon": "../assets/brawlers/piper.png"
+  },
+  {
+    "id": "pam",
+    "name": "Pam",
+    "icon": "../assets/brawlers/pam.png"
+  },
+  {
+    "id": "frank",
+    "name": "Frank",
+    "icon": "../assets/brawlers/frank.png"
+  },
+  {
+    "id": "bibi",
+    "name": "Bibi",
+    "icon": "../assets/brawlers/bibi.png"
+  },
+  {
+    "id": "bea",
+    "name": "Bea",
+    "icon": "../assets/brawlers/bea.png"
+  },
+  {
+    "id": "emz",
+    "name": "Emz",
+    "icon": "../assets/brawlers/emz.png"
+  },
+  {
+    "id": "gale",
+    "name": "Gale",
+    "icon": "../assets/brawlers/gale.png"
+  },
+  {
+    "id": "nani",
+    "name": "Nani",
+    "icon": "../assets/brawlers/nani.png"
+  },
+  {
+    "id": "colette",
+    "name": "Colette",
+    "icon": "../assets/brawlers/colette.png"
+  },
+  {
+    "id": "edgar",
+    "name": "Edgar",
+    "icon": "../assets/brawlers/edgar.png"
+  },
+  {
+    "id": "stu",
+    "name": "Stu",
+    "icon": "../assets/brawlers/stu.png"
+  },
+  {
+    "id": "belle",
+    "name": "Belle",
+    "icon": "../assets/brawlers/belle.png"
+  },
+  {
+    "id": "grom",
+    "name": "Grom",
+    "icon": "../assets/brawlers/grom.png"
+  },
+  {
+    "id": "griff",
+    "name": "Griff",
+    "icon": "../assets/brawlers/griff.png"
+  },
+  {
+    "id": "ash",
+    "name": "Ash",
+    "icon": "../assets/brawlers/ash.png"
+  },
+  {
+    "id": "lola",
+    "name": "Lola",
+    "icon": "../assets/brawlers/lola.png"
+  },
+  {
+    "id": "bonnie",
+    "name": "Bonnie",
+    "icon": "../assets/brawlers/bonnie.png"
+  },
+  {
+    "id": "sam",
+    "name": "Sam",
+    "icon": "../assets/brawlers/sam.png"
+  },
+  {
+    "id": "mandy",
+    "name": "Mandy",
+    "icon": "../assets/brawlers/mandy.png"
+  },
+  {
+    "id": "maisie",
+    "name": "Maisie",
+    "icon": "../assets/brawlers/maisie.png"
+  },
+  {
+    "id": "hank",
+    "name": "Hank",
+    "icon": "../assets/brawlers/hank.png"
+  },
+  {
+    "id": "pearl",
+    "name": "Pearl",
+    "icon": "../assets/brawlers/pearl.png"
+  },
+  {
+    "id": "larry-lawrie",
+    "name": "Larry & Lawrie",
+    "icon": "../assets/brawlers/larry-lawrie.png"
+  },
+  {
+    "id": "angelo",
+    "name": "Angelo",
+    "icon": "../assets/brawlers/angelo.png"
+  },
+  {
+    "id": "berry",
+    "name": "Berry",
+    "icon": "../assets/brawlers/berry.png"
+  },
+  {
+    "id": "shade",
+    "name": "Shade",
+    "icon": "../assets/brawlers/shade.png"
+  },
+  {
+    "id": "meeple",
+    "name": "Meeple",
+    "icon": "../assets/brawlers/meeple.png"
+  },
+  {
+    "id": "trunk",
+    "name": "Trunk",
+    "icon": "../assets/brawlers/trunk.png"
+  },
+  {
+    "id": "bolt",
+    "name": "Bolt",
+    "icon": "../assets/brawlers/bolt.png"
+  },
+  {
+    "id": "mortis",
+    "name": "Mortis",
+    "icon": "../assets/brawlers/mortis.png"
+  },
+  {
+    "id": "tara",
+    "name": "Tara",
+    "icon": "../assets/brawlers/tara.png"
+  },
+  {
+    "id": "gene",
+    "name": "Gene",
+    "icon": "../assets/brawlers/gene.png"
+  },
+  {
+    "id": "mr-p",
+    "name": "Mr. P",
+    "icon": "../assets/brawlers/mr-p.png"
+  },
+  {
+    "id": "max",
+    "name": "Max",
+    "icon": "../assets/brawlers/max.png"
+  },
+  {
+    "id": "sprout",
+    "name": "Sprout",
+    "icon": "../assets/brawlers/sprout.png"
+  },
+  {
+    "id": "lou",
+    "name": "Lou",
+    "icon": "../assets/brawlers/lou.png"
+  },
+  {
+    "id": "byron",
+    "name": "Byron",
+    "icon": "../assets/brawlers/byron.png"
+  },
+  {
+    "id": "ruffs",
+    "name": "Ruffs",
+    "icon": "../assets/brawlers/ruffs.png"
+  },
+  {
+    "id": "squeak",
+    "name": "Squeak",
+    "icon": "../assets/brawlers/squeak.png"
+  },
+  {
+    "id": "buzz",
+    "name": "Buzz",
+    "icon": "../assets/brawlers/buzz.png"
+  },
+  {
+    "id": "fang",
+    "name": "Fang",
+    "icon": "../assets/brawlers/fang.png"
+  },
+  {
+    "id": "eve",
+    "name": "Eve",
+    "icon": "../assets/brawlers/eve.png"
+  },
+  {
+    "id": "janet",
+    "name": "Janet",
+    "icon": "../assets/brawlers/janet.png"
+  },
+  {
+    "id": "otis",
+    "name": "Otis",
+    "icon": "../assets/brawlers/otis.png"
+  },
+  {
+    "id": "buster",
+    "name": "Buster",
+    "icon": "../assets/brawlers/buster.png"
+  },
+  {
+    "id": "gray",
+    "name": "Gray",
+    "icon": "../assets/brawlers/gray.png"
+  },
+  {
+    "id": "r-t",
+    "name": "R-T",
+    "icon": "../assets/brawlers/r-t.png"
+  },
+  {
+    "id": "willow",
+    "name": "Willow",
+    "icon": "../assets/brawlers/willow.png"
+  },
+  {
+    "id": "doug",
+    "name": "Doug",
+    "icon": "../assets/brawlers/doug.png"
+  },
+  {
+    "id": "chuck",
+    "name": "Chuck",
+    "icon": "../assets/brawlers/chuck.png"
+  },
+  {
+    "id": "charlie",
+    "name": "Charlie",
+    "icon": "../assets/brawlers/charlie.png"
+  },
+  {
+    "id": "mico",
+    "name": "Mico",
+    "icon": "../assets/brawlers/mico.png"
+  },
+  {
+    "id": "melodie",
+    "name": "Melodie",
+    "icon": "../assets/brawlers/melodie.png"
+  },
+  {
+    "id": "lily",
+    "name": "Lily",
+    "icon": "../assets/brawlers/lily.png"
+  },
+  {
+    "id": "clancy",
+    "name": "Clancy",
+    "icon": "../assets/brawlers/clancy.png"
+  },
+  {
+    "id": "moe",
+    "name": "Moe",
+    "icon": "../assets/brawlers/moe.png"
+  },
+  {
+    "id": "juju",
+    "name": "Juju",
+    "icon": "../assets/brawlers/juju.png"
+  },
+  {
+    "id": "ollie",
+    "name": "Ollie",
+    "icon": "../assets/brawlers/ollie.png"
+  },
+  {
+    "id": "lumi",
+    "name": "Lumi",
+    "icon": "../assets/brawlers/lumi.png"
+  },
+  {
+    "id": "finx",
+    "name": "Finx",
+    "icon": "../assets/brawlers/finx.png"
+  },
+  {
+    "id": "jae-yong",
+    "name": "Jae-Yong",
+    "icon": "../assets/brawlers/jae-yong.png"
+  },
+  {
+    "id": "alli",
+    "name": "Alli",
+    "icon": "../assets/brawlers/alli.png"
+  },
+  {
+    "id": "mina",
+    "name": "Mina",
+    "icon": "../assets/brawlers/mina.png"
+  },
+  {
+    "id": "ziggy",
+    "name": "Ziggy",
+    "icon": "../assets/brawlers/ziggy.png"
+  },
+  {
+    "id": "gigi",
+    "name": "Gigi",
+    "icon": "../assets/brawlers/gigi.png"
+  },
+  {
+    "id": "glowy",
+    "name": "Glowy",
+    "icon": "../assets/brawlers/glowy.png"
+  },
+  {
+    "id": "najia",
+    "name": "Najia",
+    "icon": "../assets/brawlers/najia.png"
+  },
+  {
+    "id": "damian",
+    "name": "Damian",
+    "icon": "../assets/brawlers/damian.png"
+  },
+  {
+    "id": "starr-nova",
+    "name": "Starr Nova",
+    "icon": "../assets/brawlers/starr-nova.png"
+  },
+  {
+    "id": "wendy",
+    "name": "Wendy",
+    "icon": "../assets/brawlers/wendy.png"
+  },
+  {
+    "id": "spike",
+    "name": "Spike",
+    "icon": "../assets/brawlers/spike.png"
+  },
+  {
+    "id": "crow",
+    "name": "Crow",
+    "icon": "../assets/brawlers/crow.png"
+  },
+  {
+    "id": "leon",
+    "name": "Leon",
+    "icon": "../assets/brawlers/leon.png"
+  },
+  {
+    "id": "sandy",
+    "name": "Sandy",
+    "icon": "../assets/brawlers/sandy.png"
+  },
+  {
+    "id": "surge",
+    "name": "Surge",
+    "icon": "../assets/brawlers/surge.png"
+  },
+  {
+    "id": "amber",
+    "name": "Amber",
+    "icon": "../assets/brawlers/amber.png"
+  },
+  {
+    "id": "meg",
+    "name": "Meg",
+    "icon": "../assets/brawlers/meg.png"
+  },
+  {
+    "id": "chester",
+    "name": "Chester",
+    "icon": "../assets/brawlers/chester.png"
+  },
+  {
+    "id": "cordelius",
+    "name": "Cordelius",
+    "icon": "../assets/brawlers/cordelius.png"
+  },
+  {
+    "id": "kit",
+    "name": "Kit",
+    "icon": "../assets/brawlers/kit.png"
+  },
+  {
+    "id": "draco",
+    "name": "Draco",
+    "icon": "../assets/brawlers/draco.png"
+  },
+  {
+    "id": "kenji",
+    "name": "Kenji",
+    "icon": "../assets/brawlers/kenji.png"
+  },
+  {
+    "id": "pierce",
+    "name": "Pierce",
+    "icon": "../assets/brawlers/pierce.png"
+  },
+  {
+    "id": "nori",
+    "name": "Nori",
+    "icon": "../assets/brawlers/nori.png"
+  },
+  {
+    "id": "kaze",
+    "name": "Kaze",
+    "icon": "../assets/brawlers/kaze.png"
+  },
+  {
+    "id": "sirius",
+    "name": "Sirius",
+    "icon": "../assets/brawlers/sirius.png"
+  }
 ]
