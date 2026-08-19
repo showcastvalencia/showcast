@@ -83,7 +83,8 @@
   .stream-member-score{font-family:'Anton',sans-serif;color:var(--naranja);font-size:1.2rem;white-space:nowrap;flex:0 0 auto;margin-left:auto;}
 
   .stream-t-picks{
-    display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:5px;
+    display:grid;grid-template-columns:repeat(6,1fr);gap:5px;
+    justify-items:center;
     flex:0 0 auto;
   }
   .stream-t-picks img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--naranja);}
