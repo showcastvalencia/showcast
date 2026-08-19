@@ -152,8 +152,39 @@ const MD = (function () {
 
   function currentTurnTeamId(state) {
     if (!state || !state.draftOrder || state.status !== 'drafting') return null;
+    if (state.draftPhase === 'prep') return null; // nadie elige todavía
     if (state.currentPickIndex >= TOTAL_PICKS) return null;
     return state.draftOrder[state.currentPickIndex % TEAMS_PER_DRAFT];
+  }
+
+  function isPrepPhase(state) {
+    return !!state && state.status === 'drafting' && state.draftPhase === 'prep';
+  }
+
+  // Cualquier pantalla conectada (todas, sin coordinarse entre ellas) llama a
+  // esto en su propio setInterval de refresco de cronómetros. Es seguro
+  // llamarla en bucle desde varios sitios a la vez: en cuanto el primer
+  // cliente escribe el cambio, el resto ve por el 'value' de Firebase que
+  // draftPhase ya no es 'prep' y deja de intentarlo — no hace falta ningún
+  // servidor ni Cloud Function para esta transición automática.
+  function maybeAdvancePrepPhase(state) {
+    if (!isPrepPhase(state)) return;
+    const prep = state.timers && state.timers.prep;
+    if (!prep || !prep.running || timerRemaining(prep) > 0) return;
+    if (!state.draftOrder || !state.draftOrder.length) return;
+
+    const firstTeamId = state.draftOrder[0];
+    const perTeam = (state.timers.pick && state.timers.pick.perTeam) || {};
+    const duration = perTeam[firstTeamId] || DEFAULT_PICK_SECONDS;
+    db.ref(STATE_PATH).update({
+      draftPhase: 'picking',
+      'timers/prep/running': false,
+      'timers/pick': {
+        perTeam: perTeam, currentTeamId: firstTeamId,
+        duration: duration, remaining: duration,
+        running: true, startedAt: firebase.database.ServerValue.TIMESTAMP,
+      },
+    });
   }
 
   function currentRound(state) {
@@ -225,9 +256,9 @@ const MD = (function () {
         const updates = {};
         updates[`pickedBrawlers/${brawlerId}`] = teamId;
 
-        // El cronómetro de elección se reinicia solo al pasar de turno (en
-        // pausa: el admin decide cuándo arrancarlo para el siguiente equipo),
-        // usando la duración configurada para ese equipo concreto.
+        // El cronómetro de elección se reinicia Y arranca solo al pasar de
+        // turno, con la duración configurada para el equipo que entra — el
+        // admin ya no tiene que pulsar "Iniciar" a mano en cada ronda.
         const perTeam = (state.timers && state.timers.pick && state.timers.pick.perTeam) || {};
         if (newIndex >= TOTAL_PICKS) {
           updates.status = 'complete';
@@ -235,7 +266,11 @@ const MD = (function () {
         } else {
           const nextTeamId = state.draftOrder[newIndex % TEAMS_PER_DRAFT];
           const duration = perTeam[nextTeamId] || DEFAULT_PICK_SECONDS;
-          updates['timers/pick'] = { perTeam: perTeam, currentTeamId: nextTeamId, duration: duration, remaining: duration, running: false, startedAt: null };
+          updates['timers/pick'] = {
+            perTeam: perTeam, currentTeamId: nextTeamId,
+            duration: duration, remaining: duration,
+            running: true, startedAt: firebase.database.ServerValue.TIMESTAMP,
+          };
         }
 
         return db.ref(STATE_PATH).update(updates);
@@ -322,7 +357,8 @@ const MD = (function () {
     TEAMS_PER_DRAFT, PICKS_PER_TEAM, TOTAL_PICKS,
     STATE_PATH, DEFAULT_PREP_SECONDS, DEFAULT_PICK_SECONDS,
     loadBrawlers, subscribeState, signInAnon,
-    currentTurnTeamId, currentRound, isComplete, teamPickCount, picksForTeam,
+    currentTurnTeamId, currentRound, isComplete, isPrepPhase, maybeAdvancePrepPhase,
+    teamPickCount, picksForTeam,
     claimTeam, findTeamByPin, submitPick,
     renderPool, renderTeams,
     fetchPlayerStats, calcMemberScore, calcTeamScore, formatScore,

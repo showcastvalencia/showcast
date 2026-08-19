@@ -39,6 +39,7 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
       },
       "pickedBrawlers": { ".write": "auth != null" },
       "status": { ".write": "auth != null" },
+      "draftPhase": { ".write": "auth != null" },
       "draftOrder": { ".write": "auth != null" },
       "currentPickIndex": { ".write": "auth != null" },
       "timers": { ".write": "auth != null" }
