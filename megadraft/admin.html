@@ -104,6 +104,15 @@
     (abajo del todo tienes un resumen listo para repartir).
   </p>
 
+  <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;">
+    <button type="button" class="btn btn-outline" id="reorderBtn">Reordenar equipos por puntaje</button>
+    <button type="button" class="btn btn-outline" id="reloadPlayersBtn">Recargar info de jugadores</button>
+  </div>
+  <p class="hint" style="margin-top:-10px;margin-bottom:18px;opacity:.7;font-size:.85rem;">
+    <strong>Reordenar</strong> coloca los equipos de peor a mejor puntuación (arriba a abajo) — se aplicará al draft la próxima vez que pulses "Iniciar sala".
+    <strong>Recargar info</strong> vuelve a comprobar el tag de todos los miembros con la API de Brawl Stars, como "Comprobar" pero para todos a la vez.
+  </p>
+
   <div id="teamsList"></div>
 
   <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:24px;">
@@ -483,6 +492,60 @@
     render();
     saveMsg.textContent = 'Se han cargado los equipos ya guardados en la sala.';
     setTimeout(() => saveMsg.textContent = '', 4000);
+  });
+
+  document.getElementById('reorderBtn').addEventListener('click', () => {
+    teams.sort((a, b) => MD.calcTeamScore(a) - MD.calcTeamScore(b));
+    render();
+    saveMsg.textContent = 'Equipos reordenados por puntuación (peor a mejor, de arriba a abajo).';
+    setTimeout(() => saveMsg.textContent = '', 5000);
+  });
+
+  document.getElementById('reloadPlayersBtn').addEventListener('click', () => {
+    saveError.textContent = '';
+    const btn = document.getElementById('reloadPlayersBtn');
+    const jobs = [];
+    teams.forEach((team, tIdx) => {
+      team.miembros.forEach((m, mIdx) => {
+        if(m.tag && m.tag.trim()) jobs.push({ tIdx, mIdx, tag: m.tag.trim() });
+      });
+    });
+    if(!jobs.length){
+      saveError.textContent = 'Ningún miembro tiene todavía un tag comprobado que recargar.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = `Recargando... (0/${jobs.length})`;
+    let ok = 0, fail = 0;
+
+    function next(i){
+      if(i >= jobs.length){
+        render();
+        btn.disabled = false;
+        btn.textContent = 'Recargar info de jugadores';
+        saveMsg.textContent = `Info recargada: ${ok} jugador(es) actualizados${fail ? `, ${fail} con error (revisa su tag)` : ''}.`;
+        setTimeout(() => saveMsg.textContent = '', 7000);
+        return;
+      }
+      const job = jobs[i];
+      MD.fetchPlayerStats(job.tag).then(stats => {
+        const member = teams[job.tIdx].miembros[job.mIdx];
+        member.tag = stats.tag;
+        member.iconUrl = stats.iconUrl;
+        member.trophies = stats.trophies;
+        member.victories3v3 = stats.victories3v3;
+        member.rankedAllTimePeakElo = stats.rankedAllTimePeakElo;
+        member.rankedAllTimePeakName = stats.rankedAllTimePeakName;
+        if(stats.name) member.nombre = stats.name;
+        ok++;
+      }).catch(() => { fail++; })
+        .finally(() => {
+          btn.textContent = `Recargando... (${i + 1}/${jobs.length})`;
+          setTimeout(() => next(i + 1), 150);
+        });
+    }
+    next(0);
   });
 
   document.getElementById('saveBtn').addEventListener('click', () => {
