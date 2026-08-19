@@ -56,6 +56,20 @@ const MD = (function () {
     return miembros.reduce((sum, m) => sum + calcMemberScore(m), 0);
   }
 
+  // Abrevia números grandes para sitios con poco espacio (217000 -> "217K",
+  // 89700 -> "89.7K", 2180000 -> "2.18M") — siempre ~3 cifras significativas.
+  function formatScore(n) {
+    n = Math.round(n || 0);
+    if (n < 1000) return String(n);
+    const abbreviate = (value, suffix) => {
+      if (value >= 100) return Math.round(value) + suffix;
+      if (value >= 10) return value.toFixed(1) + suffix;
+      return value.toFixed(2) + suffix;
+    };
+    if (n < 1e6) return abbreviate(n / 1000, 'K');
+    return abbreviate(n / 1e6, 'M');
+  }
+
   // ---------- CRONÓMETROS ----------
   const DEFAULT_PREP_SECONDS = 60;
   const DEFAULT_PICK_SECONDS = 15;
@@ -306,7 +320,7 @@ const MD = (function () {
     currentTurnTeamId, currentRound, isComplete, teamPickCount, picksForTeam,
     claimTeam, findTeamByPin, submitPick,
     renderPool, renderTeams,
-    fetchPlayerStats, calcMemberScore, calcTeamScore,
+    fetchPlayerStats, calcMemberScore, calcTeamScore, formatScore,
     formatTime, timerRemaining, startTimer, pauseTimer, resetTimer,
   };
 })();

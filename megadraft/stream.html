@@ -30,29 +30,64 @@
   }
 
   .stream-turn-banner{
-    text-align:center;padding:10px;margin-bottom:16px;
+    text-align:center;padding:14px;margin-bottom:16px;
     border:3px solid var(--naranja);background:rgba(251,157,69,.08);
     flex:0 0 auto;
   }
-  .stream-turn-banner .round{font-size:.7rem;opacity:.8;text-transform:uppercase;letter-spacing:1px;}
-  .stream-turn-banner .team-name{font-family:'Anton',sans-serif;font-size:1.15rem;text-transform:uppercase;}
+  .stream-turn-banner .round{font-size:1rem;opacity:.8;text-transform:uppercase;letter-spacing:1px;}
+  .stream-turn-banner .team-name{font-family:'Anton',sans-serif;font-size:1.7rem;text-transform:uppercase;}
 
-  /* Reutiliza .teams-grid / .team-card de megadraft.css, pero en compacto */
-  .stream-teams.teams-grid{
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
-    margin-top:0;
+  /* Tarjetas de equipo propias de esta vista (no las de megadraft.css):
+     4 columnas x 2 filas, ocupando siempre toda la altura disponible, con
+     hueco de sobra para que cada miembro tenga su icono de perfil. */
+  .stream-teams{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    grid-template-rows:repeat(2,1fr);
+    gap:12px;
     flex:1 1 auto;
-    align-content:start;
+    min-height:0;
   }
-  .stream-teams .team-card{padding:8px 10px;}
-  .stream-teams .t-head{margin-bottom:6px;gap:6px;}
-  .stream-teams .t-head img{width:24px;height:24px;}
-  .stream-teams .t-head .t-name{font-size:.8rem;}
-  .stream-teams .t-head .t-score{font-size:.6rem;}
-  .stream-teams .t-members{padding:5px 6px;margin-bottom:6px;}
-  .stream-teams .t-members li{font-size:.65rem;padding:1px 0;}
-  .stream-teams .t-picks img, .stream-teams .t-picks .empty-slot{width:18px;height:18px;}
+  .stream-team-card{
+    border:3px solid var(--naranja);
+    background:rgba(255,255,255,.03);
+    padding:8px 10px;
+    display:flex;flex-direction:column;
+    min-height:0;overflow:hidden;
+  }
+  .stream-team-card.active-turn{border-color:var(--blanco);box-shadow:0 0 0 3px var(--naranja);}
+
+  .stream-t-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex:0 0 auto;}
+  .stream-t-head img{width:24px;height:24px;border-radius:50%;object-fit:cover;background:var(--blanco);border:2px solid var(--naranja);flex:0 0 auto;}
+  .stream-t-head .stream-t-name{font-family:'Anton',sans-serif;font-size:.85rem;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .stream-t-head .stream-t-score{margin-left:auto;font-family:'Anton',sans-serif;color:var(--naranja);font-size:.8rem;white-space:nowrap;}
+
+  /* ---------- MIEMBROS: icono arriba, nombre abajo, puntuación a la derecha ---------- */
+  .stream-members{
+    display:flex;flex-direction:column;gap:4px;
+    flex:1 1 auto;min-height:0;
+    justify-content:space-evenly;
+    margin-bottom:6px;
+  }
+  .stream-member{
+    display:flex;align-items:center;justify-content:space-between;gap:6px;
+    width:100%;background:rgba(0,0,0,.2);border:1px solid rgba(251,157,69,.3);
+    padding:3px 8px;cursor:pointer;color:var(--crema);flex:0 0 auto;
+  }
+  .stream-member-id{display:flex;flex-direction:column;align-items:center;gap:1px;width:52px;flex:0 0 auto;}
+  .stream-member-icon{width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid var(--naranja);background:var(--crema);}
+  .stream-member-name{
+    font-size:.6rem;font-weight:700;width:100%;text-align:center;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .stream-member-score{font-family:'Anton',sans-serif;color:var(--naranja);font-size:1.05rem;white-space:nowrap;}
+
+  .stream-t-picks{
+    display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:5px;
+    flex:0 0 auto;
+  }
+  .stream-t-picks img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--naranja);}
+  .stream-t-picks .empty-slot{width:26px;height:26px;border-radius:50%;border:1px dashed rgba(254,229,206,.35);}
 
   /* ---------- ZONA DE REVELADO ---------- */
   .reveal-empty{
@@ -100,7 +135,7 @@
       <div class="round" id="roundLabel">Esperando…</div>
       <div class="team-name" id="turnTeamLabel">—</div>
     </div>
-    <div class="teams-grid stream-teams" id="teamsGrid"></div>
+    <div class="stream-teams" id="teamsGrid"></div>
   </div>
 
   <div class="stream-right">
@@ -240,7 +275,64 @@
       turnTeamLabel.textContent = `Turno de: ${(state.teams[turnTeamId] && state.teams[turnTeamId].name) || '—'}`;
     }
 
-    MD.renderTeams(teamsGrid, state, brawlersById, { onMemberClick: openPlayerCard });
+    renderStreamTeams(state);
+  }
+
+  // Tarjeta de equipo propia de la vista de stream: icono + nombre debajo +
+  // puntuación abreviada a la derecha por cada miembro (en vez de la lista
+  // de texto compacta que usan draft.html/screen.html), para aprovechar el
+  // espacio de la tarjeta. No toca MD.renderTeams (lo siguen usando las
+  // otras pantallas tal cual).
+  function renderStreamTeams(state){
+    const teams = state.teams || {};
+    const order = state.draftOrder || Object.keys(teams);
+    const turnTeamId = MD.currentTurnTeamId(state);
+
+    teamsGrid.innerHTML = '';
+    order.forEach(teamId => {
+      const team = teams[teamId];
+      if(!team) return;
+      const picks = MD.picksForTeam(state, teamId);
+      const miembros = Array.isArray(team.miembros) ? team.miembros : [];
+
+      const card = document.createElement('div');
+      card.className = 'stream-team-card' + (teamId === turnTeamId ? ' active-turn' : '');
+
+      const membersHtml = miembros.map((m, mIdx) => `
+        <button type="button" class="stream-member" data-team="${teamId}" data-member="${mIdx}">
+          <span class="stream-member-id">
+            <img class="stream-member-icon" src="${m.iconUrl || '../assets/logo.png'}" alt="" referrerpolicy="no-referrer">
+            <span class="stream-member-name">${m.nombre || ''}</span>
+          </span>
+          <span class="stream-member-score">${MD.formatScore(MD.calcMemberScore(m))}</span>
+        </button>`).join('');
+
+      const picksHtml = Array.from({ length: MD.PICKS_PER_TEAM }).map((_, i) => {
+        const brawlerId = picks[i];
+        if(!brawlerId) return '<span class="empty-slot"></span>';
+        const b = brawlersById[brawlerId];
+        return `<img src="${b ? b.icon : ''}" alt="${b ? b.name : brawlerId}" title="${b ? b.name : brawlerId}" referrerpolicy="no-referrer">`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="stream-t-head">
+          ${team.logoUrl ? `<img src="${team.logoUrl}" alt="">` : ''}
+          <span class="stream-t-name">${team.name || teamId}</span>
+          <span class="stream-t-score">${MD.formatScore(MD.calcTeamScore(team))}</span>
+        </div>
+        <div class="stream-members">${membersHtml}</div>
+        <div class="stream-t-picks">${picksHtml}</div>
+      `;
+      teamsGrid.appendChild(card);
+    });
+
+    teamsGrid.querySelectorAll('.stream-member').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const team = teams[btn.dataset.team];
+        const member = team && Array.isArray(team.miembros) ? team.miembros[+btn.dataset.member] : null;
+        if(member) openPlayerCard(member);
+      });
+    });
   }
 </script>
 </body>
