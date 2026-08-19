@@ -20,26 +20,43 @@ window.SHOWCAST_CONTENT = {
       "Nacidos en Puçol en 2023, hoy seguimos creciendo hacia nuevas localidades de Valencia."
     ]
   },
-  "galeria": [
+  "galeriaEdiciones": [
     {
-      "src": "assets/uploads/1787077637000-0-1000234225-jpg.jpg",
-      "tipo": "foto",
-      "caption": ""
+      "titulo": "Espai Jove De Puçol",
+      "items": []
     },
     {
-      "src": "assets/uploads/1787077639220-1-1000234223-jpg.jpg",
-      "tipo": "foto",
-      "caption": ""
+      "titulo": "Puçol 2024",
+      "items": [
+        {
+          "src": "assets/uploads/1787077637000-0-1000234225-jpg.jpg",
+          "tipo": "foto",
+          "caption": ""
+        },
+        {
+          "src": "assets/uploads/1787077639220-1-1000234223-jpg.jpg",
+          "tipo": "foto",
+          "caption": ""
+        },
+        {
+          "src": "assets/uploads/1787077641572-2-1000234224-jpg.jpg",
+          "tipo": "foto",
+          "caption": ""
+        },
+        {
+          "src": "assets/uploads/1787077644034-3-1000234218-jpg.jpg",
+          "tipo": "foto",
+          "caption": ""
+        }
+      ]
     },
     {
-      "src": "assets/uploads/1787077641572-2-1000234224-jpg.jpg",
-      "tipo": "foto",
-      "caption": ""
+      "titulo": "Puçol 2025",
+      "items": []
     },
     {
-      "src": "assets/uploads/1787077644034-3-1000234218-jpg.jpg",
-      "tipo": "foto",
-      "caption": ""
+      "titulo": "Puçol 2026",
+      "items": []
     }
   ],
   "equipo": [],

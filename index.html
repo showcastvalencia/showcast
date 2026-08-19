@@ -493,6 +493,26 @@
     text-align:left;
     font-size:.95rem;
   }
+
+  /* ---------- GALERÍA: apartados desplegables ---------- */
+  .gallery-accordion{margin-top:40px;display:flex;flex-direction:column;gap:14px;}
+  .gallery-edicion{background:var(--blanco);color:var(--negro);}
+  .gallery-edicion-toggle{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;
+    background:none;border:none;cursor:pointer;text-align:left;
+    padding:18px 22px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.2rem;color:var(--negro);
+  }
+  .gallery-edicion-toggle .chev{
+    width:12px;height:12px;flex:none;
+    border-right:4px solid var(--negro);border-bottom:4px solid var(--negro);
+    transform:rotate(45deg);transition:transform .25s;
+  }
+  .gallery-edicion.open .gallery-edicion-toggle .chev{transform:rotate(-135deg);}
+  .gallery-edicion-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;}
+  .gallery-edicion.open .gallery-edicion-body{grid-template-rows:1fr;}
+  .gallery-edicion-body > div{overflow:hidden;}
+  .gallery-edicion-empty{padding:0 22px 22px;font-style:italic;opacity:.6;font-size:.9rem;}
+  .gallery-edicion .gallery-grid{padding:0 22px 22px;margin-top:0;}
   .avatar-placeholder img{
     width:100%;height:100%;object-fit:cover;border-radius:50%;
   }
@@ -1090,15 +1110,9 @@
     <span class="section-kicker">🎮 Recuerdos</span>
     <h2 class="section-title" style="color:var(--blanco);">Galería de <span class="accent">ediciones</span></h2>
     <p class="section-lead" style="color:var(--crema);opacity:.85;">Momentos de nuestros torneos anteriores.</p>
-    <div class="gallery-grid" id="galleryGrid">
-      <div class="gallery-tile"><span>Foto próximamente</span></div>
-      <div class="gallery-tile"><span>Foto próximamente</span></div>
-      <div class="gallery-tile"><span>Foto próximamente</span></div>
-      <div class="gallery-tile"><span>Foto próximamente</span></div>
-      <div class="gallery-tile"><span>Foto próximamente</span></div>
-      <div class="gallery-tile"><span>Foto próximamente</span></div>
+    <div class="gallery-accordion" id="galleryAccordion">
+      <p class="gallery-note" id="galleryNote">* En cuanto se añadan apartados desde el panel de administración, aparecerán aquí.</p>
     </div>
-    <p class="gallery-note" id="galleryNote">* Espacios reservados a la espera de las fotos reales de ediciones anteriores.</p>
   </div>
 </section>
 
@@ -1487,28 +1501,47 @@
       }
     }
 
-    if(Array.isArray(data.galeria) && data.galeria.length){
-      const grid = document.getElementById('galleryGrid');
-      grid.innerHTML = data.galeria.map(item => {
-        let media;
-        if(item.tipo === 'youtube'){
-          const embedUrl = youtubeEmbedUrl(item.src);
-          media = embedUrl
-            ? `<iframe src="${embedUrl}" title="${item.caption || 'Vídeo de YouTube'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
-            : '';
-        } else if(item.tipo === 'video'){
-          media = `<video src="${item.src}" muted loop playsinline autoplay></video>`;
-        } else {
-          media = `<img src="${item.src}" alt="${item.caption || 'Foto Showcast'}">`;
-        }
+    const galeriaEdiciones = Array.isArray(data.galeriaEdiciones) && data.galeriaEdiciones.length
+      ? data.galeriaEdiciones
+      : (Array.isArray(data.galeria) && data.galeria.length ? [{ titulo: 'Galería', items: data.galeria }] : []);
+
+    if(galeriaEdiciones.length){
+      const wrap = document.getElementById('galleryAccordion');
+      wrap.innerHTML = galeriaEdiciones.map((edicion, idx) => {
+        const items = Array.isArray(edicion.items) ? edicion.items : [];
+        const tilesHtml = items.map(item => {
+          let media;
+          if(item.tipo === 'youtube'){
+            const embedUrl = youtubeEmbedUrl(item.src);
+            media = embedUrl
+              ? `<iframe src="${embedUrl}" title="${item.caption || 'Vídeo de YouTube'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+              : '';
+          } else if(item.tipo === 'video'){
+            media = `<video src="${item.src}" muted loop playsinline autoplay></video>`;
+          } else {
+            media = `<img src="${item.src}" alt="${item.caption || 'Foto Showcast'}" loading="lazy">`;
+          }
+          return `<div class="gallery-tile has-photo">${media}${item.caption ? `<span>${item.caption}</span>` : ''}</div>`;
+        }).join('');
+        const bodyHtml = items.length
+          ? `<div class="gallery-grid">${tilesHtml}</div>`
+          : `<p class="gallery-edicion-empty">Todavía no hay fotos en este apartado.</p>`;
         return `
-        <div class="gallery-tile has-photo">
-          ${media}
-          ${item.caption ? `<span>${item.caption}</span>` : ''}
+        <div class="gallery-edicion${idx === 0 ? ' open' : ''}">
+          <button type="button" class="gallery-edicion-toggle" aria-expanded="${idx === 0 ? 'true' : 'false'}">
+            <span>${edicion.titulo || 'Sin título'}</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="gallery-edicion-body"><div>${bodyHtml}</div></div>
         </div>`;
       }).join('');
-      const note = document.getElementById('galleryNote');
-      if(note) note.style.display = 'none';
+      wrap.querySelectorAll('.gallery-edicion-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const edicion = btn.closest('.gallery-edicion');
+          const isOpen = edicion.classList.toggle('open');
+          btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      });
     }
 
     if(Array.isArray(data.patrocinadores) && data.patrocinadores.length){
