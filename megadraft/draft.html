@@ -155,6 +155,7 @@
   let latestState = null;
 
   setInterval(() => {
+    MD.maybeAdvancePrepPhase(latestState);
     const timers = (latestState && latestState.timers) || {};
     const prepRemaining = MD.timerRemaining(timers.prep);
     const prepValue = document.getElementById('prepTimerValue');
@@ -242,6 +243,15 @@
     waitingScreen.style.display = 'none';
     draftScreen.style.display = 'block';
     completeScreen.style.display = 'none';
+
+    if(MD.isPrepPhase(state)){
+      roundLabel.textContent = 'Preparación';
+      turnTeamLabel.textContent = 'Prepara tu equipo — la elección empieza en cuanto acabe la cuenta atrás';
+      turnBanner.classList.remove('my-turn');
+      MD.renderPool(poolGrid, brawlers, state, {});
+      MD.renderTeams(teamsGrid, state, brawlersById, { onMemberClick: openPlayerCard });
+      return;
+    }
 
     const turnTeamId = MD.currentTurnTeamId(state);
     const myTurn = turnTeamId === myTeamId;

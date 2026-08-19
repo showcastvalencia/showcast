@@ -546,14 +546,21 @@
     const perTeam = (latestState && latestState.timers && latestState.timers.pick && latestState.timers.pick.perTeam) || {};
     const firstTeamId = order[0];
     const firstDuration = perTeam[firstTeamId] || MD.DEFAULT_PICK_SECONDS;
+    const prepDuration = Math.max(1, Number(prepDurationInput.value) || MD.DEFAULT_PREP_SECONDS);
+    // La sala arranca en fase de "prep": nadie puede elegir todavía. En
+    // cuanto el cronómetro de preparación llega a 0, cualquier pantalla
+    // conectada dispara sola el paso a la fase de elección con el primer
+    // equipo (ver MD.maybeAdvancePrepPhase) — no hace falta que pulses nada más.
     db_ready.then(() => db.ref('megadraft').update({
         draftOrder: order,
         currentPickIndex: 0,
         pickedBrawlers: null,
         status: 'drafting',
+        draftPhase: 'prep',
+        'timers/prep': { duration: prepDuration, remaining: prepDuration, running: true, startedAt: firebase.database.ServerValue.TIMESTAMP },
         'timers/pick': { perTeam: perTeam, currentTeamId: firstTeamId, duration: firstDuration, remaining: firstDuration, running: false, startedAt: null },
       }))
-      .then(() => { saveMsg.textContent = '¡Sala iniciada! Los participantes ya ven la fase de draft.'; setTimeout(() => saveMsg.textContent = '', 4000); })
+      .then(() => { saveMsg.textContent = '¡Sala iniciada! Empieza la preparación de ' + prepDuration + 's.'; setTimeout(() => saveMsg.textContent = '', 4000); })
       .catch(err => { saveError.textContent = 'Error al iniciar la sala: ' + err.message; });
   });
 
@@ -656,6 +663,7 @@
   });
 
   setInterval(() => {
+    MD.maybeAdvancePrepPhase(latestState);
     const timers = (latestState && latestState.timers) || {};
     const prepRemaining = MD.timerRemaining(timers.prep);
     prepTimerDisplay.textContent = MD.formatTime(prepRemaining);

@@ -113,6 +113,7 @@
   let latestState = null;
 
   setInterval(() => {
+    MD.maybeAdvancePrepPhase(latestState);
     const timers = (latestState && latestState.timers) || {};
     const prepRemaining = MD.timerRemaining(timers.prep);
     const prepValue = document.getElementById('prepTimerValue');
@@ -135,7 +136,10 @@
     }
   }, 500);
 
-  MD.loadBrawlers().then(list => {
+  // Aunque esta pantalla es de solo lectura para las personas, necesita
+  // sesión anónima igualmente: es una de las pantallas que puede disparar
+  // sola el paso automático de "preparación" a "elección" (MD.maybeAdvancePrepPhase).
+  Promise.all([MD.signInAnon(), MD.loadBrawlers()]).then(([user, list]) => {
     brawlers = list;
     brawlersById = Object.fromEntries(list.map(b => [b.id, b]));
     MD.subscribeState(state => { latestState = state; render(state); });
@@ -154,6 +158,9 @@
     } else if(MD.isComplete(state)){
       roundLabel.textContent = 'Draft completado';
       turnTeamLabel.textContent = '¡Los 8 equipos tienen sus 12 personajes!';
+    } else if(MD.isPrepPhase(state)){
+      roundLabel.textContent = 'Preparación';
+      turnTeamLabel.textContent = 'La elección empieza en cuanto acabe la cuenta atrás de preparación';
     } else {
       const turnTeamId = MD.currentTurnTeamId(state);
       roundLabel.textContent = `Ronda ${MD.currentRound(state)} / ${MD.PICKS_PER_TEAM}`;
