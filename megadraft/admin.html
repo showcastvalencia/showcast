@@ -269,7 +269,10 @@
     member.victories3v3 = stats.victories3v3;
     member.rankedAllTimePeakElo = stats.rankedAllTimePeakElo;
     member.rankedAllTimePeakName = stats.rankedAllTimePeakName;
-    if(!member.nombre.trim() && stats.name) member.nombre = stats.name;
+    // Siempre se sincroniza con el nombre real de la cuenta comprobada — si
+    // no, al cambiar el tag de un miembro (ej. estaba mal escrito) el nombre
+    // se quedaba pegado al de la primera comprobación.
+    if(stats.name) member.nombre = stats.name;
     closeVerifyModal();
     render();
   });
