@@ -58,11 +58,11 @@
   .stream-team-card.active-turn{border-color:var(--blanco);box-shadow:0 0 0 3px var(--naranja);}
 
   .stream-t-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex:0 0 auto;}
-  .stream-t-head img{width:24px;height:24px;border-radius:50%;object-fit:cover;background:var(--blanco);border:2px solid var(--naranja);flex:0 0 auto;}
-  .stream-t-head .stream-t-name{font-family:'Anton',sans-serif;font-size:.85rem;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .stream-t-head .stream-t-score{margin-left:auto;font-family:'Anton',sans-serif;color:var(--naranja);font-size:.8rem;white-space:nowrap;}
+  .stream-t-head img{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--blanco);border:2px solid var(--naranja);flex:0 0 auto;}
+  .stream-t-head .stream-t-name{font-family:'Anton',sans-serif;font-size:1.25rem;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .stream-t-head .stream-t-score{margin-left:auto;font-family:'Anton',sans-serif;color:var(--naranja);font-size:1.1rem;white-space:nowrap;}
 
-  /* ---------- MIEMBROS: icono arriba, nombre abajo, puntuación a la derecha ---------- */
+  /* ---------- MIEMBROS: icono a la izquierda, nombre completo al lado, puntuación a la derecha ---------- */
   .stream-members{
     display:flex;flex-direction:column;gap:4px;
     flex:1 1 auto;min-height:0;
@@ -70,20 +70,21 @@
     margin-bottom:6px;
   }
   .stream-member{
-    display:flex;align-items:center;justify-content:space-between;gap:6px;
+    display:flex;align-items:center;gap:8px;
     width:100%;background:rgba(0,0,0,.2);border:1px solid rgba(251,157,69,.3);
-    padding:3px 8px;cursor:pointer;color:var(--crema);flex:0 0 auto;
+    padding:4px 8px;cursor:pointer;color:var(--crema);flex:0 0 auto;
+    text-align:left;
   }
-  .stream-member-id{display:flex;flex-direction:column;align-items:center;gap:1px;width:52px;flex:0 0 auto;}
-  .stream-member-icon{width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid var(--naranja);background:var(--crema);}
+  .stream-member-icon{width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid var(--naranja);background:var(--crema);flex:0 0 auto;}
   .stream-member-name{
-    font-size:.6rem;font-weight:700;width:100%;text-align:center;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:.95rem;font-weight:700;flex:1 1 auto;min-width:0;
+    white-space:normal;word-break:break-word;line-height:1.15;
   }
-  .stream-member-score{font-family:'Anton',sans-serif;color:var(--naranja);font-size:1.05rem;white-space:nowrap;}
+  .stream-member-score{font-family:'Anton',sans-serif;color:var(--naranja);font-size:1.2rem;white-space:nowrap;flex:0 0 auto;margin-left:auto;}
 
   .stream-t-picks{
-    display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:5px;
+    display:grid;grid-template-columns:repeat(6,1fr);gap:5px;
+    justify-items:center;
     flex:0 0 auto;
   }
   .stream-t-picks img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--naranja);}
@@ -300,10 +301,8 @@
 
       const membersHtml = miembros.map((m, mIdx) => `
         <button type="button" class="stream-member" data-team="${teamId}" data-member="${mIdx}">
-          <span class="stream-member-id">
-            <img class="stream-member-icon" src="${m.iconUrl || '../assets/logo.png'}" alt="" referrerpolicy="no-referrer">
-            <span class="stream-member-name">${m.nombre || ''}</span>
-          </span>
+          <img class="stream-member-icon" src="${m.iconUrl || '../assets/logo.png'}" alt="" referrerpolicy="no-referrer">
+          <span class="stream-member-name">${m.nombre || ''}</span>
           <span class="stream-member-score">${MD.formatScore(MD.calcMemberScore(m))}</span>
         </button>`).join('');
 

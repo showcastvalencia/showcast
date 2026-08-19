@@ -51,9 +51,14 @@ const MD = (function () {
       + (member.rankedAllTimePeakElo || 0) * POINTS_PER_RANKED_ELO;
   }
 
+  // Media, no suma: con el 4º miembro opcional, sumar dejaría a los equipos
+  // de 4 con una puntuación de equipo inflada solo por tener uno más,
+  // sin que eso refleje mejor nivel real.
   function calcTeamScore(team) {
     const miembros = (team && Array.isArray(team.miembros)) ? team.miembros : [];
-    return miembros.reduce((sum, m) => sum + calcMemberScore(m), 0);
+    if (!miembros.length) return 0;
+    const total = miembros.reduce((sum, m) => sum + calcMemberScore(m), 0);
+    return Math.round(total / miembros.length);
   }
 
   // Abrevia números grandes para sitios con poco espacio (217000 -> "217K",
