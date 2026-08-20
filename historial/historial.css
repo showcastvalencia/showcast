@@ -212,15 +212,15 @@ a{color:inherit;text-decoration:none;}
   width:96px;
 }
 .jugador-card .jugador-icon{
-  width:72px;height:72px;
-  border-radius:50%;
+  width:76px;height:76px;
+  border-radius:8px;
   object-fit:cover;
   background:var(--crema);
   border:3px solid var(--naranja);
 }
 .jugador-card .jugador-icon-fallback{
-  width:72px;height:72px;
-  border-radius:50%;
+  width:76px;height:76px;
+  border-radius:8px;
   background:rgba(251,157,69,.12);
   border:3px dashed var(--naranja);
   display:flex;align-items:center;justify-content:center;
@@ -228,6 +228,12 @@ a{color:inherit;text-decoration:none;}
   text-align:center;
   padding:4px;
 }
+.jugador-card.ganador .jugador-icon,
+.jugador-card.ganador .jugador-icon-fallback{
+  border-color:#7be08c;
+  box-shadow:0 0 0 2px rgba(123,224,140,.4);
+}
+.jugador-card.ganador .jugador-nombre{color:#7be08c;}
 .jugador-card .jugador-nombre{
   font-size:.8rem;
   font-weight:700;
