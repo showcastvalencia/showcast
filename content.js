@@ -5,7 +5,6 @@
 window.SHOWCAST_CONTENT = {
   "formEndpoint": "https://script.google.com/macros/s/AKfycbyCgipI6moIJC4vTcqiDI6VJFhYzqGHr5KICXvuB2NofU0bTwVpkUbD84NnE1ul0TrmsA/exec",
   "brawlProxyEndpoint": "https://34.10.158.213.sslip.io/proxy/brawlstars.php",
-  "challongeProxyEndpoint": "https://34.10.158.213.sslip.io/proxy/challonge.php",
   "evento": {
     "titulo": "Torneo 3v3",
     "juego": "Brawl Stars",
@@ -43,47 +42,47 @@ window.SHOWCAST_CONTENT = {
       "ubicacion": "Casal Jove del Port de Sagunt",
       "items": [
         {
-          "src": "assets/uploads/1787249852786-0-cartel-torneo-brawl-stars-puerto-de-sagunto-2025-png.png",
+          "src": "assets/uploads/1787254497791-0-cartel-torneo-brawl-stars-puerto-de-sagunto-2025-png.png",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/uploads/1787249860605-1-img-20251223-162831-png.png",
+          "src": "assets/uploads/1787254502695-1-img-20251223-162831-png.png",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/uploads/1787249869298-2-img-20251223-163818-png.png",
+          "src": "assets/uploads/1787254508104-2-img-20251223-163818-png.png",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/uploads/1787249874810-3-img-20251223-170233-png.png",
+          "src": "assets/uploads/1787254513805-3-img-20251223-170233-png.png",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/uploads/1787249878944-4-img-20251223-171036-png.png",
+          "src": "assets/uploads/1787254519591-4-img-20251223-171036-png.png",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/uploads/1787249883100-5-img-20251223-173127-png.png",
+          "src": "assets/uploads/1787254524434-5-img-20251223-173127-png.png",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/uploads/1787249887390-6-img-20251223-173611-png.png",
+          "src": "assets/uploads/1787254529135-6-img-20251223-173611-png.png",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/uploads/1787249896313-7-img-20251223-205003-1-png.png",
+          "src": "assets/uploads/1787254533539-7-img-20251223-205003-1-png.png",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/uploads/1787249905222-8-img-20251223-205136-png.png",
+          "src": "assets/uploads/1787254538863-8-img-20251223-205136-png.png",
           "tipo": "foto",
           "caption": ""
         }
@@ -94,7 +93,13 @@ window.SHOWCAST_CONTENT = {
       "anio": "2026",
       "fecha": "",
       "ubicacion": "Espai Jove Puçol",
-      "items": []
+      "items": [
+        {
+          "src": "assets/uploads/1787254542020-9-1781974649349-png.png",
+          "tipo": "foto",
+          "caption": ""
+        }
+      ]
     }
   ],
   "equipo": [],
