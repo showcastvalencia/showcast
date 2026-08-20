@@ -831,35 +831,6 @@
     font-size:.85rem;
   }
 
-  /* ---------- TIMELINE (TORNEOS ORGANIZADOS) ---------- */
-  .timeline{
-    margin-top:40px;
-    border-left:4px solid var(--naranja);
-    padding-left:30px;
-    display:flex;
-    flex-direction:column;
-    gap:34px;
-  }
-  .timeline-item{position:relative;}
-  .timeline-item::before{
-    content:"";
-    position:absolute;
-    left:-38px;
-    top:4px;
-    width:16px;height:16px;
-    background:var(--naranja);
-    border:3px solid var(--negro);
-    border-radius:50%;
-  }
-  .timeline-item .t-date{
-    font-family:'Anton',sans-serif;
-    color:var(--naranja-dark);
-    font-size:1rem;
-    letter-spacing:1px;
-  }
-  .timeline-item h3{font-size:1.3rem;margin:4px 0 6px;}
-  .timeline-item p{font-weight:600;color:#333;line-height:1.5;}
-
   /* ---------- TEAM ---------- */
   .team-grid{
     display:grid;
@@ -958,47 +929,25 @@
     transition:color .15s ease;
   }
 
-  /* ---------- MAP ---------- */
-  .map-wrap{
-    margin-top:40px;
-    display:grid;
-    grid-template-columns:1.3fr 1fr;
-    gap:0;
-    border:4px solid var(--negro);
-    box-shadow:10px 10px 0 var(--naranja);
-    overflow:hidden;
+  /* ---------- GALERÍA: metadatos y mapa por edición ---------- */
+  .edicion-meta{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    padding:0 22px;
+    margin-bottom:16px;
+    font-weight:700;
   }
-  .map-wrap iframe{
+  .edicion-map{padding:0 22px 22px;}
+  .edicion-map iframe{
     width:100%;
-    height:420px;
-    border:none;
+    height:220px;
+    border:4px solid var(--negro);
+    box-shadow:6px 6px 0 var(--naranja);
     filter:grayscale(.15) contrast(1.05);
   }
-  .locality-list{
-    background:var(--negro);
-    color:var(--crema);
-    padding:30px;
-  }
-  .locality-list h4{
-    font-family:'Anton',sans-serif;
-    color:var(--naranja);
-    margin-bottom:16px;
-    letter-spacing:1px;
-  }
-  .locality-list ul{list-style:none;}
-  .locality-list li{
-    padding:10px 0;
-    border-bottom:1px dashed rgba(254,229,206,.2);
-    font-weight:600;
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .locality-list li:last-child{border-bottom:none;}
-  .locality-list li .pin{color:var(--naranja);font-weight:900;}
 
   @media(max-width:900px){
-    .map-wrap{grid-template-columns:1fr;}
     .form-grid{grid-template-columns:1fr;}
   }
 
@@ -1091,10 +1040,9 @@
           <ul class="nav-dropdown-menu" id="comunidadMenu">
             <li><a href="#quienes-somos">Quiénes somos</a></li>
             <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
+            <li><a href="#unete">Únete</a></li>
             <li><a href="#galeria">Galería</a></li>
             <li><a href="#patrocinadores">Patrocinadores</a></li>
-            <li><a href="#unete">Únete</a></li>
-            <li><a href="#mapa">Mapa</a></li>
             <li><a href="#contacto">Contacto</a></li>
           </ul>
         </li>
@@ -1360,21 +1308,19 @@
       </div>
     </div>
     <p class="gallery-note" style="color:var(--crema);">* Nombres, cargos y fotos del equipo se actualizan próximamente.</p>
+  </div>
+</section>
 
-    <h3 style="margin-top:70px;font-size:clamp(1.6rem,4vw,2.2rem);color:var(--blanco);">Torneos ya <span class="accent">organizados</span></h3>
-    <div class="timeline" id="timelineList">
-      <div class="timeline-item">
-        <div class="t-date">20 Junio 2026</div>
-        <h3>Torneo 3v3 — Brawl Stars</h3>
-        <p>Espai Jove Puçol. Próximo torneo comunitario de la temporada.</p>
-      </div>
-      <div class="timeline-item">
-        <div class="t-date">2023 — Hoy</div>
-        <h3>Torneos comunitarios de Brawl Stars</h3>
-        <p>Desde nuestra fundación en Puçol organizamos torneos infantiles y juveniles de forma recurrente.</p>
-      </div>
+<!-- ÚNETE A NOSOTROS -->
+<section id="unete" style="background:var(--crema);">
+  <div class="section-inner" style="text-align:center;">
+    <span class="section-kicker">🤝 Forma parte del show</span>
+    <h2 class="section-title">Únete a <span class="accent">nosotros</span></h2>
+    <p class="section-lead" style="margin:14px auto 0;">Buscamos gente joven, apasionada por los videojuegos y con ganas de ayudar a organizar torneos, streaming, diseño o comunidad. Si quieres formar parte del equipo Showcast, escríbenos.</p>
+    <div class="hero-ctas" style="justify-content:center;margin-top:36px;">
+      <a href="#contacto" class="btn btn-primary">Quiero unirme</a>
+      <a href="https://www.instagram.com/showcast.es" target="_blank" rel="noopener" class="btn btn-outline-dark">Síguenos en Instagram</a>
     </div>
-    <p class="gallery-note" style="color:var(--crema);">* Próximamente, el listado completo de ediciones anteriores (fecha, juego, sede y ganadores).</p>
   </div>
 </section>
 
@@ -1390,6 +1336,15 @@
   </div>
 </section>
 
+<section class="cta-stripe" id="inscripcion-cta">
+  <div class="cta-inner">
+    <span class="section-kicker">Formulario de registro</span>
+    <h2>¡Reserva tu plaza en el torneo!</h2>
+    <p>Inscríbete junto a tu equipo, elige tu categoría y prepárate para competir en el próximo evento de Showcast.</p>
+    <a href="#inscripcion" class="btn btn-primary">Ir a inscripción</a>
+  </div>
+</section>
+
 <!-- PATROCINADORES -->
 <section id="patrocinadores" style="background:var(--crema);">
   <div class="section-inner">
@@ -1397,49 +1352,6 @@
     <h2 class="section-title">Nuestros <span class="accent">patrocinadores</span></h2>
     <p class="section-lead" id="sponsorNote">Todavía no hay patrocinadores publicados. Si tu marca quiere colaborar con Showcast, escríbenos.</p>
     <div class="sponsor-grid" id="sponsorGrid"></div>
-  </div>
-</section>
-
-<!-- ÚNETE A NOSOTROS -->
-<section id="unete" style="background:var(--negro);color:var(--blanco);">
-  <div class="section-inner" style="text-align:center;">
-    <span class="section-kicker">🤝 Forma parte del show</span>
-    <h2 class="section-title" style="color:var(--blanco);">Únete a <span class="accent">nosotros</span></h2>
-    <p class="section-lead" style="color:var(--crema);opacity:.85;margin:14px auto 0;">Buscamos gente joven, apasionada por los videojuegos y con ganas de ayudar a organizar torneos, streaming, diseño o comunidad. Si quieres formar parte del equipo Showcast, escríbenos.</p>
-    <div class="hero-ctas" style="justify-content:center;margin-top:36px;">
-      <a href="#contacto" class="btn btn-primary">Quiero unirme</a>
-      <a href="https://www.instagram.com/showcast.es" target="_blank" rel="noopener" class="btn btn-outline">Síguenos en Instagram</a>
-    </div>
-  </div>
-</section>
-
-<!-- MAPA -->
-<section id="mapa" style="background:var(--crema);">
-  <div class="section-inner">
-    <span class="section-kicker">📍 Dónde jugamos</span>
-    <h2 class="section-title">Localidades de <span class="accent">Valencia</span></h2>
-    <p class="section-lead">Nacimos en Puçol y seguimos llevando nuestros torneos a nuevas localidades de la provincia.</p>
-    <div class="map-wrap">
-      <iframe src="https://www.google.com/maps?q=Espai+Jove+Pu%C3%A7ol,+Valencia&output=embed" loading="lazy" allowfullscreen title="Mapa provincia de Valencia"></iframe>
-      <div class="locality-list">
-        <h4>Localidades con torneos</h4>
-        <ul id="localityList">
-          <li><span class="pin">📍</span> Puçol — Espai Jove Puçol (sede actual)</li>
-          <li><span class="pin">📍</span> Próxima localidad — por confirmar</li>
-          <li><span class="pin">📍</span> Próxima localidad — por confirmar</li>
-        </ul>
-      </div>
-    </div>
-    <p class="gallery-note">* Actualiza el listado a medida que Showcast se expanda a nuevas localidades de la provincia.</p>
-  </div>
-</section>
-
-<section class="cta-stripe" id="inscripcion-cta">
-  <div class="cta-inner">
-    <span class="section-kicker">Formulario de registro</span>
-    <h2>¡Reserva tu plaza en el torneo!</h2>
-    <p>Inscríbete junto a tu equipo, elige tu categoría y prepárate para competir en el próximo evento de Showcast.</p>
-    <a href="#inscripcion" class="btn btn-primary">Ir a inscripción</a>
   </div>
 </section>
 
@@ -1480,8 +1392,8 @@
         <li><a href="#inscripcion">Inscripción</a></li>
         <li><a href="#clasificaciones">Clasificaciones</a></li>
         <li><a href="#quienes-somos">Quiénes somos</a></li>
-        <li><a href="#galeria">Galería</a></li>
         <li><a href="#unete">Únete</a></li>
+        <li><a href="#galeria">Galería</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -1592,9 +1504,19 @@
           }
           return `<div class="gallery-tile has-photo">${media}${item.caption ? `<span>${item.caption}</span>` : ''}</div>`;
         }).join('');
-        const bodyHtml = items.length
+        const galleryHtml = items.length
           ? `<div class="gallery-grid">${tilesHtml}</div>`
           : `<p class="gallery-edicion-empty">Todavía no hay fotos en este apartado.</p>`;
+        const mapaHtml = edicion.ubicacion
+          ? `<div class="edicion-map"><iframe src="https://www.google.com/maps?q=${encodeURIComponent(edicion.ubicacion + ', Valencia')}&output=embed" loading="lazy" title="Mapa ${edicion.ubicacion}"></iframe></div>`
+          : '';
+        const bodyHtml = `
+          <div class="edicion-meta">
+            <span>📅 ${edicion.fecha || 'Próximamente'}</span>
+            ${edicion.ubicacion ? `<span>📍 ${edicion.ubicacion}</span>` : ''}
+          </div>
+          ${mapaHtml}
+          ${galleryHtml}`;
         return `
         <div class="gallery-edicion${idx === 0 ? ' open' : ''}">
           <button type="button" class="gallery-edicion-toggle" aria-expanded="${idx === 0 ? 'true' : 'false'}">
@@ -1635,21 +1557,6 @@
           <h4>${m.nombre || 'Miembro del equipo'}</h4>
           <div class="role">${m.rol || 'Cargo pendiente'}</div>
         </div>`).join('');
-    }
-
-    if(Array.isArray(data.torneosOrganizados) && data.torneosOrganizados.length){
-      const list = document.getElementById('timelineList');
-      list.innerHTML = data.torneosOrganizados.map(t => `
-        <div class="timeline-item">
-          <div class="t-date">${t.fecha || ''}</div>
-          <h3>${t.titulo || ''}</h3>
-          <p>${t.descripcion || ''}</p>
-        </div>`).join('');
-    }
-
-    if(Array.isArray(data.localidades) && data.localidades.length){
-      const list = document.getElementById('localityList');
-      list.innerHTML = data.localidades.map(loc => `<li><span class="pin">📍</span> ${loc}</li>`).join('');
     }
 
     if(data.contacto){

@@ -23,11 +23,9 @@ window.SHOWCAST_CONTENT = {
   },
   "galeriaEdiciones": [
     {
-      "titulo": "Espai Jove De Puçol",
-      "items": []
-    },
-    {
       "titulo": "Puçol 2024",
+      "fecha": "",
+      "ubicacion": "Espai Jove Puçol",
       "items": [
         {
           "src": "assets/uploads/1787077637000-0-1000234225-jpg.jpg",
@@ -53,32 +51,25 @@ window.SHOWCAST_CONTENT = {
     },
     {
       "titulo": "Puçol 2025",
+      "fecha": "",
+      "ubicacion": "Espai Jove Puçol",
+      "items": []
+    },
+    {
+      "titulo": "Port de Sagunt 2025",
+      "fecha": "",
+      "ubicacion": "Casal Jove del Port de Sagunt",
       "items": []
     },
     {
       "titulo": "Puçol 2026",
+      "fecha": "",
+      "ubicacion": "Espai Jove Puçol",
       "items": []
     }
   ],
   "equipo": [],
   "patrocinadores": [],
-  "torneosOrganizados": [
-    {
-      "fecha": "20 Junio 2026",
-      "titulo": "Torneo 3v3 — Brawl Stars",
-      "descripcion": "Espai Jove Puçol. Próximo torneo comunitario de la temporada."
-    },
-    {
-      "fecha": "2023 — Hoy",
-      "titulo": "Torneos comunitarios de Brawl Stars",
-      "descripcion": "Desde nuestra fundación en Puçol organizamos torneos infantiles y juveniles de forma recurrente."
-    }
-  ],
-  "localidades": [
-    "Puçol — Espai Jove Puçol (sede actual)",
-    "Próxima localidad — por confirmar",
-    "Próxima localidad — por confirmar"
-  ],
   "contacto": {
     "email": "showcastvalencia.com",
     "telefono": "Pendiente de publicar",
