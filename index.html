@@ -330,6 +330,15 @@
     line-height:1.6;
   }
 
+  /* ---------- CABECERAS DE BLOQUE ("TORNEOS" / "COMUNIDAD") ---------- */
+  .group-header{
+    background:var(--naranja);
+    padding:60px 24px;
+  }
+  .group-header .section-inner{text-align:center;}
+  .group-header .section-kicker{color:var(--negro);opacity:.7;}
+  .group-header .section-title{margin-bottom:0;}
+
   .diagonal-top{
     clip-path: polygon(0 4vw, 100% 0, 100% 100%, 0 100%);
   }
@@ -1071,6 +1080,7 @@
           <button class="nav-dropdown-btn" id="torneosBtn" aria-expanded="false">Torneos<span class="nav-caret"></span></button>
           <ul class="nav-dropdown-menu" id="torneosMenu">
             <li><a href="#evento">Próximo evento</a></li>
+            <li><a href="#inscripcion">Inscripción</a></li>
             <li><a href="#clasificaciones">Clasificaciones</a></li>
             <li><a href="historial/index.html">Historial de partidas</a></li>
             <li><a href="megadraft/index.html">Megadraft</a></li>
@@ -1088,7 +1098,6 @@
             <li><a href="#contacto">Contacto</a></li>
           </ul>
         </li>
-        <li><a href="#inscripcion">Inscripción</a></li>
       </ul>
     </nav>
   </div>
@@ -1108,30 +1117,11 @@
   </div>
 </section>
 
-<!-- INTRODUCCIÓN Y GENERAL -->
-<section id="quienes-somos" style="background:var(--crema);">
+<!-- CABECERA DE BLOQUE: TORNEOS -->
+<section class="group-header" id="torneos">
   <div class="section-inner">
-    <span class="section-kicker">Introducción</span>
-    <h2 class="section-title">¿Quiénes <span class="accent">somos</span>?</h2>
-    <p class="section-lead" id="qsIntro">Somos una organización juvenil altruista nacida en Puçol y en expansión hacia otras localidades de la provincia de Valencia. Organizamos torneos de Brawl Stars desde 2023, creando un ambiente divertido, familiar y lleno de emoción.</p>
-    <div class="pillars" id="qsPillars">
-      <div class="pillar">
-        <span class="num">01</span>
-        <p>Creemos y aprovechamos los videojuegos como herramienta para aprender, compartir y fomentar el juego en comunidad.</p>
-      </div>
-      <div class="pillar">
-        <span class="num">02</span>
-        <p>Toda nuestra organización es de forma autodidacta, con pasión y espíritu emprendedor.</p>
-      </div>
-      <div class="pillar">
-        <span class="num">03</span>
-        <p>Torneos infantiles y juveniles con clasificaciones en directo, pensados para que todos puedan competir y disfrutar.</p>
-      </div>
-      <div class="pillar">
-        <span class="num">04</span>
-        <p>Nacidos en Puçol en 2023, hoy seguimos creciendo hacia nuevas localidades de Valencia.</p>
-      </div>
-    </div>
+    <span class="section-kicker">🏆 Todo sobre competir</span>
+    <h2 class="section-title">TORNEOS</h2>
   </div>
 </section>
 
@@ -1306,6 +1296,41 @@
   </div>
 </section>
 
+<!-- CABECERA DE BLOQUE: COMUNIDAD -->
+<section class="group-header" id="comunidad">
+  <div class="section-inner">
+    <span class="section-kicker">🤝 Quiénes somos y qué hacemos</span>
+    <h2 class="section-title">COMUNIDAD</h2>
+  </div>
+</section>
+
+<!-- INTRODUCCIÓN Y GENERAL -->
+<section id="quienes-somos" style="background:var(--crema);">
+  <div class="section-inner">
+    <span class="section-kicker">Introducción</span>
+    <h2 class="section-title">¿Quiénes <span class="accent">somos</span>?</h2>
+    <p class="section-lead" id="qsIntro">Somos una organización juvenil altruista nacida en Puçol y en expansión hacia otras localidades de la provincia de Valencia. Organizamos torneos de Brawl Stars desde 2023, creando un ambiente divertido, familiar y lleno de emoción.</p>
+    <div class="pillars" id="qsPillars">
+      <div class="pillar">
+        <span class="num">01</span>
+        <p>Creemos y aprovechamos los videojuegos como herramienta para aprender, compartir y fomentar el juego en comunidad.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">02</span>
+        <p>Toda nuestra organización es de forma autodidacta, con pasión y espíritu emprendedor.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">03</span>
+        <p>Torneos infantiles y juveniles con clasificaciones en directo, pensados para que todos puedan competir y disfrutar.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">04</span>
+        <p>Nacidos en Puçol en 2023, hoy seguimos creciendo hacia nuevas localidades de Valencia.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- SOBRE NOSOTROS: EQUIPO + TORNEOS ORGANIZADOS -->
 <section id="sobre-nosotros" style="background:var(--negro);color:var(--blanco);">
   <div class="section-inner">
@@ -1451,10 +1476,10 @@
     <div class="footer-col">
       <h4>Navegación</h4>
       <ul>
-        <li><a href="#quienes-somos">Quiénes somos</a></li>
         <li><a href="#evento">Próximo evento</a></li>
         <li><a href="#inscripcion">Inscripción</a></li>
         <li><a href="#clasificaciones">Clasificaciones</a></li>
+        <li><a href="#quienes-somos">Quiénes somos</a></li>
         <li><a href="#galeria">Galería</a></li>
         <li><a href="#unete">Únete</a></li>
       </ul>
