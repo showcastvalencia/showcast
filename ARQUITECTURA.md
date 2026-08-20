@@ -123,9 +123,13 @@ Una única página de ~1700 líneas, sin router, dividida en secciones ancladas 
 
 **Galería = ediciones del torneo, agrupadas por ciudad** (`#galeria`): acordeón de **dos niveles**. El nivel exterior agrupa por `ciudad` (dos categorías principales: Puçol y Sagunto) — se calcula en JS a partir del array plano `galeriaEdiciones` (primer orden de aparición decide el orden de las ciudades, sin campo de orden explícito). Dentro de cada ciudad, un sub-acordeón (`.gallery-accordion.nested`, mismas clases `.gallery-edicion`/`.gallery-edicion-toggle`/`.gallery-edicion-body` con el modificador `.sub`) lista sus años (`anio`): fecha (placeholder "📅 Próximamente" hasta rellenarla), ubicación en texto + su propio iframe de Google Maps (`https://www.google.com/maps?q=<ubicación>, Valencia&output=embed`, un mapa por año, no uno compartido por ciudad) y las fotos/vídeos de esa edición concreta (con el placeholder "Todavía no hay fotos en este apartado" ya existente cuando está vacía). El listener de apertura/cierre no distingue niveles — un único `wrap.querySelectorAll('.gallery-edicion-toggle')` sobre todo el árbol ya cubre los toggles anidados. Esto sustituye lo que antes eran tres cosas separadas (galería plana, sección `#mapa`, timeline "Torneos ya organizados"), fusionadas primero en una tarjeta por edición y ahora agrupadas por ciudad. Ediciones actuales: Puçol (2024 — con fotos reales, 2025, 2026) y Sagunto (2025), ubicación "Espai Jove Puçol" o "Casal Jove del Port de Sagunt" respectivamente.
 
+**Clasificaciones** (`#clasificaciones`): tabla de resultados y bracket visual propios, ya no un iframe de Challonge. Reutiliza `proxy/challonge.php` (§14) sin cambiarlo. Pestañas de categoría generadas dinámicamente desde `content.js.clasificaciones.categorias` (1 o 2 categorías, nombre + ID de torneo, editable desde `admin.html`) — con 1 sola categoría no se muestra ninguna pestaña que elegir. Un segundo interruptor "Tabla"/"Bracket" solo aparece si el torneo activo tiene `tournamentType: "single elimination"`: la API de Challonge no expone ningún campo que enlace un partido con el siguiente (nada tipo `next_match_id`), así que el árbol solo se puede dibujar de forma fiable asumiendo el emparejamiento binario estándar por `round`/`suggested_play_order` — válido para eliminación simple, sin sentido para suizo/liga (para esos formatos solo se ofrece la tabla, con una nota explicándolo).
+
+**Galería — menú de descarga**: al pulsar una foto (no vídeos/YouTube) se abre un modal con 3 versiones para descargar — Original, Mediana (−20% de resolución) y Pequeña (−40%) — cada una mostrando sus píxeles y peso reales. Las versiones reducidas se generan al vuelo en el navegador con `<canvas>` (`drawImage` a la escala correspondiente + `toBlob('image/jpeg', calidad)`), no hay backend de procesamiento de imágenes.
+
 El HTML de cada sección es **estático** en el marcado, pero el texto que muestra se rellena en tiempo de carga desde `window.SHOWCAST_CONTENT` (definido en `content.js`, cargado antes de que `index.html` lo necesite). Si `content.js` desaparece o no carga, la página muestra los placeholders escritos a mano en el HTML como red de seguridad.
 
-El formulario de inscripción envía por `fetch` a `formEndpoint` (el Apps Script, §7) y el buscador de jugador para "Clasificaciones" llama a `brawlProxyEndpoint` (el proxy PHP, §8) — ambas URLs también vienen de `content.js`, no están hardcodeadas.
+El formulario de inscripción envía por `fetch` a `formEndpoint` (el Apps Script, §7), el buscador de jugador para verificar cuenta llama a `brawlProxyEndpoint`, y Clasificaciones llama a `challongeProxyEndpoint` (ambos proxies PHP, §8/§14) — todas estas URLs vienen de `content.js`, no están hardcodeadas.
 
 ## 5. content.js — todo el contenido en un solo objeto
 
@@ -135,10 +139,12 @@ Este archivo **es** el CMS. No hay base de datos para el sitio principal: todo e
 window.SHOWCAST_CONTENT = {
   formEndpoint: "https://script.google.com/macros/s/.../exec",
   brawlProxyEndpoint: "https://34.10.158.213.sslip.io/proxy/brawlstars.php",
+  challongeProxyEndpoint: "https://34.10.158.213.sslip.io/proxy/challonge.php",
   evento: { titulo, juego, lugar, fecha },
   quienesSomos: { intro, pilares: [...] },
   galeriaEdiciones: [ { ciudad, anio, fecha, ubicacion, items: [ { src, tipo: "foto"|"video"|"youtube", caption } ] } ],
   equipo: [...], patrocinadores: [...],
+  clasificaciones: { categorias: [ { nombre, torneoId } ] },  // 1 o 2 categorías
   contacto: { email, telefono, instagram, tiktok, youtube, whatsapp }
 };
 ```
@@ -149,7 +155,7 @@ Un cambio de contenido es, literalmente, un commit que sobreescribe este archivo
 
 > ⚠️ **Este archivo NO se sube a GitHub.** `.gitignore` lo excluye a propósito. Vive solo en local, en el ordenador de quien lo usa. **No se autoactualiza cuando se fusiona una PR** — si cambian los campos de `content.js`, hay que editar la copia local de `admin.html` a mano para que coincidan.
 
-Es un formulario que refleja campo a campo la forma de `content.js` (título del evento, galería, equipo, patrocinadores, redes...). Al terminar de editar, el botón **"Publicar cambios"** no escribe directamente en `main`: usa la API REST de GitHub con un *Personal Access Token* pegado en el propio formulario para:
+Es un formulario que refleja campo a campo la forma de `content.js` (título del evento, galería, equipo, patrocinadores, redes, clasificaciones...). El panel "Clasificaciones" tiene un botón para elegir 1 o 2 categorías (`clasifNumCategorias`, en memoria) — con nombre + ID de torneo de Challonge por cada una; al pasar de 2 a 1 categoría y volver a 2, los datos de la segunda categoría no se pierden (el toggle solo cambia qué se envía en `collectForm()`, no borra los inputs). Al terminar de editar, el botón **"Publicar cambios"** no escribe directamente en `main`: usa la API REST de GitHub con un *Personal Access Token* pegado en el propio formulario para:
 
 1. Leer el SHA de la punta de `main`.
 2. Crear una rama nueva `admin-edit-<timestamp>`.
@@ -369,6 +375,14 @@ El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar l
 
 - **Prestigio**: la API real de Brawl Stars expone el total de prestigio de la cuenta como `totalPrestigeLevel` (no está documentado con ese nombre en ningún wrapper público de GitHub — se confirmó pegando una respuesta real de `GET /v1/players/{tag}` del usuario). El proxy lo reenvía como `prestige`; el modal "¿Es esta tu cuenta?" de `index.html` (verificación de tag en inscripción) muestra `assets/prestigio.webp` con el número superpuesto en blanco (con contorno oscuro para legibilidad sobre el icono).
 - **VS.png**: el único badge gráfico de "VS" del sitio (entre los dos equipos de cada juego en `historial/index.html`) se sustituyó por `assets/VS.png` en vez de texto con `-webkit-text-stroke` — ver nota en §14.
+
+### 🔴 Alta — `challongeProxyEndpoint` desaparecía de `content.js` en cada publicación desde `admin.html`
+
+- **Síntoma**: se añadió `challongeProxyEndpoint` a `content.js` a mano para que funcionara el historial de partidas y, más tarde, Clasificaciones — pero **volvía a desaparecer** cada vez que alguien publicaba cualquier cambio (subir una foto, editar un texto) desde `admin.html`. Pasó dos veces seguidas en la misma sesión.
+- **Causa**: `admin.html` nunca tuvo un campo de formulario para `challongeProxyEndpoint`. Su `collectForm()` reconstruye `content.js` entero a partir de lo que hay en el formulario — cualquier clave que `content.js` tenga pero el formulario no conozca se pierde en la siguiente publicación, sin ningún aviso. Es la misma clase de fallo, ya vista antes con `brawlProxyEndpoint` en un contexto distinto: campos añadidos "a mano" en `content.js` sin añadir también su contraparte en `admin.html` son campos con fecha de caducidad.
+- **Arreglo**: se añadió el campo al formulario de `admin.html` (`f_challongeproxy`) con su `fillForm()`/`collectForm()`/bloque semilla correspondientes, y se restauró el valor en `content.js`.
+- **Complicación al verificarlo resuelto**: tras corregir `admin.html`, el campo **volvió a desaparecer una vez más** — no por un fallo del código, sino porque la pestaña del navegador donde se publicó ya estaba abierta desde antes de guardar el archivo corregido. Editar `admin.html` en disco no afecta a una pestaña que ya cargó el JS viejo; hace falta recargarla (Ctrl+F5) después de cualquier cambio en este archivo.
+- **Lección**: `admin.html` (§6) está fuera de git y **cualquier campo nuevo en `content.js` tiene que añadirse también a `admin.html`** (formulario + `fillForm` + `collectForm` + bloque semilla) en el mismo cambio, nunca por separado — si no, la próxima publicación lo borra sin avisar. Y tras editar `admin.html`, recordar recargar la pestaña donde se vaya a usar antes de publicar.
 
 ## 16. Limitaciones conocidas (asumidas, no bugs)
 
