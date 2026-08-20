@@ -202,7 +202,17 @@ a{color:inherit;text-decoration:none;}
   gap:22px;
   flex-wrap:wrap;
   justify-content:center;
+  align-items:flex-start;
   flex:1;
+  position:relative;
+  border-radius:10px;
+  padding:16px 14px;
+}
+.jugadores-lado.ganador{
+  background:radial-gradient(ellipse at center, rgba(74,144,255,.24) 0%, rgba(74,144,255,0) 75%);
+}
+.jugadores-lado.perdedor{
+  background:radial-gradient(ellipse at center, rgba(255,90,90,.12) 0%, rgba(255,90,90,0) 75%);
 }
 .jugador-card{
   display:flex;
@@ -228,12 +238,6 @@ a{color:inherit;text-decoration:none;}
   text-align:center;
   padding:4px;
 }
-.jugador-card.ganador .jugador-icon,
-.jugador-card.ganador .jugador-icon-fallback{
-  border-color:#7be08c;
-  box-shadow:0 0 0 2px rgba(123,224,140,.4);
-}
-.jugador-card.ganador .jugador-nombre{color:#7be08c;}
 .jugador-card .jugador-nombre{
   font-size:.8rem;
   font-weight:700;

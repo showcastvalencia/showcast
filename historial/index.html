@@ -56,7 +56,7 @@
     return b ? String(b) : '?';
   }
 
-  function jugadorCardHtml(p, esGanador) {
+  function jugadorCardHtml(p) {
     // Un jugador puede llevar más de un Brawler (Duelo, cambia entre rondas) —
     // el icono muestra el primero, el texto de debajo los enseña todos.
     const primerBrawler = (p.brawler || '').split('/')[0];
@@ -65,7 +65,7 @@
       ? `<img src="${icon}" alt="" class="jugador-icon">`
       : `<div class="jugador-icon-fallback">${brawlerLabel(p.brawler)}</div>`;
     return `
-      <div class="jugador-card${esGanador ? ' ganador' : ''}">
+      <div class="jugador-card">
         ${iconHtml}
         <span class="jugador-nombre">${p.jugador}</span>
         <span class="jugador-brawler">${brawlerLabel(p.brawler)}</span>
@@ -77,8 +77,10 @@
       return '<p class="hint" style="padding:16px 20px;">Sin datos de Brawl Stars cruzados para este partido todavía.</p>';
     }
     return juegos.map(j => {
-      const ganoA = j.ganador === 'equipoA';
-      const ganoB = j.ganador === 'equipoB';
+      // Degradado azul (ganador, más marcado) / rojo (perdedor, más tenue)
+      // sobre todo el lado — sin marcar nada si hubo empate.
+      const claseA = j.ganador === 'equipoA' ? ' ganador' : (j.ganador === 'equipoB' ? ' perdedor' : '');
+      const claseB = j.ganador === 'equipoB' ? ' ganador' : (j.ganador === 'equipoA' ? ' perdedor' : '');
       return `
       <div class="juego-card">
         <div class="j-meta">
@@ -86,9 +88,9 @@
           ${j.ganador === 'empate' ? ' · Empate' : ''}
         </div>
         <div class="juego-vs-row">
-          <div class="jugadores-lado">${(j.picksEquipoA || []).map(p => jugadorCardHtml(p, ganoA)).join('')}</div>
+          <div class="jugadores-lado${claseA}">${(j.picksEquipoA || []).map(jugadorCardHtml).join('')}</div>
           <div class="vs-badge">VS</div>
-          <div class="jugadores-lado">${(j.picksEquipoB || []).map(p => jugadorCardHtml(p, ganoB)).join('')}</div>
+          <div class="jugadores-lado${claseB}">${(j.picksEquipoB || []).map(jugadorCardHtml).join('')}</div>
         </div>
       </div>`;
     }).join('');
