@@ -701,6 +701,34 @@
     animation:spin .8s linear infinite;
   }
   @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- GALERÍA: menú de descarga ---------- */
+  .gallery-tile-photo{cursor:pointer;}
+  .gallery-tile-photo:hover img{filter:brightness(.85);}
+  .gallery-tile-photo img{transition:filter .15s ease;}
+  .descarga-opcion{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:4px;
+    width:100%;
+    text-align:left;
+    background:var(--blanco);
+    border:2px solid var(--negro);
+    padding:14px 16px;
+    margin-bottom:10px;
+    cursor:pointer;
+    font-family:'Rajdhani',sans-serif;
+  }
+  .descarga-opcion:last-child{margin-bottom:0;}
+  .descarga-opcion:hover{background:var(--naranja);}
+  .descarga-opcion .do-etiqueta{
+    font-family:'Anton',sans-serif;
+    letter-spacing:.5px;
+    font-size:1rem;
+    color:var(--negro);
+  }
+  .descarga-opcion .do-detalle{font-size:.85rem;font-weight:600;opacity:.75;}
   .modal-error-icon{
     width:50px;height:50px;
     background:#e74c3c;
@@ -816,14 +844,6 @@
   .challonge-tabs button.active{
     background:var(--naranja);
   }
-  .challonge-frame-holder{position:relative;}
-  .challonge-frame-holder iframe{
-    width:100%;
-    height:560px;
-    border:none;
-    display:none;
-  }
-  .challonge-frame-holder iframe.active{display:block;}
   .challonge-placeholder{
     padding:60px 30px;
     text-align:center;
@@ -834,6 +854,102 @@
     color:var(--naranja);
     padding:2px 8px;
     font-size:.85rem;
+  }
+
+  /* ---------- CLASIFICACIONES: pestañas de vista y nota de formato ---------- */
+  .clasif-view-tabs{border-bottom:none;border-top:3px solid var(--negro);}
+  .clasif-view-tabs button{font-size:.8rem;padding:10px;}
+  .clasif-note{
+    padding:14px 24px;
+    font-size:.85rem;
+    font-style:italic;
+    opacity:.75;
+    border-bottom:3px solid var(--negro);
+  }
+
+  /* ---------- CLASIFICACIONES: vista de tabla ---------- */
+  .clasif-tabla{padding:26px;}
+  .clasif-ronda{margin-bottom:24px;}
+  .clasif-ronda:last-child{margin-bottom:0;}
+  .clasif-ronda h4{
+    font-family:'Anton',sans-serif;
+    letter-spacing:.5px;
+    color:var(--naranja-dark);
+    margin-bottom:10px;
+    font-size:.9rem;
+    text-transform:uppercase;
+  }
+  .clasif-match{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:12px 16px;
+    border:2px solid var(--negro);
+    margin-bottom:8px;
+    font-weight:700;
+    flex-wrap:wrap;
+  }
+  .clasif-match:last-child{margin-bottom:0;}
+  .clasif-match .cm-team{flex:1;min-width:120px;}
+  .clasif-match .cm-team.winner{color:var(--naranja-dark);}
+  .clasif-match .cm-score{
+    font-family:'Anton',sans-serif;
+    background:var(--negro);
+    color:var(--crema);
+    padding:4px 10px;
+    white-space:nowrap;
+  }
+  .clasif-match .cm-state{
+    font-size:.65rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    padding:3px 8px;
+    border:1px solid var(--negro);
+    flex-shrink:0;
+  }
+  .clasif-match .cm-state.complete{background:var(--naranja);}
+
+  /* ---------- CLASIFICACIONES: vista de bracket ---------- */
+  .clasif-bracket{
+    padding:30px 24px;
+    overflow-x:auto;
+    display:flex;
+    align-items:stretch;
+    gap:50px;
+  }
+  .bracket-round{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    min-width:190px;
+    flex-shrink:0;
+  }
+  .bracket-round h5{
+    font-family:'Anton',sans-serif;
+    text-align:center;
+    color:var(--naranja-dark);
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:10px;
+  }
+  .bracket-match{
+    position:relative;
+    border:2px solid var(--negro);
+    padding:10px 14px;
+    margin:10px 0;
+    font-size:.85rem;
+    font-weight:700;
+    background:var(--crema);
+  }
+  .bracket-match .bm-team{display:flex;justify-content:space-between;gap:8px;padding:3px 0;}
+  .bracket-match .bm-team.winner{color:var(--naranja-dark);}
+  .bracket-round:not(:last-child) .bracket-match::after{
+    content:"";
+    position:absolute;
+    right:-25px;top:50%;
+    width:25px;height:2px;
+    background:var(--negro);
   }
 
   /* ---------- TEAM ---------- */
@@ -1219,6 +1335,16 @@
   </div>
 </div>
 
+<!-- MODAL: DESCARGAR FOTO DE LA GALERÍA -->
+<div class="modal-overlay" id="descargaModalOverlay">
+  <div class="modal-card" id="descargaModalCard">
+    <button type="button" class="modal-close" id="descargaModalClose" aria-label="Cerrar">✕</button>
+    <span class="section-kicker">Descargar foto</span>
+    <h3 style="margin-bottom:20px;">Elige una versión</h3>
+    <div id="descargaOpciones"></div>
+  </div>
+</div>
+
 <!-- CLASIFICACIONES EN VIVO -->
 <section id="clasificaciones" style="background:var(--crema);">
   <div class="section-inner">
@@ -1227,22 +1353,17 @@
     <p class="section-lead">Sigue en directo la clasificación de cada categoría, con las tablas de Challonge.</p>
 
     <div class="challonge-wrap">
-      <div class="challonge-tabs">
-        <button type="button" class="active" data-target="frame-infantil">Tabla Infantil</button>
-        <button type="button" data-target="frame-juvenil">Tabla Juvenil</button>
+      <div class="challonge-tabs" id="clasifCategoriaTabs">
+        <button type="button" class="active" data-categoria="infantil">Tabla Infantil</button>
+        <button type="button" data-categoria="juvenil">Tabla Juvenil</button>
       </div>
-      <div class="challonge-frame-holder">
-        <!--
-          EMBED MANUAL DE CHALLONGE:
-          Sustituye el src de cada iframe por la URL de tu torneo, por ejemplo:
-          https://challonge.com/es/NOMBRE_DEL_TORNEO/module
-        -->
-        <iframe id="frame-infantil" class="active" src="about:blank" title="Clasificación Infantil - Challonge"></iframe>
-        <iframe id="frame-juvenil" src="about:blank" title="Clasificación Juvenil - Challonge"></iframe>
+      <div class="challonge-tabs clasif-view-tabs" id="clasifVistaTabs" style="display:none;">
+        <button type="button" class="active" data-vista="tabla">Tabla</button>
+        <button type="button" data-vista="bracket">Bracket</button>
+      </div>
+      <div id="clasifContenido">
         <div class="challonge-placeholder">
-          <h3>Embed de Challonge pendiente de configurar</h3>
-          <p>Pega aquí el código <code class="inline">&lt;iframe&gt;</code> que te da Challonge para cada torneo (Compartir → Insertar). Ejemplo:</p>
-          <p><code class="inline">&lt;iframe src="https://challonge.com/es/TU_TORNEO/module" width="100%" height="560"&gt;&lt;/iframe&gt;</code></p>
+          <div class="spinner"></div>
         </div>
       </div>
     </div>
@@ -1443,21 +1564,278 @@
     if (!insideAny) closeAllDropdowns();
   });
 
-  // Challonge tabs
-  document.querySelectorAll('.challonge-tabs button').forEach(btn => {
+  // ---------- CLASIFICACIONES: tabla + bracket propios, vía proxy/challonge.php ----------
+  // Mismo espíritu que el embed manual de iframe que esto sustituye: pega aquí el
+  // slug o ID del torneo de Challonge de cada categoría (Compartir → URL del torneo).
+  const CLASIFICACIONES_TORNEOS = {
+    infantil: '',
+    juvenil: ''
+  };
+
+  const clasifCache = {};
+  let clasifCategoriaActual = 'infantil';
+  let clasifVistaActual = 'tabla';
+
+  // Mismo patrón que matchParticipantIds() de historial-logic.js — la API real
+  // de Challonge v2.1 no expone player1_id/player2_id sueltos, sino un array
+  // points_by_participant con participant_id + scores.
+  function clasifParticipantIds(match) {
+    const points = match.points_by_participant || [];
+    return [points[0] && points[0].participant_id, points[1] && points[1].participant_id];
+  }
+
+  function clasifFetchTorneo(id) {
+    if (!id) return Promise.resolve(null);
+    if (clasifCache[id]) return clasifCache[id];
+    const endpoint = (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.challongeProxyEndpoint) || 'proxy/challonge.php';
+    clasifCache[id] = fetch(endpoint + '?tournament=' + encodeURIComponent(id))
+      .then(r => r.json())
+      .then(body => (body.ok ? body : null))
+      .catch(() => null);
+    return clasifCache[id];
+  }
+
+  function clasifEstadoLabel(state) {
+    if (state === 'complete') return 'Completado';
+    if (state === 'open') return 'En curso';
+    return 'Pendiente';
+  }
+
+  function clasifMatchRowHtml(m, participantsById) {
+    const [aId, bId] = clasifParticipantIds(m);
+    const nombreA = (participantsById[aId] || {}).name || '?';
+    const nombreB = (participantsById[bId] || {}).name || '?';
+    const ganador = m.winner_id;
+    return `
+      <div class="clasif-match">
+        <span class="cm-team${ganador === aId ? ' winner' : ''}">${nombreA}</span>
+        <span class="cm-score">${m.scores || '—'}</span>
+        <span class="cm-team${ganador === bId ? ' winner' : ''}">${nombreB}</span>
+        <span class="cm-state${m.state === 'complete' ? ' complete' : ''}">${clasifEstadoLabel(m.state)}</span>
+      </div>`;
+  }
+
+  function clasifTablaHtml(data) {
+    const participantsById = {};
+    (data.participants || []).forEach(p => { participantsById[p.id] = p; });
+    const porRonda = {};
+    (data.matches || []).forEach(m => {
+      const r = m.round || 0;
+      (porRonda[r] = porRonda[r] || []).push(m);
+    });
+    const rondas = Object.keys(porRonda).map(Number).sort((a, b) => a - b);
+    return `<div class="clasif-tabla">${rondas.map(r => `
+      <div class="clasif-ronda">
+        <h4>${r > 0 ? 'Ronda ' + r : 'Ronda de perdedores ' + Math.abs(r)}</h4>
+        ${porRonda[r].map(m => clasifMatchRowHtml(m, participantsById)).join('')}
+      </div>`).join('')}</div>`;
+  }
+
+  function clasifBracketMatchHtml(m, participantsById) {
+    const [aId, bId] = clasifParticipantIds(m);
+    const nombreA = (participantsById[aId] || {}).name || (aId ? '?' : 'Bye');
+    const nombreB = (participantsById[bId] || {}).name || (bId ? '?' : 'Bye');
+    const ganador = m.winner_id;
+    const scores = (m.score_in_sets && m.score_in_sets[0]) || [];
+    return `
+      <div class="bracket-match">
+        <div class="bm-team${ganador === aId ? ' winner' : ''}"><span>${nombreA}</span><span>${scores[0] ?? ''}</span></div>
+        <div class="bm-team${ganador === bId ? ' winner' : ''}"><span>${nombreB}</span><span>${scores[1] ?? ''}</span></div>
+      </div>`;
+  }
+
+  // Sin campo que enlace un partido con el siguiente (nada tipo next_match_id) —
+  // se asume el emparejamiento binario estándar por ronda/suggested_play_order,
+  // correcto para eliminación simple (único formato en el que se ofrece esta vista).
+  function clasifBracketHtml(data) {
+    const participantsById = {};
+    (data.participants || []).forEach(p => { participantsById[p.id] = p; });
+    const matches = (data.matches || []).filter(m => (m.round || 0) > 0);
+    const porRonda = {};
+    matches.forEach(m => { (porRonda[m.round] = porRonda[m.round] || []).push(m); });
+    const rondas = Object.keys(porRonda).map(Number).sort((a, b) => a - b);
+    const ultimaRonda = rondas[rondas.length - 1];
+    return `<div class="clasif-bracket">${rondas.map(r => {
+      const partidos = porRonda[r].slice().sort((a, b) => (a.suggested_play_order || 0) - (b.suggested_play_order || 0));
+      return `
+      <div class="bracket-round">
+        <h5>${r === ultimaRonda ? '🏆 Final' : 'Ronda ' + r}</h5>
+        ${partidos.map(m => clasifBracketMatchHtml(m, participantsById)).join('')}
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function clasifRenderVacio(mensaje) {
+    document.getElementById('clasifContenido').innerHTML = `
+      <div class="challonge-placeholder">
+        <h3>Clasificación pendiente de configurar</h3>
+        <p>${mensaje || 'Pega el slug o ID del torneo de Challonge de esta categoría en CLASIFICACIONES_TORNEOS, dentro del script de index.html.'}</p>
+      </div>`;
+    document.getElementById('clasifVistaTabs').style.display = 'none';
+  }
+
+  function clasifRenderVista(data, esEliminacionSimple) {
+    const contenido = document.getElementById('clasifContenido');
+    const nota = esEliminacionSimple ? '' : '<p class="clasif-note">El bracket visual solo está disponible para torneos de eliminación simple — aquí tienes la tabla de resultados.</p>';
+    contenido.innerHTML = (clasifVistaActual === 'bracket' && esEliminacionSimple)
+      ? clasifBracketHtml(data)
+      : nota + clasifTablaHtml(data);
+  }
+
+  function clasifRenderCategoria(categoria) {
+    clasifCategoriaActual = categoria;
+    const id = CLASIFICACIONES_TORNEOS[categoria];
+    const vistaTabs = document.getElementById('clasifVistaTabs');
+    if (!id) { clasifRenderVacio(); return; }
+
+    document.getElementById('clasifContenido').innerHTML = '<div class="challonge-placeholder"><div class="spinner"></div></div>';
+    vistaTabs.style.display = 'none';
+
+    clasifFetchTorneo(id).then(data => {
+      if (clasifCategoriaActual !== categoria) return; // ya se cambió de pestaña mientras cargaba
+      if (!data) { clasifRenderVacio('No se ha podido cargar este torneo de Challonge — revisa el ID en CLASIFICACIONES_TORNEOS.'); return; }
+      const esEliminacionSimple = !!(data.tournament && data.tournament.tournamentType === 'single elimination');
+      vistaTabs.style.display = esEliminacionSimple ? 'flex' : 'none';
+      if (!esEliminacionSimple) clasifVistaActual = 'tabla';
+      clasifRenderVista(data, esEliminacionSimple);
+    });
+  }
+
+  document.getElementById('clasifCategoriaTabs').querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.challonge-tabs button').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.challonge-frame-holder iframe').forEach(f => f.classList.remove('active'));
+      document.getElementById('clasifCategoriaTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById(btn.dataset.target).classList.add('active');
+      clasifRenderCategoria(btn.dataset.categoria);
     });
   });
+
+  document.getElementById('clasifVistaTabs').querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('clasifVistaTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      clasifVistaActual = btn.dataset.vista;
+      clasifFetchTorneo(CLASIFICACIONES_TORNEOS[clasifCategoriaActual]).then(data => {
+        if (data) clasifRenderVista(data, !!(data.tournament && data.tournament.tournamentType === 'single elimination'));
+      });
+    });
+  });
+
+  clasifRenderCategoria('infantil');
 
   function youtubeEmbedUrl(url){
     if(!url) return '';
     const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,15})/);
     return m ? 'https://www.youtube.com/embed/' + m[1] : '';
   }
+
+  // ---------- GALERÍA: menú de descarga (original / mediana −20% / pequeña −40%) ----------
+  // "Reducir la calidad" se interpreta como reducir la resolución (y de paso el
+  // peso) en ese porcentaje — por eso cada versión tiene menos píxeles, no solo
+  // más compresión JPEG.
+  function formatoBytes(bytes){
+    if (bytes == null) return '—';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+  }
+
+  function cargarImagen(src){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  function generarVersionReducida(img, escala, calidadJpeg){
+    return new Promise(resolve => {
+      const w = Math.max(1, Math.round(img.naturalWidth * escala));
+      const h = Math.max(1, Math.round(img.naturalHeight * escala));
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => resolve({ blob, w, h }), 'image/jpeg', calidadJpeg);
+    });
+  }
+
+  function nombreDescarga(src, sufijo, extension){
+    const base = src.split('/').pop().replace(/\.[a-z0-9]+$/i, '');
+    return base + sufijo + '.' + extension;
+  }
+
+  function descargarBlob(blob, nombre){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  function pintarOpcionesDescarga(opciones){
+    const lista = document.getElementById('descargaOpciones');
+    lista.innerHTML = '';
+    opciones.forEach(op => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'descarga-opcion';
+      btn.innerHTML = `
+        <span class="do-etiqueta">${op.etiqueta}</span>
+        <span class="do-detalle">${op.w}×${op.h}px · ${formatoBytes(op.bytes)}</span>`;
+      btn.addEventListener('click', op.descargar);
+      lista.appendChild(btn);
+    });
+  }
+
+  async function abrirMenuDescarga(src){
+    const overlay = document.getElementById('descargaModalOverlay');
+    overlay.classList.add('open');
+    document.getElementById('descargaOpciones').innerHTML = '<div class="spinner"></div>';
+
+    try {
+      const img = await cargarImagen(src);
+      const extensionOriginal = (src.split('.').pop() || 'jpg').toLowerCase();
+      const [origBlob, mediana, pequena] = await Promise.all([
+        fetch(src).then(r => r.blob()),
+        generarVersionReducida(img, 0.8, 0.85),
+        generarVersionReducida(img, 0.6, 0.75)
+      ]);
+      pintarOpcionesDescarga([
+        {
+          etiqueta: 'Original',
+          w: img.naturalWidth, h: img.naturalHeight, bytes: origBlob.size,
+          descargar: () => descargarBlob(origBlob, nombreDescarga(src, '', extensionOriginal))
+        },
+        {
+          etiqueta: 'Mediana (−20%)',
+          w: mediana.w, h: mediana.h, bytes: mediana.blob.size,
+          descargar: () => descargarBlob(mediana.blob, nombreDescarga(src, '-mediana', 'jpg'))
+        },
+        {
+          etiqueta: 'Pequeña (−40%)',
+          w: pequena.w, h: pequena.h, bytes: pequena.blob.size,
+          descargar: () => descargarBlob(pequena.blob, nombreDescarga(src, '-pequena', 'jpg'))
+        }
+      ]);
+    } catch (err) {
+      document.getElementById('descargaOpciones').innerHTML = '<p class="hint">No se ha podido preparar la descarga de esta imagen.</p>';
+    }
+  }
+
+  document.getElementById('galleryAccordion').addEventListener('click', e => {
+    const img = e.target.closest('.gallery-tile-photo img');
+    if (img) abrirMenuDescarga(img.getAttribute('src'));
+  });
+  document.getElementById('descargaModalClose').addEventListener('click', () => {
+    document.getElementById('descargaModalOverlay').classList.remove('open');
+  });
+  document.getElementById('descargaModalOverlay').addEventListener('click', e => {
+    if (e.target.id === 'descargaModalOverlay') e.currentTarget.classList.remove('open');
+  });
 
   // ---------- RENDERIZADO DINÁMICO DESDE content.js ----------
   (function renderContent(){
@@ -1507,7 +1885,7 @@
       function edicionCuerpoHtml(edicion){
         const items = Array.isArray(edicion.items) ? edicion.items : [];
         const tilesHtml = items.map(item => {
-          let media;
+          let media, esFoto = false;
           if(item.tipo === 'youtube'){
             const embedUrl = youtubeEmbedUrl(item.src);
             media = embedUrl
@@ -1516,9 +1894,11 @@
           } else if(item.tipo === 'video'){
             media = `<video src="${item.src}" muted loop playsinline autoplay></video>`;
           } else {
+            esFoto = true;
             media = `<img src="${item.src}" alt="${item.caption || 'Foto Showcast'}" loading="lazy">`;
           }
-          return `<div class="gallery-tile has-photo">${media}${item.caption ? `<span>${item.caption}</span>` : ''}</div>`;
+          // Las fotos (no vídeos/YouTube) abren el menú de descarga al pulsarlas.
+          return `<div class="gallery-tile has-photo${esFoto ? ' gallery-tile-photo' : ''}">${media}${item.caption ? `<span>${item.caption}</span>` : ''}</div>`;
         }).join('');
         const galleryHtml = items.length
           ? `<div class="gallery-grid">${tilesHtml}</div>`
