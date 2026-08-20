@@ -6,8 +6,12 @@
   (nunca automático/polling, ver sección 11 del mismo documento).
 */
 const HD = (function () {
-  const BRAWL_PROXY = '../proxy/brawlstars.php';
-  const CHALLONGE_PROXY = '../proxy/challonge.php';
+  // El proxy PHP no vive en GitHub Pages (que no ejecuta PHP) sino en la VM
+  // aparte que ya usa el resto de la web — las URLs vienen de content.js,
+  // igual que brawlProxyEndpoint en index.html (ver ARQUITECTURA.md §8).
+  const content = window.SHOWCAST_CONTENT || {};
+  const BRAWL_PROXY = content.brawlProxyEndpoint || '../proxy/brawlstars.php';
+  const CHALLONGE_PROXY = content.challongeProxyEndpoint || '../proxy/challonge.php';
 
   function normalizeTag(tag) {
     return String(tag || '').toUpperCase().replace('#', '').trim();
