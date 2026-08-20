@@ -25,22 +25,25 @@ Este documento explica cómo encajan las piezas, por qué se tomaron ciertas dec
 11. [Modelo de datos de Megadraft](#11-modelo-de-datos-de-megadraft)
 12. [Autenticación y reglas de seguridad](#12-autenticación-y-reglas-de-seguridad)
 13. [Cronómetros y el flujo automático de fases](#13-cronómetros-y-el-flujo-automático-de-fases)
-14. [Problemas encontrados (y cómo se resolvieron)](#14-problemas-encontrados-y-cómo-se-resolvieron)
-15. [Limitaciones conocidas (asumidas, no bugs)](#15-limitaciones-conocidas-asumidas-no-bugs)
-16. [Dónde viven los secretos](#16-dónde-viven-los-secretos)
-17. [Qué queda pendiente](#17-qué-queda-pendiente)
+14. [Historial de partidas: cruce Challonge + Brawl Stars](#14-historial-de-partidas-cruce-challonge--brawl-stars)
+15. [Problemas encontrados (y cómo se resolvieron)](#15-problemas-encontrados-y-cómo-se-resolvieron)
+16. [Limitaciones conocidas (asumidas, no bugs)](#16-limitaciones-conocidas-asumidas-no-bugs)
+17. [Dónde viven los secretos](#17-dónde-viven-los-secretos)
+18. [Qué queda pendiente](#18-qué-queda-pendiente)
 
 ---
 
 ## 1. Qué es esto
 
-La web tiene dos partes con propósitos muy distintos que conviven en el mismo repositorio:
+La web tiene tres partes con propósitos muy distintos que conviven en el mismo repositorio:
 
 **El sitio principal** — una landing page informativa (`index.html`) con inscripciones, galería, clasificaciones y contacto. Pensada para que alguien sin conocimientos técnicos pueda actualizar el contenido desde un panel visual (`admin.html`) sin tocar código.
 
 **Megadraft** — una herramienta en vivo, tipo Kahoot, para hacer el draft de personajes de un torneo: hasta 8 equipos entran desde su móvil con un PIN, eligen 12 Brawlers cada uno por turnos, y una pantalla/proyector (o una salida OBS) muestra todo en tiempo real. Vive en `megadraft/` y es un subsistema autocontenido con su propio backend (Firebase).
 
-Ambas partes comparten el mismo dominio de GitHub Pages, la misma paleta visual y la carpeta `assets/`, pero no comparten código ni base de datos. Se pueden entender por separado.
+**Historial de partidas** — cruza los resultados de Challonge (gestionado a mano, solo lectura por API) con el battlelog de Brawl Stars para mostrar qué Brawler usó cada equipo en cada partida real. Vive en `historial/`, comparte el proyecto Firebase de Megadraft pero es un subsistema independiente. Ver §14.
+
+Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visual y la carpeta `assets/`, pero no comparten código ni base de datos entre sí (salvo Megadraft e Historial, que sí comparten el proyecto Firebase). Se pueden entender por separado.
 
 ## 2. Mapa de archivos
 
@@ -52,25 +55,34 @@ Ambas partes comparten el mismo dominio de GitHub Pages, la misma paleta visual 
 ├── assets/
 │   ├── logo.png
 │   ├── brawlers.json          # catálogo de 106 Brawlers para Megadraft
-│   ├── brawlers/*.png          # iconos autoalojados de cada Brawler (ver §14)
+│   ├── brawlers/*.png          # iconos autoalojados de cada Brawler (ver §15)
 │   └── uploads/*.jpg            # fotos subidas desde admin.html
 ├── proxy/
 │   ├── brawlstars.php            # intermediario hacia la API oficial de Brawl Stars
-│   ├── config.php                 # clave de API — NO está en git
-│   └── .htaccess                   # bloquea el acceso directo a config.php
+│   ├── challonge.php              # intermediario hacia la API de Challonge (solo lectura)
+│   ├── config.php                  # claves/credenciales de ambas APIs — NO está en git
+│   ├── challonge-token-cache.json   # token OAuth2 de Challonge cacheado — NO está en git, se regenera solo
+│   └── .htaccess                     # bloquea el acceso directo a config.php
 ├── google-apps-script/
 │   └── Code.gs                      # recibe el formulario → fila en Google Sheets
-└── megadraft/                        # subsistema del draft en vivo — ver §9
-    ├── index.html                     # portada: "soy capitán" / pantalla principal
-    ├── draft.html                      # vista del capitán (login por PIN + picks)
-    ├── admin.html                       # panel del organizador — con PIN de acceso
-    ├── screen.html                       # pantalla/proyector, solo lectura
-    ├── stream.html                        # salida 16:9 pensada para OBS
-    ├── megadraft.css                       # estilos propios del subsistema
-    ├── README-FIREBASE.md                   # cómo montar el proyecto Firebase desde cero
+├── megadraft/                        # subsistema del draft en vivo — ver §9
+│   ├── index.html                     # portada: "soy capitán" / pantalla principal
+│   ├── draft.html                      # vista del capitán (login por PIN + picks)
+│   ├── admin.html                       # panel del organizador — con PIN de acceso
+│   ├── screen.html                       # pantalla/proyector, solo lectura
+│   ├── stream.html                        # salida 16:9 pensada para OBS
+│   ├── megadraft.css                       # estilos propios del subsistema
+│   ├── README-FIREBASE.md                   # cómo montar el proyecto Firebase desde cero (reglas de AMBOS: megadraft e historial)
+│   └── js/
+│       ├── firebase-config.js                 # claves públicas del SDK de Firebase
+│       └── draft-logic.js                      # TODA la lógica compartida entre páginas
+└── historial/                          # subsistema de historial de partidas — ver §14
+    ├── index.html                       # pantalla pública: partidos por ronda, expandibles
+    ├── admin.html                        # panel: vincular participantes, disparar el cruce
+    ├── historial.css                      # estilos propios del subsistema
     └── js/
-        ├── firebase-config.js                 # claves públicas del SDK de Firebase
-        └── draft-logic.js                      # TODA la lógica compartida entre páginas
+        ├── firebase-config.js               # mismo proyecto Firebase que Megadraft (showcast-md)
+        └── historial-logic.js                # algoritmo de correlación Challonge ↔ Brawl Stars
 ```
 
 No hay `package.json`, ni bundler, ni framework. Cada HTML carga sus `<script>` directamente por CDN o ruta relativa. Esto es deliberado: cualquiera puede abrir un archivo, editarlo y recargar la página sin instalar nada.
@@ -79,10 +91,14 @@ No hay `package.json`, ni bundler, ni framework. Cada HTML carga sus `<script>` 
 
 | Pieza | Dónde vive | Cómo se despliega |
 |---|---|---|
-| Sitio + Megadraft | GitHub Pages | push/merge a `main` → publicado solo, sin build |
-| Proxy de Brawl Stars | VM propia (`34.10.158.213.sslip.io`) | manual — no forma parte de este repo git en producción |
-| Base de datos Megadraft | Firebase Realtime Database (plan gratuito Spark) | proyecto `showcast-md`, reglas se publican a mano en la consola |
+| Sitio + Megadraft + Historial | GitHub Pages | push/merge a `main` → publicado solo, sin build |
+| Proxy de Brawl Stars y de Challonge | VM propia de Google Cloud (`34.10.158.213.sslip.io`, instancia `e2-micro`) | manual — no forma parte de este repo git en producción |
+| Base de datos Megadraft e Historial | Firebase Realtime Database (plan gratuito Spark) | proyecto `showcast-md`, reglas se publican a mano en la consola (mismo proyecto para los dos nodos, `/megadraft` y `/historial`) |
 | Inscripciones | Google Apps Script + Sheets | se despliega a mano desde el editor de Apps Script |
+
+> ⚠️ **GitHub Pages no ejecuta PHP.** Cualquier código de cliente que necesite llamar al proxy (`brawlstars.php`, `challonge.php`) tiene que usar la URL absoluta de la VM (`brawlProxyEndpoint`/`challongeProxyEndpoint` en `content.js`), nunca una ruta relativa tipo `../proxy/algo.php` — esa ruta relativa "funciona" en local con `php -S` (por eso el bug pasó desapercibido en pruebas locales) pero en producción GitHub Pages sirve el `.php` como texto plano en vez de ejecutarlo. Ver §14 para el caso real en el que esto pasó.
+
+> ⚠️ **Acceso a la VM de Google Cloud**: consola de `console.cloud.google.com` → Compute Engine → Instancias de VM → botón **SSH** (terminal en el propio navegador, sin necesidad de clave ni de `gcloud` instalado). Para subir archivos nuevos, el icono ⚙️ de esa misma ventana SSH tiene un botón "Subir archivo". La carpeta del proxy en el servidor es `/var/www/html/proxy/`.
 
 > ⚠️ **Ojo con la caché de GitHub Pages.** Después de fusionar un cambio, la CDN puede tardar 1–3 minutos (a veces más) en servir la versión nueva, aunque la Action de despliegue ya aparezca en verde. Antes de investigar un fallo tras un merge reciente, compara el contenido de `raw.githubusercontent.com/.../main/archivo` (siempre al día) contra lo que sirve el dominio `.github.io` — si difieren, es caché, no código.
 
@@ -230,7 +246,36 @@ El requisito era que el organizador solo tuviera que pulsar **un botón** ("Inic
 
 **Quién dispara el paso de "preparación" a "elección"**: no hay un servidor que vigile el reloj. En su lugar, **todas** las páginas conectadas (incluidas `screen.html` y `stream.html`, que antes eran de solo lectura) ejecutan `MD.maybeAdvancePrepPhase(state)` en su propio `setInterval`. La función comprueba si el tiempo de preparación ya llegó a cero y, si es así, escribe la transición. Es una escritura redundante e idempotente: la primera pestaña que lo detecta gana, todas las demás ven el estado ya actualizado y no hacen nada. Por eso `screen.html` y `stream.html` tuvieron que empezar a llamar a `MD.signInAnon()` aunque nadie interactúe con ellas — necesitan permiso de escritura para poder disparar ese cambio de fase si son la única pestaña abierta.
 
-## 14. Problemas encontrados (y cómo se resolvieron)
+## 14. Historial de partidas: cruce Challonge + Brawl Stars
+
+Un tercer subsistema, `historial/`, independiente de Megadraft aunque comparte su mismo proyecto Firebase. Diseño completo y contexto en [`CHALLONGE-API.md`](CHALLONGE-API.md) — este apartado es el resumen operativo.
+
+**Qué hace**: Challonge sabe quién jugó contra quién y quién ganó; Brawl Stars sabe qué Brawler usó cada uno y en qué mapa. Ninguno de los dos sabe del otro. `historial/admin.html` cruza ambos por tiempo y por jugadores cuando el organizador pulsa **"Actualizar historial de partidas"** (nunca automático — ver el aviso de cuota en `CHALLONGE-API.md` §11), y guarda el resultado combinado en Firebase para que `historial/index.html` lo muestre al público.
+
+**Challonge se sigue gestionando 100% a mano** en challonge.com — crear el torneo, dar de alta equipos, iniciar fases, reportar resultados. La API (via `proxy/challonge.php`) solo se usa para **leer**, nunca para escribir; es una decisión de diseño deliberada, no una limitación técnica.
+
+**Autenticación de Challonge — OAuth2 Client Credentials, no una clave simple.** A diferencia de Brawl Stars (una sola clave JWT que se pega y ya está), Challonge migró su Developer Portal a `connect.challonge.com` y ya no permite generar una clave v1 suelta para aplicaciones nuevas. Hace falta:
+1. Crear una "Application" en `connect.challonge.com` (ya hecha: **"Showcast — Historial de partidas"**, id `58701`) → da un `Client ID` + `Client Secret`.
+2. `proxy/challonge.php` pide un token de acceso (`POST https://api.challonge.com/oauth/token`, `grant_type=client_credentials`) y lo cachea en `proxy/challonge-token-cache.json` hasta que caduca (~7 días), para no pedir uno nuevo en cada petición.
+3. El scope por defecto del token ya es de solo lectura (`tournaments:read`, `matches:read`, `participants:read`...) — ni siquiera hace falta pedirlo explícitamente.
+
+**Dos bugs reales encontrados al desplegar contra un torneo real** (no en desarrollo local, donde todo parecía funcionar):
+- El endpoint de la API v2.1 es `/v2.1/tournaments/{id}.json` (**plural**) — parte de la documentación oficial de Challonge todavía muestra el singular (`/tournament/{id}.json`, heredado de v1), que devuelve 404 aunque el torneo exista.
+- Falta la cabecera `Content-Type: application/vnd.api+json` en la petición `GET`, aunque no lleve cuerpo — sin ella, la API responde `415 Unsupported Media Type`.
+
+**Modelo de datos** (nodo nuevo `/historial` en el mismo Firebase `showcast-md` de Megadraft, reglas en [`megadraft/README-FIREBASE.md`](megadraft/README-FIREBASE.md)):
+
+```
+/historial/{torneoSlug}/
+  meta: { challongeTournamentId, nombre, actualizadoEn }
+  participantes/{challongeParticipantId}: { nombre, tags: ["#XXXX", ...] }
+  matches/{challongeMatchId}: { ronda, equipoA, equipoB, resultadoChallonge, juegos: [...] }
+  procesados/{challongeMatchId}: true
+```
+
+La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Stars" se hace a mano desde `historial/admin.html` (con pre-relleno automático si existe un equipo de Megadraft con el mismo nombre) — no se asume que el torneo tenga que venir de Megadraft.
+
+## 15. Problemas encontrados (y cómo se resolvieron)
 
 El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar la lógica de picks o el sistema de imágenes: son los sitios donde ya ha dolido una vez.
 
@@ -262,24 +307,33 @@ El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar l
 - **Causa**: el código solo asignaba el nombre nuevo si el campo estaba vacío: `if(!member.nombre.trim() && stats.name)`.
 - **Arreglo**: sincronizar siempre que la API devuelva un nombre: `if(stats.name) member.nombre = stats.name;`
 
-## 15. Limitaciones conocidas (asumidas, no bugs)
+### 🔴 Alta — Subir `config.php` local a la VM borró la clave real de Brawl Stars de producción
+
+- **Síntoma**: tras desplegar `proxy/challonge.php` a la VM (subiendo también `proxy/config.php` desde el repo local para añadir las credenciales de Challonge), el proxy de Brawl Stars empezó a fallar con "La API ha rechazado la clave" — incluso el endpoint de búsqueda de jugador, que llevaba meses funcionando.
+- **Causa**: el `proxy/config.php` que existía en el entorno de desarrollo tenía una `BRAWL_API_KEY` distinta (autorizada para otra IP) a la que estaba realmente en producción. Al copiar el archivo local al servidor sin comprobar antes cuál era el vigente, se sobrescribió la clave correcta con una que no es válida para la IP de esta VM (`34.10.158.213`) — y no había ninguna copia de seguridad del `config.php` de producción en ningún sitio.
+- **Arreglo**: las claves de Brawl Stars no desaparecen de la cuenta aunque se pierda el archivo — siguen listadas en `developer.brawlstars.com` hasta que se revocan. Se localizó ahí la clave cuyo `cidrs` coincidía con la IP de la VM (se puede comprobar decodificando la parte central del JWT en base64, sin librerías: contiene `{"cidrs": ["..."], "type": "client"}`) y se volvió a desplegar.
+- **Lección para la próxima vez**: antes de sobrescribir `proxy/config.php` en el servidor, hacer `cp config.php config.php.bak` ahí mismo. Es un paso de 5 segundos que habría evitado todo esto.
+
+## 16. Limitaciones conocidas (asumidas, no bugs)
 
 - **El PIN de `megadraft/admin.html` es cosmético.** Es un código de 4 cifras fijo en el propio JavaScript del cliente, pensado solo para que no cualquiera con el enlace entre y toque el draft por error — no es seguridad real ante alguien que abra el código fuente.
 - **Cualquier participante puede liberar el equipo de otro** desde la consola del navegador (la regla de `claimedBy` permite poner `null` a cualquier usuario autenticado, sin distinguir "admin" de "capitán"). Se aceptó porque diferenciar roles exigiría Cloud Functions.
 - **Sin build ni tests automatizados.** Toda verificación de cambios es manual: abrir el navegador y probar. Los cambios grandes de Megadraft en este proyecto se han validado con drafts de prueba completos de 8 equipos / 96 picks antes de darlos por buenos.
 - **`admin.html` (del sitio principal) no se auto-actualiza.** Si la forma de `content.js` cambia, hay que editar a mano la copia local de `admin.html` de cada persona que lo use — no hay ningún mecanismo que las mantenga sincronizadas.
 
-## 16. Dónde viven los secretos
+## 17. Dónde viven los secretos
 
-Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que regenerarlos desde los paneles de cada servicio — no hay copia de seguridad centralizada.
+Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que regenerarlos desde los paneles de cada servicio — no hay copia de seguridad centralizada. **Antes de sobrescribir `proxy/config.php` en el servidor, hacer una copia (`cp config.php config.php.bak`) — ver el incidente de §15.**
 
 | Secreto | Vive en | Se usa para |
 |---|---|---|
 | Clave de API de Brawl Stars | `proxy/config.php` (excluido por `.gitignore`) | autorizar al proxy PHP frente a la API oficial |
+| Client ID / Client Secret de Challonge | `proxy/config.php` (mismo archivo, excluido por `.gitignore`) | pedir tokens OAuth2 (Client Credentials) para `proxy/challonge.php` — la app se llama "Showcast — Historial de partidas" en `connect.challonge.com` |
+| Token de acceso de Challonge (derivado, no una credencial "raíz") | `proxy/challonge-token-cache.json` (excluido por `.gitignore`) | cachear el token OAuth2 mientras no caduque (~7 días), regenerado solo si falta o caduca |
 | Personal Access Token de GitHub | `localStorage` del navegador, pegado en `admin.html` | que el editor de contenido pueda abrir PRs |
-| Config del SDK de Firebase | `megadraft/js/firebase-config.js` (sí está en git) | inicializar Firebase — **no es secreta**, es pública por diseño; la seguridad real la dan las reglas de la base de datos, no el secretismo de estas claves |
-| PIN de `megadraft/admin.html` | hardcodeado en el JS del propio archivo | disuasión visual, no seguridad (§15) |
+| Config del SDK de Firebase | `megadraft/js/firebase-config.js` y `historial/js/firebase-config.js` (sí están en git, mismo proyecto `showcast-md`) | inicializar Firebase — **no es secreta**, es pública por diseño; la seguridad real la dan las reglas de la base de datos, no el secretismo de estas claves |
+| PIN de `megadraft/admin.html` | hardcodeado en el JS del propio archivo | disuasión visual, no seguridad (§16) |
 
-## 17. Qué queda pendiente
+## 18. Qué queda pendiente
 
 **Animación de revelado en `stream.html`**: el panel lateral de "última elección" en la vista de stream tiene una animación CSS provisional. Se decidió explícitamente esperar a los archivos oficiales del Fan Kit de Supercell (ilustraciones/gifs de personaje a tamaño grande) antes de construir la versión final — no hay que iterar más sobre esto hasta que esos assets lleguen.
