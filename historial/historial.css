@@ -208,11 +208,20 @@ a{color:inherit;text-decoration:none;}
   border-radius:10px;
   padding:16px 14px;
 }
-.jugadores-lado.ganador{
-  background:radial-gradient(ellipse at center, rgba(74,144,255,.24) 0%, rgba(74,144,255,0) 75%);
+/* Degradado desde el borde EXTERIOR de cada lado (izquierdo para equipoA,
+   derecho para equipoB) hacia dentro — el azul llega más lejos (ganador),
+   el rojo se apaga antes (perdedor). */
+.juego-vs-row .jugadores-lado:first-child.ganador{
+  background:linear-gradient(90deg, rgba(60,130,255,.65) 0%, rgba(60,130,255,0) 85%);
 }
-.jugadores-lado.perdedor{
-  background:radial-gradient(ellipse at center, rgba(255,90,90,.12) 0%, rgba(255,90,90,0) 75%);
+.juego-vs-row .jugadores-lado:first-child.perdedor{
+  background:linear-gradient(90deg, rgba(255,55,55,.55) 0%, rgba(255,55,55,0) 50%);
+}
+.juego-vs-row .jugadores-lado:last-child.ganador{
+  background:linear-gradient(270deg, rgba(60,130,255,.65) 0%, rgba(60,130,255,0) 85%);
+}
+.juego-vs-row .jugadores-lado:last-child.perdedor{
+  background:linear-gradient(270deg, rgba(255,55,55,.55) 0%, rgba(255,55,55,0) 50%);
 }
 .jugador-card{
   display:flex;
