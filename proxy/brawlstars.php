@@ -137,6 +137,7 @@ echo json_encode([
         : null,
     'trophies' => $data['trophies'] ?? 0,
     'highestTrophies' => $data['highestTrophies'] ?? 0,
+    'prestige' => $data['totalPrestigeLevel'] ?? 0,
     'expLevel' => $data['expLevel'] ?? null,
     'victories3v3' => $data['3vs3Victories'] ?? 0,
     'soloVictories' => $data['soloVictories'] ?? 0,

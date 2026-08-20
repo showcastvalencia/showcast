@@ -707,6 +707,22 @@
     color:var(--naranja-dark);
     font-size:.95rem;
   }
+  .prestige-badge{
+    margin-left:auto;
+    position:relative;
+    width:44px;height:44px;
+    flex-shrink:0;
+  }
+  .prestige-badge img{width:100%;height:100%;object-fit:contain;display:block;}
+  .prestige-badge-num{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-52%);
+    font-family:'Anton',sans-serif;
+    font-size:.85rem;
+    color:var(--blanco);
+    text-shadow:0 0 3px var(--negro), 0 0 3px var(--negro);
+  }
   .player-stats{
     display:grid;
     grid-template-columns:repeat(3,1fr);
@@ -1230,6 +1246,10 @@
           <h3 id="pv-name">—</h3>
           <span id="pv-tag" class="player-tag">#000000</span>
         </div>
+        <div class="prestige-badge" id="pv-prestige-badge" title="Prestigio">
+          <img src="assets/prestigio.webp" alt="Prestigio">
+          <span class="prestige-badge-num" id="pv-prestige">0</span>
+        </div>
       </div>
       <div class="player-stats">
         <div class="stat-box">
@@ -1660,6 +1680,7 @@
           document.getElementById('pv-icon').src = body.iconUrl || '';
           document.getElementById('pv-name').textContent = body.name || '(sin nombre)';
           document.getElementById('pv-tag').textContent = body.tag || tag;
+          document.getElementById('pv-prestige').textContent = body.prestige ?? 0;
           document.getElementById('pv-trophies').textContent = body.trophies ?? 0;
           document.getElementById('pv-v3v3').textContent = body.victories3v3 ?? 0;
 
