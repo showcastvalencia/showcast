@@ -124,19 +124,45 @@
   function torneoSlug() { return document.getElementById('torneoSlug').value.trim(); }
   function challongeId() { return document.getElementById('challongeId').value.trim(); }
 
+  const MAX_TAGS = 4;
+
   function renderParticipantes() {
     const list = document.getElementById('participantesList');
     list.innerHTML = participants.map(p => {
       const tags = tagsByParticipant[p.id] || ['', '', ''];
+      // Normalmente 3 tags (equipo 3v3) — si ya había un 4º guardado (suplente),
+      // se muestran los 4 de entrada; si no, se ofrece el botón "+" para añadirlo.
+      const n = Math.min(MAX_TAGS, Math.max(3, tags.length));
+      const inputsHtml = Array.from({ length: n }, (_, i) =>
+        `<input type="text" data-tag-idx="${i}" placeholder="#TAG${i + 1}" value="${tags[i] || ''}">`).join('');
+      const addBtnHtml = n < MAX_TAGS
+        ? `<button type="button" class="add-tag-btn" title="Añadir un 4º tag (suplente)">+</button>` : '';
       return `
         <div class="participant-row" data-pid="${p.id}">
           <div class="p-name">${p.name || ('Participante ' + p.id)}</div>
           <div class="p-tags">
-            ${[0, 1, 2].map(i => `<input type="text" data-tag-idx="${i}" placeholder="#TAG${i + 1}" value="${tags[i] || ''}">`).join('')}
+            ${inputsHtml}
+            ${addBtnHtml}
           </div>
         </div>`;
     }).join('');
   }
+
+  // Delegado: añade un input de tag más en la fila del participante donde se
+  // pulsó "+" (hasta MAX_TAGS), sin volver a pintar todo el listado — así no
+  // se pierden ediciones sin guardar en otras filas.
+  document.getElementById('participantesList').addEventListener('click', e => {
+    const btn = e.target.closest('.add-tag-btn');
+    if (!btn) return;
+    const row = btn.closest('.p-tags');
+    const nextIdx = row.querySelectorAll('input[data-tag-idx]').length;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.dataset.tagIdx = nextIdx;
+    input.placeholder = '#TAG' + (nextIdx + 1);
+    row.insertBefore(input, btn);
+    if (nextIdx + 1 >= MAX_TAGS) btn.remove();
+  });
 
   function collectTagsFromForm() {
     const result = {};
