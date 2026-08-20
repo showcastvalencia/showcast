@@ -122,6 +122,18 @@ a{color:inherit;text-decoration:none;}
   letter-spacing:1px;
   font-size:1rem;
 }
+.participant-row .add-tag-btn{
+  flex:0 0 auto;
+  width:44px;
+  border:2px solid var(--naranja);
+  background:transparent;
+  color:var(--naranja);
+  font-family:'Anton',sans-serif;
+  font-size:1.3rem;
+  line-height:1;
+  cursor:pointer;
+}
+.participant-row .add-tag-btn:hover{background:var(--naranja);color:var(--negro);}
 @media(max-width:640px){
   .participant-row{grid-template-columns:1fr;}
 }
