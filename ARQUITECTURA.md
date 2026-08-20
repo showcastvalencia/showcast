@@ -259,9 +259,10 @@ Un tercer subsistema, `historial/`, independiente de Megadraft aunque comparte s
 2. `proxy/challonge.php` pide un token de acceso (`POST https://api.challonge.com/oauth/token`, `grant_type=client_credentials`) y lo cachea en `proxy/challonge-token-cache.json` hasta que caduca (~7 días), para no pedir uno nuevo en cada petición.
 3. El scope por defecto del token ya es de solo lectura (`tournaments:read`, `matches:read`, `participants:read`...) — ni siquiera hace falta pedirlo explícitamente.
 
-**Dos bugs reales encontrados al desplegar contra un torneo real** (no en desarrollo local, donde todo parecía funcionar):
+**Tres bugs reales encontrados al desplegar contra un torneo real** (no en desarrollo local, donde todo parecía funcionar):
 - El endpoint de la API v2.1 es `/v2.1/tournaments/{id}.json` (**plural**) — parte de la documentación oficial de Challonge todavía muestra el singular (`/tournament/{id}.json`, heredado de v1), que devuelve 404 aunque el torneo exista.
 - Falta la cabecera `Content-Type: application/vnd.api+json` en la petición `GET`, aunque no lleve cuerpo — sin ella, la API responde `415 Unsupported Media Type`.
+- Un partido de la API v2.1 **no** tiene `player1_id`/`player2_id`/`scores_csv` (nombres heredados de v1 que aparecían en ejemplos de documentación) — usa `points_by_participant` (array de `{participant_id, scores}`) y la fecha de actualización va anidada en `timestamps.updated_at`. `historial-logic.js` tiene `matchParticipantIds()`/`matchUpdatedAt()` para normalizar esto.
 
 **Modelo de datos** (nodo nuevo `/historial` en el mismo Firebase `showcast-md` de Megadraft, reglas en [`megadraft/README-FIREBASE.md`](megadraft/README-FIREBASE.md)):
 
@@ -269,11 +270,25 @@ Un tercer subsistema, `historial/`, independiente de Megadraft aunque comparte s
 /historial/{torneoSlug}/
   meta: { challongeTournamentId, nombre, actualizadoEn }
   participantes/{challongeParticipantId}: { nombre, tags: ["#XXXX", ...] }
-  matches/{challongeMatchId}: { ronda, equipoA, equipoB, resultadoChallonge, juegos: [...] }
+  matches/{challongeMatchId}: {
+    ronda, equipoA, equipoB, resultadoChallonge,
+    juegos: [ { orden, battleTime, modo, mapa, duracion, ganador, picksEquipoA, picksEquipoB } ]
+  }
   procesados/{challongeMatchId}: true
 ```
 
+`juegos[].ganador` es `"equipoA"` / `"equipoB"` / `"empate"` / `null` — traducido de `battle.result` de Brawl Stars (`"victory"`/`"defeat"`/`"draw"`), que es la perspectiva del jugador cuyo battlelog se consultó, no dice directamente qué equipo ganó. Hay que mirar en qué lado estaba ese jugador para saberlo (`resultadoJuego()` en `historial-logic.js`).
+
 La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Stars" se hace a mano desde `historial/admin.html` (con pre-relleno automático si existe un equipo de Megadraft con el mismo nombre) — no se asume que el torneo tenga que venir de Megadraft.
+
+**Emparejamiento automático**: sala amistosa (`type: "friendly"`) + coinciden **todos** los tags vinculados de cada equipo en el mismo lado de la batalla. Sin ventana de tiempo — se probó primero con un límite de ±30 min, pero era un número mágico frágil que no evitaba los falsos positivos reales (entrenos, revanchas con los mismos jugadores) y sí podía descartar partidas legítimas reportadas tarde. Al no ser infalible (dos equipos pueden jugar más de una sala amistosa entre sí), existen dos herramientas para lo que el automático no resuelva:
+
+- **"Modo de prueba"** (checkbox en `historial/admin.html`): reprocesa partidos ya guardados, acepta cualquier tipo de sala (no solo `friendly`) y basta con que coincida **1** tag por equipo en vez de todos — pensado para poder probar el cruce con una partida real de ladder/ranked cualquiera, sin tener que montar una sala amistosa con la composición exacta del torneo. Muestra además un log de por qué cada batalla candidata encajó o no.
+- **"Reajudicar partidos a mano"**: pantalla con vista dividida — a la izquierda el battlelog de un jugador (búsqueda por tag), a la derecha los juegos ya asignados a un partido elegido; arrastrar (drag-and-drop nativo del navegador) una batalla de la izquierda a la derecha la añade al partido, con botón para quitarla y otro para guardar. Sirve para corregir manualmente lo que el emparejamiento automático haya hecho mal.
+
+**Un modo de juego con formato distinto, no soportado**: Duelo (1v1) no usa `battle.teams` (array de equipos) como el resto de modos — usa `battle.players`, una lista plana, con `brawlers` en **plural** por jugador porque se puede cambiar de personaje entre rondas. El proxy no lo normaliza (`teams` sale vacío para esas batallas) — decisión consciente: Duelo no es un modo que se vaya a jugar en el torneo y es poco jugado en general, así que no compensaba la complejidad. Si hiciera falta soportarlo, el código de referencia (sin desplegar) está en la PR #23.
+
+**Diseño visual de la pantalla pública**: cada partido se despliega mostrando, por juego, a los jugadores de cada lado con su icono de Brawler (reutilizando `assets/brawlers.json`/`assets/brawlers/`, ver §15 "iconos no cargaban") en tarjetas cuadradas, con un "VS" grande al estilo cómic en el centro. El lado ganador de cada juego se resalta con un degradado de color desde el borde exterior hacia dentro (azul, con más alcance) y el perdedor con otro más tenue y de caída más rápida (rojo) — ambos calculados a partir de `juegos[].ganador`. La pantalla usa un listener de Firebase en tiempo real (`.on('value')`, no `.once()`) para que los partidos nuevos aparezan solos sin recargar mientras alguien tiene la pantalla abierta durante el evento.
 
 ## 15. Problemas encontrados (y cómo se resolvieron)
 
