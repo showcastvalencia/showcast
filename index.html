@@ -1353,10 +1353,7 @@
     <p class="section-lead">Sigue en directo la clasificación de cada categoría, con las tablas de Challonge.</p>
 
     <div class="challonge-wrap">
-      <div class="challonge-tabs" id="clasifCategoriaTabs">
-        <button type="button" class="active" data-categoria="infantil">Tabla Infantil</button>
-        <button type="button" data-categoria="juvenil">Tabla Juvenil</button>
-      </div>
+      <div class="challonge-tabs" id="clasifCategoriaTabs"></div>
       <div class="challonge-tabs clasif-view-tabs" id="clasifVistaTabs" style="display:none;">
         <button type="button" class="active" data-vista="tabla">Tabla</button>
         <button type="button" data-vista="bracket">Bracket</button>
@@ -1565,15 +1562,16 @@
   });
 
   // ---------- CLASIFICACIONES: tabla + bracket propios, vía proxy/challonge.php ----------
-  // Mismo espíritu que el embed manual de iframe que esto sustituye: pega aquí el
-  // slug o ID del torneo de Challonge de cada categoría (Compartir → URL del torneo).
-  const CLASIFICACIONES_TORNEOS = {
-    infantil: '',
-    juvenil: ''
-  };
+  // Categorías (nombre + ID de torneo de Challonge) editables desde admin.html
+  // ("Clasificaciones" — 1 o 2 categorías). Si content.js no las trae (versión
+  // vieja), se usa el mismo par Infantil/Juvenil de siempre como respaldo.
+  const clasifCategorias = (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.clasificaciones
+    && window.SHOWCAST_CONTENT.clasificaciones.categorias && window.SHOWCAST_CONTENT.clasificaciones.categorias.length)
+    ? window.SHOWCAST_CONTENT.clasificaciones.categorias
+    : [{ nombre: 'Infantil', torneoId: '' }, { nombre: 'Juvenil', torneoId: '' }];
 
   const clasifCache = {};
-  let clasifCategoriaActual = 'infantil';
+  let clasifCategoriaActual = 0;
   let clasifVistaActual = 'tabla';
 
   // Mismo patrón que matchParticipantIds() de historial-logic.js — la API real
@@ -1669,7 +1667,7 @@
     document.getElementById('clasifContenido').innerHTML = `
       <div class="challonge-placeholder">
         <h3>Clasificación pendiente de configurar</h3>
-        <p>${mensaje || 'Pega el slug o ID del torneo de Challonge de esta categoría en CLASIFICACIONES_TORNEOS, dentro del script de index.html.'}</p>
+        <p>${mensaje || 'Pega el ID del torneo de Challonge de esta categoría en el panel de administración (admin.html), sección "Clasificaciones".'}</p>
       </div>`;
     document.getElementById('clasifVistaTabs').style.display = 'none';
   }
@@ -1682,9 +1680,9 @@
       : nota + clasifTablaHtml(data);
   }
 
-  function clasifRenderCategoria(categoria) {
-    clasifCategoriaActual = categoria;
-    const id = CLASIFICACIONES_TORNEOS[categoria];
+  function clasifRenderCategoria(idx) {
+    clasifCategoriaActual = idx;
+    const id = (clasifCategorias[idx] || {}).torneoId;
     const vistaTabs = document.getElementById('clasifVistaTabs');
     if (!id) { clasifRenderVacio(); return; }
 
@@ -1692,8 +1690,8 @@
     vistaTabs.style.display = 'none';
 
     clasifFetchTorneo(id).then(data => {
-      if (clasifCategoriaActual !== categoria) return; // ya se cambió de pestaña mientras cargaba
-      if (!data) { clasifRenderVacio('No se ha podido cargar este torneo de Challonge — revisa el ID en CLASIFICACIONES_TORNEOS.'); return; }
+      if (clasifCategoriaActual !== idx) return; // ya se cambió de pestaña mientras cargaba
+      if (!data) { clasifRenderVacio('No se ha podido cargar este torneo de Challonge — revisa el ID en admin.html.'); return; }
       const esEliminacionSimple = !!(data.tournament && data.tournament.tournamentType === 'single elimination');
       vistaTabs.style.display = esEliminacionSimple ? 'flex' : 'none';
       if (!esEliminacionSimple) clasifVistaActual = 'tabla';
@@ -1701,26 +1699,35 @@
     });
   }
 
-  document.getElementById('clasifCategoriaTabs').querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.getElementById('clasifCategoriaTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      clasifRenderCategoria(btn.dataset.categoria);
+  // Con 1 sola categoría no hace falta ninguna pestaña que elegir.
+  const clasifCategoriaTabsEl = document.getElementById('clasifCategoriaTabs');
+  if (clasifCategorias.length > 1) {
+    clasifCategoriaTabsEl.innerHTML = clasifCategorias.map((c, i) =>
+      `<button type="button" class="${i === 0 ? 'active' : ''}" data-categoria-idx="${i}">${c.nombre || 'Categoría ' + (i + 1)}</button>`
+    ).join('');
+    clasifCategoriaTabsEl.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        clasifCategoriaTabsEl.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        clasifRenderCategoria(Number(btn.dataset.categoriaIdx));
+      });
     });
-  });
+  } else {
+    clasifCategoriaTabsEl.style.display = 'none';
+  }
 
   document.getElementById('clasifVistaTabs').querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.getElementById('clasifVistaTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       clasifVistaActual = btn.dataset.vista;
-      clasifFetchTorneo(CLASIFICACIONES_TORNEOS[clasifCategoriaActual]).then(data => {
+      clasifFetchTorneo((clasifCategorias[clasifCategoriaActual] || {}).torneoId).then(data => {
         if (data) clasifRenderVista(data, !!(data.tournament && data.tournament.tournamentType === 'single elimination'));
       });
     });
   });
 
-  clasifRenderCategoria('infantil');
+  clasifRenderCategoria(0);
 
   function youtubeEmbedUrl(url){
     if(!url) return '';
