@@ -61,10 +61,11 @@
     <label class="checkbox-field" style="margin-bottom:14px;">
       <input type="checkbox" id="modoPrueba">
       <span>
-        <strong>Modo de prueba</strong> — reprocesa partidos que ya se habían cruzado antes (en
-        vez de saltárselos), para poder iterar sin depender de generar partidos nuevos en
-        Challonge. Muestra además, para cada partido, por qué cada batalla candidata del battlelog
-        sí o no encajó (tipo de sala, tags coincidentes).
+        <strong>Modo de prueba</strong> — reprocesa partidos que ya se habían cruzado antes,
+        acepta cualquier tipo de partida (no solo salas amistosas) y basta con que coincida 1 tag
+        por equipo en vez de todos. Así puedes probar el cruce con cualquier modo de juego (ranked,
+        Duelo...) sin depender de montar una sala amistosa con la composición exacta del torneo.
+        Muestra además, para cada partido, por qué cada batalla candidata encajó o no.
       </span>
     </label>
     <button type="button" class="btn" id="btnActualizar">Actualizar historial de partidas</button>
@@ -221,7 +222,7 @@
     spinner.style.display = ''; msg.textContent = ''; msg.className = 'hint';
     debugBox.style.display = 'none'; debugBox.textContent = '';
 
-    HD.actualizarHistorial(slug, cid, tagsByParticipant, { ignorarProcesados: modoPrueba, debug: modoPrueba }).then(res => {
+    HD.actualizarHistorial(slug, cid, tagsByParticipant, { ignorarProcesados: modoPrueba, debug: modoPrueba, laxo: modoPrueba }).then(res => {
       spinner.style.display = 'none';
       msg.textContent = res.procesados
         ? `Historial actualizado: ${res.procesados} partido(s) procesado(s) de ${res.total} en total.`

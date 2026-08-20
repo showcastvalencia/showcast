@@ -69,15 +69,21 @@ const HD = (function () {
   // Deben coincidir TODOS los tags vinculados de cada equipo (no solo
   // algunos) en el lado correspondiente. Un equipo sin ningún tag vinculado
   // nunca puede dar positivo — no hay nada que comprobar.
-  function battleMatchesTeams(battle, tagsA, tagsB) {
+  // En "modo de prueba" (laxo=true) basta con que aparezca 1 tag conocido
+  // por lado — para poder probar el cruce sin depender de un modo de juego
+  // concreto (Duelo, sala 3v3 con bots...) ni de tener todos los miembros
+  // vinculados.
+  function battleMatchesTeams(battle, tagsA, tagsB, laxo) {
     if (!tagsA.length || !tagsB.length) return null;
     const teams = filterRealPlayers(battle.teams);
     if (teams.length !== 2) return null;
     const [t1, t2] = teams;
-    if (countKnownTags(t1, tagsA) === tagsA.length && countKnownTags(t2, tagsB) === tagsB.length) {
+    const reqA = laxo ? 1 : tagsA.length;
+    const reqB = laxo ? 1 : tagsB.length;
+    if (countKnownTags(t1, tagsA) >= reqA && countKnownTags(t2, tagsB) >= reqB) {
       return { equipoA: t1, equipoB: t2 };
     }
-    if (countKnownTags(t2, tagsA) === tagsA.length && countKnownTags(t1, tagsB) === tagsB.length) {
+    if (countKnownTags(t2, tagsA) >= reqA && countKnownTags(t1, tagsB) >= reqB) {
       return { equipoA: t2, equipoB: t1 };
     }
     return null;
@@ -113,7 +119,7 @@ const HD = (function () {
     };
   }
 
-  function correlateMatch(match, participantsById, tagsByParticipant, battlelogsByTag, debugLines) {
+  function correlateMatch(match, participantsById, tagsByParticipant, battlelogsByTag, debugLines, laxo) {
     const [pAId, pBId] = matchParticipantIds(match);
     const equipoA = { participantId: pAId, nombre: (participantsById[pAId] || {}).name || ('Participante ' + pAId) };
     const equipoB = { participantId: pBId, nombre: (participantsById[pBId] || {}).name || ('Participante ' + pBId) };
@@ -134,24 +140,24 @@ const HD = (function () {
     if (debugLines) {
       debugLines.push(`Partido ${match.id} (${equipoA.nombre} vs ${equipoB.nombre}): ${candidatas.length} batalla(s) en el battlelog de los tags vinculados.`);
       candidatas.forEach(b => {
-        if (b.type !== 'friendly') {
+        if (!laxo && b.type !== 'friendly') {
           debugLines.push(`  · ${b.battleTime}: descartada, tipo="${b.type}" (se necesita "friendly")`);
           return;
         }
-        const sides = battleMatchesTeams(b, tagsA, tagsB);
+        const sides = battleMatchesTeams(b, tagsA, tagsB, laxo);
         if (sides) {
-          debugLines.push(`  · ${b.battleTime}: ✓ coincide (mapa ${b.map}, modo ${b.mode})`);
+          debugLines.push(`  · ${b.battleTime}: ✓ coincide (tipo=${b.type}, mapa ${b.map}, modo ${b.mode})`);
         } else {
           const teams = filterRealPlayers(b.teams);
           const detalle = teams.map((t, i) => `lado ${i + 1}: ${countKnownTags(t, tagsA)}/${tagsA.length} tag(s) de ${equipoA.nombre}, ${countKnownTags(t, tagsB)}/${tagsB.length} de ${equipoB.nombre}`).join(' / ');
-          debugLines.push(`  · ${b.battleTime}: descartada, no coinciden todos los tags (${detalle})`);
+          debugLines.push(`  · ${b.battleTime}: descartada, no coinciden tags (${detalle || 'sin datos de equipos (formato de partida distinto, ej. Duelo)'})`);
         }
       });
     }
 
     const emparejadas = candidatas
-      .filter(b => b.type === 'friendly')
-      .map(b => ({ battle: b, sides: battleMatchesTeams(b, tagsA, tagsB) }))
+      .filter(b => laxo || b.type === 'friendly')
+      .map(b => ({ battle: b, sides: battleMatchesTeams(b, tagsA, tagsB, laxo) }))
       .filter(x => x.sides)
       .sort((a, b) => parseBattleTime(a.battle.battleTime) - parseBattleTime(b.battle.battleTime));
 
@@ -173,13 +179,16 @@ const HD = (function () {
 
   // Orquesta todo el flujo de un clic en "Actualizar historial de partidas".
   // participantesTags: { [participantId]: ["#TAG1","#TAG2","#TAG3"] }
-  // opciones: { ignorarProcesados, debug } — "Modo de prueba" en el admin
-  // activa ambas, para poder reprocesar un partido ya guardado sin
-  // depender de generar partidos nuevos en Challonge, y ver por qué cada
-  // batalla candidata sí o no encajó.
+  // opciones: { ignorarProcesados, debug, laxo } — "Modo de prueba" en el
+  // admin activa las tres: reprocesa partidos ya guardados, muestra por qué
+  // cada batalla encajó o no, y (laxo) ignora el tipo de sala y exige solo 1
+  // tag conocido por lado en vez de todos — para poder probar el cruce con
+  // cualquier modo de juego (ranked, Duelo...) sin depender de montar una
+  // sala amistosa con la composición exacta del torneo.
   function actualizarHistorial(torneoSlug, challongeTournamentId, participantesTags, opciones) {
     opciones = opciones || {};
     const debugLines = opciones.debug ? [] : null;
+    const laxo = !!opciones.laxo;
 
     return fetchTournament(challongeTournamentId).then(body => {
       const participantsById = {};
@@ -209,7 +218,7 @@ const HD = (function () {
           .then(() => {
             const updates = {};
             nuevos.forEach(m => {
-              const resultado = correlateMatch(m, participantsById, participantesTags, battlelogs, debugLines);
+              const resultado = correlateMatch(m, participantsById, participantesTags, battlelogs, debugLines, laxo);
               updates['historial/' + torneoSlug + '/matches/' + m.id] = resultado;
               updates['historial/' + torneoSlug + '/procesados/' + m.id] = true;
             });
