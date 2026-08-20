@@ -1,11 +1,11 @@
 # Guía de la API de Challonge
 
-> Investigación técnica — no implementado todavía. Documento vivo: si se acaba construyendo el historial de partidas descrito aquí, hay que actualizar este archivo (y `ARQUITECTURA.md`) para que reflejen la implementación real.
+> **Implementado y probado contra un torneo real (20 agosto 2026).** El subsistema `historial/` (proxy, panel de administración, pantalla pública) ya existe en el repositorio. Este documento sigue siendo la referencia de diseño; la sección 4 (Autenticación) se actualizó tras descubrir, al implementarlo, que Challonge ya no ofrece la clave v1 simple para aplicaciones nuevas.
 
-Challonge es el servicio que ya usan muchísimas comunidades de esports para publicar brackets (llaves) de torneo: eliminación simple, doble, round robin y suizo. Este documento explica su API pública paso a paso — autenticación, recursos, límites reales de cuota — y, en la segunda mitad, el diseño concreto que Showcast va a construir: **usar Challonge solo en lectura** (el torneo y los equipos se siguen dando de alta a mano en la web de Challonge, como siempre) y cruzar cada partido con el *battlelog* de la API de Brawl Stars para tener un historial propio con qué personajes se usaron en cada partida.
+Challonge es el servicio que ya usan muchísimas comunidades de esports para publicar brackets (llaves) de torneo: eliminación simple, doble, round robin y suizo. Este documento explica su API pública paso a paso — autenticación, recursos, límites reales de cuota — y, en la segunda mitad, el diseño concreto que Showcast construye: **usar Challonge solo en lectura** (el torneo y los equipos se siguen dando de alta a mano en la web de Challonge, como siempre) y cruzar cada partido con el *battlelog* de la API de Brawl Stars para tener un historial propio con qué personajes se usaron en cada partida.
 
 - **Versión**: API v2.1
-- **Auth**: clave API v1 (legacy)
+- **Auth**: OAuth2 Client Credentials (ver §4C — la clave v1 simple ya no se puede generar para apps nuevas)
 - **Uso**: solo lectura — sin crear torneos ni participantes por API
 
 ## Índice
@@ -70,21 +70,20 @@ Los precios exactos de los planes de pago no están publicados de forma pública
 
 ## 4. Autenticación
 
-Dos caminos. Para un proyecto pequeño como Showcast, el primero es el que tiene sentido — es literalmente una clave que copias y pegas, como ya se hace con la clave de Brawl Stars.
+> ⚠️ **Actualizado tras la implementación real (20 agosto 2026):** cuando se escribió este documento, `challonge.com/settings/developer` todavía generaba una clave v1 simple para copiar y pegar. Ya no es así: esa página ahora solo redirige al Developer Portal (`connect.challonge.com`), y crear una aplicación ahí da un **Client ID + Client Secret** (OAuth2), no una clave suelta. La clave v1 sigue existiendo como *concepto* de autenticación (la cabecera `Authorization-Type: v1` todavía funciona si ya tenías una clave de antes), pero ya no hay forma de generar una nueva desde la interfaz web. Lo que Showcast usa realmente es la opción C de abajo.
 
-### A) Clave de API v1 (la sencilla)
+### A) Clave de API v1 (legacy, ya no se puede generar nueva)
 
-1. Entra en [challonge.com/settings/developer](https://challonge.com/settings/developer) con la cuenta de Challonge de la organización y genera una API key.
-2. En cada petición a `v2.1`, añade estas cabeceras:
-   ```
-   Authorization-Type: v1
-   Authorization: tu_clave_api_v1
-   Content-Type: application/vnd.api+json
-   Accept: application/json
-   ```
-3. Listo — esa clave da acceso completo a los torneos de esa cuenta de Challonge, igual que si hubieras iniciado sesión en la web.
+Si tu cuenta tiene una clave v1 de hace tiempo, sigue funcionando así:
+```
+Authorization-Type: v1
+Authorization: tu_clave_api_v1
+Content-Type: application/vnd.api+json
+Accept: application/json
+```
+Pero para una aplicación nueva (como la de Showcast) ya no hay botón para generarla — solo queda como referencia histórica.
 
-### B) OAuth2 (la robusta, pensada para apps de terceros)
+### B) OAuth2 — Authorization Code (pensado para apps de terceros)
 
 Solo hace falta si la app la va a usar gente que **no** comparte la cuenta de Challonge de Showcast (por ejemplo, una app pública donde cada organizador conecta su propia cuenta). Se registra la aplicación en `connect.challonge.com` para obtener un `client_id`/`client_secret`, y luego:
 
@@ -105,7 +104,30 @@ Authorization-Type: v2
 Authorization: Bearer access_token_recibido
 ```
 
-Para Showcast (una única organización, una única cuenta de Challonge) la opción A es más que suficiente y muchísimo más simple de mantener.
+No aplica a Showcast — nadie tiene que "iniciar sesión" con su propia cuenta de Challonge, todo se hace sobre la única cuenta de la organización.
+
+### C) OAuth2 — Client Credentials (la que usa Showcast en realidad)
+
+El equivalente moderno a la clave v1: autoriza en nombre de la propia cuenta de la aplicación, sin ningún paso de "el usuario inicia sesión". Es lo más parecido a "una clave que copias y pegas", solo que en dos partes (Client ID + Client Secret) y con un token intermedio que caduca.
+
+1. Entra en [connect.challonge.com](https://connect.challonge.com) con la cuenta de Challonge de la organización → **"+ New Application"** → rellena nombre, descripción y un enlace de referencia (la web de Showcast) → **Save**. Obtienes un **Client ID** y un **Client Secret**.
+2. Pide un token de acceso (dura **7 días**, hay que renovarlo — el proxy lo cachea, ver §15):
+   ```bash
+   curl -X POST https://api.challonge.com/oauth/token \
+     -d grant_type=client_credentials \
+     -d client_id=TU_CLIENT_ID \
+     -d client_secret=TU_CLIENT_SECRET
+   ```
+   Devuelve `{ "access_token": "...", "expires_in": 604800, "scope": "me tournaments:read matches:read participants:read ..." }` — el scope por defecto ya es de solo lectura, ni siquiera hace falta pedirlo explícitamente.
+3. Usa ese token en cada petición:
+   ```
+   Authorization-Type: v2
+   Authorization: Bearer access_token_recibido
+   Content-Type: application/vnd.api+json
+   Accept: application/json
+   ```
+
+**Aplicación creada para Showcast**: "Showcast — Historial de partidas" en el Developer Portal (`connect.challonge.com/challonge/apps/58701/edit`). Las credenciales viven en `proxy/config.php` (local, gitignored), nunca en el repositorio.
 
 ## 5. Formato de peticiones (JSON:API)
 
@@ -446,34 +468,16 @@ if (isset($_GET['battlelog'])) {
 }
 ```
 
-**b) `proxy/challonge.php` (nuevo, de solo lectura)**
+**b) `proxy/challonge.php` (implementado, de solo lectura)**
 
-```php
-<?php
-// Clave guardada server-side, mismo patrón que proxy/config.php (fuera de git)
-require __DIR__ . '/challonge-config.php'; // define('CHALLONGE_API_KEY', '...');
+Ya construido — código real, no un boceto. Dos detalles que solo se descubrieron al probarlo contra un torneo real y que merece la pena dejar anotados (por si alguien vuelve a tropezar con lo mismo):
 
-$action = $_GET['action'] ?? '';
-$tournament = $_GET['tournament'] ?? '';
+- El endpoint correcto es `/v2.1/tournaments/{id}.json` (**plural**), no `/tournament/{id}.json` (singular) — un error fácil de cometer porque parte de la documentación de Challonge todavía usa el singular en ejemplos heredados de v1.
+- Hace falta la cabecera `Content-Type: application/vnd.api+json` incluso en peticiones `GET` sin cuerpo — si falta, la API responde `415 Unsupported Media Type`.
 
-if ($action === 'matches') {
-    $url = "https://api.challonge.com/v2.1/tournament/$tournament.json?include_matches=1";
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => [
-            'Authorization-Type: v1',
-            'Authorization: ' . CHALLONGE_API_KEY,
-            'Accept: application/json',
-        ],
-    ]);
-    echo curl_exec($ch);
-    // (nunca se implementa aquí "create", "update" ni ninguna acción de escritura —
-    // este proxy es deliberadamente de solo lectura, ver §10)
-}
-```
+Usa el token OAuth2 de §4C (`Authorization-Type: v2`, `Authorization: Bearer ...`), pedido a `https://api.challonge.com/oauth/token` con `grant_type=client_credentials` y cacheado en disco (`proxy/challonge-token-cache.json`, fuera de git) hasta que caduca a los 7 días, para no pedir uno nuevo en cada petición.
 
-Este proxy nunca implementa acciones de escritura a propósito (crear torneo, dar de alta participante, reportar resultado) — no porque la clave no lo permita, sino porque es una decisión de diseño consciente para que sea físicamente imposible gastar cuota de escritura por accidente desde el sitio.
+Este proxy nunca implementa acciones de escritura a propósito (crear torneo, dar de alta participante, reportar resultado) — no porque el token no lo permita (de hecho el scope por defecto del Client Credentials ya es de solo lectura, ver §4C), sino porque es una decisión de diseño consciente para que sea físicamente imposible gastar cuota de escritura por accidente desde el sitio.
 
 ## 16. Limitaciones y riesgos a tener en cuenta
 

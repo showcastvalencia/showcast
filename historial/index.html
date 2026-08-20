@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial de partidas — Showcast</title>
+<link rel="stylesheet" href="historial.css">
+</head>
+<body>
+
+<header class="hd-header">
+  <a href="../index.html" class="logo">
+    <img src="../assets/logo.png" alt="Logo Showcast">
+    <span>SHOWCAST <span class="tag">Historial de partidas</span></span>
+  </a>
+  <nav>
+    <a href="../index.html">← Volver a la web</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <h1 style="margin-bottom:8px;">Historial de partidas</h1>
+  <p class="hint" style="margin-bottom:26px;">
+    Qué se jugó de verdad en cada partido: mapa, modo y los Brawlers que eligió cada equipo.
+  </p>
+
+  <div id="torneoSelector" class="field" style="max-width:360px;"></div>
+  <div id="spinner" class="spinner"></div>
+  <div id="contenido"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  let slugActual = params.get('torneo') || '';
+
+  function brawlerLabel(b) {
+    return b ? String(b) : '?';
+  }
+
+  function pintarJuegos(juegos) {
+    if (!juegos || !juegos.length) {
+      return '<p class="hint" style="padding:12px 16px;">Sin datos de Brawl Stars cruzados para este partido todavía.</p>';
+    }
+    return juegos.map(j => `
+      <div class="juego-row">
+        <div class="j-meta">
+          <strong>Juego ${j.orden}</strong>
+          ${j.mapa || j.modo || ''}${j.mapa && j.modo ? ' · ' : ''}${j.modo || ''}
+          ${j.duracion ? `<br>${j.duracion}s` : ''}
+        </div>
+        <div class="j-picks">
+          ${(j.picksEquipoA || []).map(p => `<span class="pick-pill">${p.jugador}: ${brawlerLabel(p.brawler)}</span>`).join('')}
+        </div>
+        <div class="j-picks">
+          ${(j.picksEquipoB || []).map(p => `<span class="pick-pill">${p.jugador}: ${brawlerLabel(p.brawler)}</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function pintarMatch(m) {
+    const ganador = m.resultadoChallonge && m.resultadoChallonge.ganador;
+    const nombreA = (m.equipoA && m.equipoA.nombre) || '?';
+    const nombreB = (m.equipoB && m.equipoB.nombre) || '?';
+    const claseA = ganador && ganador === (m.equipoA && m.equipoA.participantId) ? 'winner' : '';
+    const claseB = ganador && ganador === (m.equipoB && m.equipoB.participantId) ? 'winner' : '';
+    const score = (m.resultadoChallonge && m.resultadoChallonge.scoresCsv) || '';
+    return `
+      <div class="match-card">
+        <button type="button" class="match-summary">
+          <span class="m-teams">
+            <span class="${claseA}">${nombreA}</span> vs <span class="${claseB}">${nombreB}</span>
+          </span>
+          <span class="m-score">${score}</span>
+          <span class="m-chev"></span>
+        </button>
+        <div class="match-body"><div>${pintarJuegos(m.juegos)}</div></div>
+      </div>`;
+  }
+
+  function pintarTorneo(data) {
+    const contenido = document.getElementById('contenido');
+    const matches = Object.values(data.matches || {});
+    if (!matches.length) {
+      contenido.innerHTML = '<p class="empty-note">Todavía no hay partidos procesados en este torneo.</p>';
+      return;
+    }
+    const porRonda = {};
+    matches.forEach(m => {
+      const r = m.ronda || 0;
+      (porRonda[r] = porRonda[r] || []).push(m);
+    });
+    const rondas = Object.keys(porRonda).map(Number).sort((a, b) => a - b);
+    contenido.innerHTML = rondas.map(r => `
+      <div class="ronda-block">
+        <h2>${r > 0 ? 'Ronda ' + r : 'Fase de grupos'}</h2>
+        ${porRonda[r].map(pintarMatch).join('')}
+      </div>
+    `).join('');
+
+    contenido.querySelectorAll('.match-summary').forEach(btn => {
+      btn.addEventListener('click', () => btn.closest('.match-card').classList.toggle('open'));
+    });
+  }
+
+  function cargar(slug) {
+    document.getElementById('spinner').style.display = '';
+    document.getElementById('contenido').innerHTML = '';
+    db.ref('historial/' + slug).once('value').then(snap => {
+      document.getElementById('spinner').style.display = 'none';
+      const data = snap.val();
+      if (!data) {
+        document.getElementById('contenido').innerHTML = '<p class="empty-note">No existe ningún historial guardado con ese identificador.</p>';
+        return;
+      }
+      pintarTorneo(data);
+    });
+  }
+
+  db.ref('historial').once('value').then(snap => {
+    const torneos = snap.val() || {};
+    const slugs = Object.keys(torneos);
+    const selector = document.getElementById('torneoSelector');
+
+    if (!slugs.length) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('contenido').innerHTML = '<p class="empty-note">Todavía no hay ningún historial de partidos publicado.</p>';
+      return;
+    }
+
+    if (!slugActual || !torneos[slugActual]) slugActual = slugs[slugs.length - 1];
+
+    if (slugs.length > 1) {
+      selector.innerHTML = `
+        <label for="torneoSelect">Torneo</label>
+        <select id="torneoSelect">
+          ${slugs.map(s => `<option value="${s}" ${s === slugActual ? 'selected' : ''}>${(torneos[s].meta && torneos[s].meta.nombre) || s}</option>`).join('')}
+        </select>`;
+      document.getElementById('torneoSelect').addEventListener('change', e => cargar(e.target.value));
+    }
+
+    cargar(slugActual);
+  });
+</script>
+</body>
+</html>
