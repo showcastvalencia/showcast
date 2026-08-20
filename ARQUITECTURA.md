@@ -113,13 +113,15 @@ Una única página de ~1700 líneas, sin router, dividida en secciones ancladas 
 → #torneos (cabecera de bloque, .group-header)
 → #evento → .about (hype sin id) → #inscripcion → #clasificaciones
 → #comunidad (cabecera de bloque, .group-header)
-→ #quienes-somos → #sobre-nosotros → #galeria → #patrocinadores → #unete → #mapa
-→ .cta-stripe (#inscripcion-cta, recordatorio final) → #contacto (footer)
+→ #quienes-somos → #sobre-nosotros → #unete → #galeria → .cta-stripe (#inscripcion-cta) → #patrocinadores
+→ #contacto (footer, "Hablemos")
 ```
 
-`#quienes-somos` vive físicamente dentro del bloque Comunidad, justo tras su cabecera (se movió ahí en un cambio posterior a que las secciones se reordenaran por primera vez, para que el scroll bajo "COMUNIDAD" coincida con lo que promete el menú). `.group-header` es un componente pequeño reutilizado 2 veces: fondo `var(--naranja)` + texto `var(--negro)` (mismo contraste que ya usan `.btn-primary`/`.event-card`), reutiliza `.section-inner`/`.section-kicker`/`.section-title` en vez de tipografía nueva.
+`#quienes-somos` vive físicamente dentro del bloque Comunidad, justo tras su cabecera (se movió ahí en un cambio posterior a que las secciones se reordenaran por primera vez, para que el scroll bajo "COMUNIDAD" coincida con lo que promete el menú). `.group-header` es un componente pequeño reutilizado 2 veces: fondo `var(--naranja)` + texto `var(--negro)` (mismo contraste que ya usan `.btn-primary`/`.event-card`), reutiliza `.section-inner`/`.section-kicker`/`.section-title` en vez de tipografía nueva. Ya no existe una sección `#mapa` independiente — su contenido (mapa + ubicación) se fusionó dentro de cada tarjeta de `#galeria`, ver más abajo.
 
-**Nav** (`<ul id="navList">`, cabecera): `Inicio` · desplegable `Torneos` (Próximo evento, **Inscripción**, Clasificaciones, Historial de partidas, Megadraft) · desplegable `Comunidad` (Quiénes somos, Sobre nosotros, Galería, Patrocinadores, Únete, Mapa, Contacto). Ya no hay ningún enlace suelto fuera de los desplegables aparte de "Inicio" — "Inscripción" se movió dentro de "Torneos" (antes era un enlace siempre visible en el nav principal). Ambos desplegables comparten el mismo componente CSS/JS genérico `.nav-dropdown`/`.nav-dropdown-btn`/`.nav-dropdown-menu` (antes había un único desplegable "más secciones" sin agrupar, con icono de hamburguesa en vez de texto) — abrir uno cierra el otro, y un clic fuera cierra cualquiera que esté abierto (`navDropdowns` en el `<script>` inline al final del `<body>`). El footer tiene una lista de navegación secundaria (sitemap) que se mantiene sincronizada a mano con este mismo orden, no se genera dinámicamente.
+**Nav** (`<ul id="navList">`, cabecera): `Inicio` · desplegable `Torneos` (Próximo evento, **Inscripción**, Clasificaciones, Historial de partidas, Megadraft) · desplegable `Comunidad` (Quiénes somos, Sobre nosotros, Únete, Galería, Patrocinadores, Contacto — ya no hay entrada "Mapa", fusionada con Galería). Ya no hay ningún enlace suelto fuera de los desplegables aparte de "Inicio" — "Inscripción" se movió dentro de "Torneos" (antes era un enlace siempre visible en el nav principal). Ambos desplegables comparten el mismo componente CSS/JS genérico `.nav-dropdown`/`.nav-dropdown-btn`/`.nav-dropdown-menu` (antes había un único desplegable "más secciones" sin agrupar, con icono de hamburguesa en vez de texto) — abrir uno cierra el otro, y un clic fuera cierra cualquiera que esté abierto (`navDropdowns` en el `<script>` inline al final del `<body>`). El footer tiene una lista de navegación secundaria (sitemap) que se mantiene sincronizada a mano con este mismo orden, no se genera dinámicamente.
+
+**Galería = ediciones del torneo** (`#galeria`): cada apartado desplegable de la galería (`galeriaEdiciones` en `content.js`) es una edición real del torneo — nombre (kicker), fecha (placeholder "📅 Próximamente" hasta rellenarla), ubicación en texto + su propio iframe de Google Maps (`https://www.google.com/maps?q=<ubicación>, Valencia&output=embed`, un mapa por tarjeta, no uno compartido) y sus fotos/vídeos de esa edición (con el placeholder "Todavía no hay fotos en este apartado" ya existente cuando está vacía). Esto sustituye lo que antes eran tres cosas separadas: la sección `#mapa` (iframe + lista de localidades) y el timeline "Torneos ya organizados" — ambos fusionados aquí porque describían lo mismo desde tres ángulos distintos. Ediciones actuales: Puçol 2024, Puçol 2025, Port de Sagunt 2025, Puçol 2026 (ubicación: "Espai Jove Puçol" o "Casal Jove del Port de Sagunt").
 
 El HTML de cada sección es **estático** en el marcado, pero el texto que muestra se rellena en tiempo de carga desde `window.SHOWCAST_CONTENT` (definido en `content.js`, cargado antes de que `index.html` lo necesite). Si `content.js` desaparece o no carga, la página muestra los placeholders escritos a mano en el HTML como red de seguridad.
 
@@ -135,9 +137,8 @@ window.SHOWCAST_CONTENT = {
   brawlProxyEndpoint: "https://34.10.158.213.sslip.io/proxy/brawlstars.php",
   evento: { titulo, juego, lugar, fecha },
   quienesSomos: { intro, pilares: [...] },
-  galeria: [ { src, tipo: "foto"|"video"|"youtube", caption } ],
+  galeriaEdiciones: [ { titulo, fecha, ubicacion, items: [ { src, tipo: "foto"|"video"|"youtube", caption } ] } ],
   equipo: [...], patrocinadores: [...],
-  torneosOrganizados: [...], localidades: [...],
   contacto: { email, telefono, instagram, tiktok, youtube, whatsapp }
 };
 ```
