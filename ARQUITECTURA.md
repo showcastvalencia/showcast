@@ -163,7 +163,7 @@ La sección "Clasificaciones" del sitio, y el sistema de puntuación de Megadraf
 GET /proxy/brawlstars.php?tag=8CG8LUJ
 ```
 
-que valida el formato del tag, llama a la API oficial con la clave (guardada en `proxy/config.php`, fuera de git), y devuelve solo los campos que la web necesita — nunca la clave, nunca la respuesta cruda completa. También corrige el error de tecleo más común (una `O` en vez de un `0`) y limita el CORS a los orígenes de la propia web.
+que valida el formato del tag, llama a la API oficial con la clave (guardada en `proxy/config.php`, fuera de git), y devuelve solo los campos que la web necesita — nunca la clave, nunca la respuesta cruda completa. También corrige el error de tecleo más común (una `O` en vez de un `0`) y limita el CORS a los orígenes de la propia web. Entre esos campos está `prestige` (mapeado desde `totalPrestigeLevel` de la respuesta real), usado por la insignia de prestigio del modal de verificación de tag — ver §15.
 
 Tanto `index.html` (sección Clasificaciones) como `megadraft/js/draft-logic.js` (`fetchPlayerStats`, para calcular la puntuación de cada jugador) llaman al mismo endpoint. Es el único punto de contacto de todo el proyecto con la API oficial de Supercell.
 
@@ -288,7 +288,9 @@ La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Sta
 
 **Un modo de juego con formato distinto, no soportado**: Duelo (1v1) no usa `battle.teams` (array de equipos) como el resto de modos — usa `battle.players`, una lista plana, con `brawlers` en **plural** por jugador porque se puede cambiar de personaje entre rondas. El proxy no lo normaliza (`teams` sale vacío para esas batallas) — decisión consciente: Duelo no es un modo que se vaya a jugar en el torneo y es poco jugado en general, así que no compensaba la complejidad. Si hiciera falta soportarlo, el código de referencia (sin desplegar) está en la PR #23.
 
-**Diseño visual de la pantalla pública**: cada partido se despliega mostrando, por juego, a los jugadores de cada lado con su icono de Brawler (reutilizando `assets/brawlers.json`/`assets/brawlers/`, ver §15 "iconos no cargaban") en tarjetas cuadradas, con un "VS" grande al estilo cómic en el centro. El lado ganador de cada juego se resalta con un degradado de color desde el borde exterior hacia dentro (azul, con más alcance) y el perdedor con otro más tenue y de caída más rápida (rojo) — ambos calculados a partir de `juegos[].ganador`. La pantalla usa un listener de Firebase en tiempo real (`.on('value')`, no `.once()`) para que los partidos nuevos aparezan solos sin recargar mientras alguien tiene la pantalla abierta durante el evento.
+**Diseño visual de la pantalla pública**: cada partido se despliega mostrando, por juego, a los jugadores de cada lado con su icono de Brawler (reutilizando `assets/brawlers.json`/`assets/brawlers/`, ver §15 "iconos no cargaban") en tarjetas cuadradas, con la imagen de marca `assets/VS.png` en el centro (antes era texto "VS" con contorno CSS; se sustituyó por el asset de diseño). El lado ganador de cada juego se resalta con un degradado de color desde el borde exterior hacia dentro (azul, con más alcance) y el perdedor con otro más tenue y de caída más rápida (rojo) — ambos calculados a partir de `juegos[].ganador`. La pantalla usa un listener de Firebase en tiempo real (`.on('value')`, no `.once()`) para que los partidos nuevos aparezan solos sin recargar mientras alguien tiene la pantalla abierta durante el evento.
+
+**Reajudicación manual y `perspectivaTag`**: `battleToJuego()` necesita que la batalla lleve marcado `perspectivaTag` (el tag desde cuyo battlelog se consultó) para que `resultadoJuego()` pueda traducir `victory`/`defeat` a `equipoA`/`equipoB` — el cruce automático (`correlateMatch()`) lo añade solo. El flujo de arrastrar-y-soltar de "Reajudicar partidos a mano" también tiene que añadirlo explícitamente (con el tag escrito en el buscador) antes de llamar a `HD.battleToJuego()`, o el juego se guarda sin `ganador` — ver §15.
 
 ## 15. Problemas encontrados (y cómo se resolvieron)
 
@@ -336,6 +338,17 @@ El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar l
 - **Complicación añadida al diagnosticarlo**: los "juegos viejos" de ese partido concreto incluían batallas donde el tag actualmente vinculado ya ni siquiera aparecía como participante — porque el battlelog de cada jugador solo guarda sus ~25 batallas más recientes de forma **independiente** (§12 de `CHALLONGE-API.md`), así que la misma batalla puede seguir visible en el log de un jugador (el que juega menos) y haber "caído" ya del de otro (el que juega más). Reprocesar con tags distintos a los de la vez anterior puede hacer que aparezcan/desaparezcan juegos aunque la batalla real no haya cambiado.
 - **Arreglo**: no hay ningún cambio de código — es el comportamiento esperado de "Modo de prueba" (§14), solo que no era obvio desde fuera. Se reprocesó ese partido con la casilla marcada y el campo `ganador` se calculó bien.
 - **Lección**: mientras se sigan ajustando la lógica de correlación o los tags vinculados, conviene tener "Modo de prueba" marcado al pulsar "Actualizar" — si no, partidos ya procesados quedan silenciosamente desactualizados sin ningún aviso en pantalla.
+
+### 🟡 Baja — La reajudicación manual guardaba juegos sin `ganador` (sin degradado)
+
+- **Síntoma**: un partido corregido a mano en "Reajudicar partidos" no mostraba el degradado ganador/perdedor en la pantalla pública, aunque el mismo tipo de batalla sí lo mostraba cuando la encontraba el cruce automático.
+- **Causa**: el `drop` handler de `historial/admin.html` pasaba la batalla arrastrada directamente a `HD.battleToJuego()` sin el campo `perspectivaTag` que sí añade `correlateMatch()` en el cruce automático. Sin ese campo, `resultadoJuego()` no tiene forma de saber de qué jugador es la perspectiva de `battle.result` y devuelve `null`.
+- **Arreglo**: el `drop` handler ahora clona la batalla con `Object.assign({}, battleRaw, { perspectivaTag: <tag del buscador> })` antes de pasarla a `battleToJuego()` — mismo patrón que el cruce automático. Los juegos que se hubieran guardado antes de este fix con este bug hay que volver a arrastrarlos para que se recalculen con el campo correcto (PR #28).
+
+### 🟢 Nueva — Insignia de prestigio y sustitución del badge VS por assets de diseño
+
+- **Prestigio**: la API real de Brawl Stars expone el total de prestigio de la cuenta como `totalPrestigeLevel` (no está documentado con ese nombre en ningún wrapper público de GitHub — se confirmó pegando una respuesta real de `GET /v1/players/{tag}` del usuario). El proxy lo reenvía como `prestige`; el modal "¿Es esta tu cuenta?" de `index.html` (verificación de tag en inscripción) muestra `assets/prestigio.webp` con el número superpuesto en blanco (con contorno oscuro para legibilidad sobre el icono).
+- **VS.png**: el único badge gráfico de "VS" del sitio (entre los dos equipos de cada juego en `historial/index.html`) se sustituyó por `assets/VS.png` en vez de texto con `-webkit-text-stroke` — ver nota en §14.
 
 ## 16. Limitaciones conocidas (asumidas, no bugs)
 
