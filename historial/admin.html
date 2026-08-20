@@ -58,9 +58,53 @@
       durante el evento — el battlelog solo guarda las últimas ~25 batallas por jugador
       (CHALLONGE-API.md §12), así que cuanto antes se actualice, mejor.
     </p>
+    <label class="checkbox-field" style="margin-bottom:14px;">
+      <input type="checkbox" id="modoPrueba">
+      <span>
+        <strong>Modo de prueba</strong> — reprocesa partidos que ya se habían cruzado antes (en
+        vez de saltárselos), para poder iterar sin depender de generar partidos nuevos en
+        Challonge. Muestra además, para cada partido, por qué cada batalla candidata del battlelog
+        sí o no encajó (tipo de sala, tags coincidentes).
+      </span>
+    </label>
     <button type="button" class="btn" id="btnActualizar">Actualizar historial de partidas</button>
     <div id="actualizarSpinner" class="spinner" style="display:none;"></div>
     <p id="actualizarMsg" class="hint" style="margin-top:10px;"></p>
+    <pre id="actualizarDebug" class="debug-box" style="display:none;"></pre>
+  </div>
+
+  <div class="card" id="reajudicarCard" style="display:none;margin-top:24px;">
+    <h2 style="font-size:1rem;margin-bottom:6px;">4. Reajudicar partidos a mano</h2>
+    <p class="hint" style="margin-bottom:16px;">
+      El emparejamiento automático es una heurística: si dos equipos jugaron entrenos o revanchas
+      además del partido oficial, puede que se haya colado la batalla equivocada, o que falte
+      alguna. Aquí puedes revisar el battlelog real de un jugador y arrastrar batallas hacia el
+      partido correcto (o quitarlas).
+    </p>
+    <div class="field" style="max-width:420px;">
+      <label for="reajudicarMatchSelect">Partido a revisar</label>
+      <select id="reajudicarMatchSelect"></select>
+    </div>
+    <div class="reajudicar-split">
+      <div class="reajudicar-col">
+        <h3>Battlelog de un jugador</h3>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input type="text" id="reajudicarTagInput" placeholder="#TAG del jugador" style="flex:1;padding:10px 12px;border:2px solid var(--naranja);background:var(--crema);color:var(--negro);font-weight:600;">
+          <button type="button" class="btn btn-outline" id="btnBuscarBattlelog">Buscar</button>
+        </div>
+        <div id="reajudicarBattlelogList" class="reajudicar-list">
+          <p class="reajudicar-empty">Busca el tag de un jugador para ver su battlelog aquí.</p>
+        </div>
+      </div>
+      <div class="reajudicar-col">
+        <h3>Juegos asignados a este partido</h3>
+        <div id="reajudicarJuegosList" class="reajudicar-list">
+          <p class="reajudicar-empty">Elige un partido arriba.</p>
+        </div>
+        <button type="button" class="btn" id="btnGuardarJuegos" style="margin-top:10px;">Guardar cambios en este partido</button>
+        <p id="reajudicarMsg" class="hint" style="margin-top:8px;"></p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -142,6 +186,7 @@
       document.getElementById('actualizarCard').style.display = '';
       msg.textContent = `Torneo cargado: ${participants.length} participante(s).`;
       msg.className = 'msg-ok';
+      return cargarPartidosParaReajudicar(slug);
     }).catch(err => {
       msg.textContent = err.message || 'Error al cargar el torneo.';
       msg.className = 'msg-error';
@@ -169,18 +214,171 @@
     const slug = torneoSlug(), cid = challongeId();
     const msg = document.getElementById('actualizarMsg');
     const spinner = document.getElementById('actualizarSpinner');
+    const debugBox = document.getElementById('actualizarDebug');
+    const modoPrueba = document.getElementById('modoPrueba').checked;
     tagsByParticipant = collectTagsFromForm();
 
     spinner.style.display = ''; msg.textContent = ''; msg.className = 'hint';
-    HD.actualizarHistorial(slug, cid, tagsByParticipant).then(res => {
+    debugBox.style.display = 'none'; debugBox.textContent = '';
+
+    HD.actualizarHistorial(slug, cid, tagsByParticipant, { ignorarProcesados: modoPrueba, debug: modoPrueba }).then(res => {
       spinner.style.display = 'none';
       msg.textContent = res.procesados
-        ? `Historial actualizado: ${res.procesados} partido(s) nuevo(s) procesado(s) de ${res.total} en total.`
-        : 'No hay partidos nuevos que procesar (o ya están todos guardados).';
+        ? `Historial actualizado: ${res.procesados} partido(s) procesado(s) de ${res.total} en total.`
+        : 'No hay partidos nuevos que procesar (o ya están todos guardados — activa "Modo de prueba" para reprocesarlos).';
       msg.className = 'msg-ok';
+      if (res.debugLines && res.debugLines.length) {
+        debugBox.textContent = res.debugLines.join('\n');
+        debugBox.style.display = '';
+      }
+      cargarPartidosParaReajudicar(slug);
     }).catch(err => {
       spinner.style.display = 'none';
       msg.textContent = err.message || 'Error al actualizar el historial.';
+      msg.className = 'msg-error';
+    });
+  });
+
+  // ---------- 4. Reajudicar partidos a mano ----------
+  let matchesGuardados = {};
+
+  function cargarPartidosParaReajudicar(slug) {
+    return db.ref('historial/' + slug + '/matches').once('value').then(snap => {
+      matchesGuardados = snap.val() || {};
+      const select = document.getElementById('reajudicarMatchSelect');
+      const ids = Object.keys(matchesGuardados);
+      if (!ids.length) {
+        document.getElementById('reajudicarCard').style.display = 'none';
+        return;
+      }
+      document.getElementById('reajudicarCard').style.display = '';
+      select.innerHTML = ids.map(id => {
+        const m = matchesGuardados[id];
+        const nombreA = (m.equipoA && m.equipoA.nombre) || '?';
+        const nombreB = (m.equipoB && m.equipoB.nombre) || '?';
+        const nJuegos = (m.juegos || []).length;
+        return `<option value="${id}">Ronda ${m.ronda || '?'} — ${nombreA} vs ${nombreB} (${nJuegos} juego(s))</option>`;
+      }).join('');
+      renderJuegosAsignados(select.value);
+    });
+  }
+
+  function brawlerLabel(b) { return b ? String(b) : '?'; }
+
+  function battleCardHtml(battle, idx) {
+    const teams = HD.filterRealPlayers(battle.teams || []);
+    const teamsHtml = teams.map(t => t.map(p => `${p.name}: ${brawlerLabel(p.brawler)}`).join(', ')).join(' — vs — ');
+    return `
+      <div class="battle-card" draggable="true" data-battle-idx="${idx}">
+        <div class="bc-head">
+          <span>${battle.mapa || battle.map || ''} · ${battle.modo || battle.mode || ''}</span>
+          <span class="bc-type ${battle.type === 'friendly' ? 'friendly' : ''}">${battle.type || ''}</span>
+        </div>
+        <div class="bc-teams">${teamsHtml || '(sin jugadores reales — todo bots)'}</div>
+        <div style="opacity:.6;margin-top:4px;">${battle.battleTime || ''}</div>
+      </div>`;
+  }
+
+  let battlelogEncontrado = [];
+
+  document.getElementById('btnBuscarBattlelog').addEventListener('click', () => {
+    const tag = document.getElementById('reajudicarTagInput').value.trim();
+    const list = document.getElementById('reajudicarBattlelogList');
+    if (!tag) return;
+    list.innerHTML = '<p class="reajudicar-empty">Buscando...</p>';
+    HD.fetchBattlelog(tag).then(items => {
+      battlelogEncontrado = items;
+      if (!items.length) {
+        list.innerHTML = '<p class="reajudicar-empty">Sin batallas recientes para ese tag.</p>';
+        return;
+      }
+      list.innerHTML = items.map((b, idx) => battleCardHtml(b, idx)).join('');
+      list.querySelectorAll('.battle-card').forEach(card => {
+        card.addEventListener('dragstart', e => {
+          card.classList.add('dragging');
+          e.dataTransfer.setData('text/plain', card.dataset.battleIdx);
+        });
+        card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      });
+    });
+  });
+
+  function renderJuegosAsignados(matchId) {
+    const list = document.getElementById('reajudicarJuegosList');
+    const m = matchesGuardados[matchId];
+    if (!m) { list.innerHTML = '<p class="reajudicar-empty">Elige un partido arriba.</p>'; return; }
+    const juegos = m.juegos || [];
+    if (!juegos.length) {
+      list.innerHTML = '<p class="reajudicar-empty">Sin juegos asignados todavía — arrastra batallas desde la izquierda.</p>';
+      return;
+    }
+    list.innerHTML = juegos.map((j, idx) => `
+      <div class="battle-card" data-juego-idx="${idx}">
+        <div class="bc-head"><span>Juego ${j.orden || idx + 1} — ${j.mapa || ''} · ${j.modo || ''}</span></div>
+        <div class="bc-teams">
+          ${(j.picksEquipoA || []).map(p => `${p.jugador}: ${brawlerLabel(p.brawler)}`).join(', ')}
+          <br>vs<br>
+          ${(j.picksEquipoB || []).map(p => `${p.jugador}: ${brawlerLabel(p.brawler)}`).join(', ')}
+        </div>
+        <button type="button" class="bc-remove" data-remove-idx="${idx}">Quitar</button>
+      </div>`).join('');
+    list.querySelectorAll('[data-remove-idx]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        juegos.splice(+btn.dataset.removeIdx, 1);
+        renderJuegosAsignados(matchId);
+      });
+    });
+  }
+
+  document.getElementById('reajudicarMatchSelect').addEventListener('change', e => renderJuegosAsignados(e.target.value));
+
+  const dropZone = document.getElementById('reajudicarJuegosList');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const idx = +e.dataTransfer.getData('text/plain');
+    const battle = battlelogEncontrado[idx];
+    const matchId = document.getElementById('reajudicarMatchSelect').value;
+    const m = matchesGuardados[matchId];
+    if (!battle || !m) return;
+
+    const tagsA = tagsByParticipant[m.equipoA && m.equipoA.participantId] || [];
+    const tagsB = tagsByParticipant[m.equipoB && m.equipoB.participantId] || [];
+    const teams = HD.filterRealPlayers(battle.teams || []);
+    let sides = null;
+    if (teams.length === 2) {
+      const knownA = new Set(tagsA.map(t => t.toUpperCase().replace('#', '')));
+      const knownB = new Set(tagsB.map(t => t.toUpperCase().replace('#', '')));
+      const countIn = (team, known) => team.filter(p => known.has((p.tag || '').toUpperCase().replace('#', ''))).length;
+      const aIn0 = countIn(teams[0], knownA), bIn1 = countIn(teams[1], knownB);
+      const aIn1 = countIn(teams[1], knownA), bIn0 = countIn(teams[0], knownB);
+      sides = (aIn0 + bIn1 >= aIn1 + bIn0)
+        ? { equipoA: teams[0], equipoB: teams[1] }
+        : { equipoA: teams[1], equipoB: teams[0] };
+    } else {
+      sides = { equipoA: teams[0] || [], equipoB: teams[1] || [] };
+    }
+
+    m.juegos = m.juegos || [];
+    m.juegos.push(HD.battleToJuego(battle, sides, m.juegos.length + 1));
+    renderJuegosAsignados(matchId);
+  });
+
+  document.getElementById('btnGuardarJuegos').addEventListener('click', () => {
+    const slug = torneoSlug();
+    const matchId = document.getElementById('reajudicarMatchSelect').value;
+    const msg = document.getElementById('reajudicarMsg');
+    const m = matchesGuardados[matchId];
+    if (!m) return;
+    m.juegos = (m.juegos || []).map((j, idx) => Object.assign({}, j, { orden: idx + 1 }));
+    db.ref('historial/' + slug + '/matches/' + matchId + '/juegos').set(m.juegos).then(() => {
+      msg.textContent = 'Guardado.';
+      msg.className = 'msg-ok';
+      renderJuegosAsignados(matchId);
+    }).catch(err => {
+      msg.textContent = err.message || 'Error al guardar.';
       msg.className = 'msg-error';
     });
   });
