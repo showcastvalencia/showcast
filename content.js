@@ -23,7 +23,8 @@ window.SHOWCAST_CONTENT = {
   },
   "galeriaEdiciones": [
     {
-      "titulo": "Puçol 2024",
+      "ciudad": "Puçol",
+      "anio": "2024",
       "fecha": "",
       "ubicacion": "Espai Jove Puçol",
       "items": [
@@ -50,19 +51,22 @@ window.SHOWCAST_CONTENT = {
       ]
     },
     {
-      "titulo": "Puçol 2025",
+      "ciudad": "Puçol",
+      "anio": "2025",
       "fecha": "",
       "ubicacion": "Espai Jove Puçol",
       "items": []
     },
     {
-      "titulo": "Port de Sagunt 2025",
+      "ciudad": "Sagunto",
+      "anio": "2025",
       "fecha": "",
       "ubicacion": "Casal Jove del Port de Sagunt",
       "items": []
     },
     {
-      "titulo": "Puçol 2026",
+      "ciudad": "Puçol",
+      "anio": "2026",
       "fecha": "",
       "ubicacion": "Espai Jove Puçol",
       "items": []
