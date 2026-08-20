@@ -119,26 +119,37 @@
     width:26px;height:3px;background:var(--naranja);display:block;
   }
 
-  /* ---------- NAV "MÁS" DROPDOWN ---------- */
-  .nav-more{position:relative;}
-  .nav-more-btn{
+  /* ---------- NAV: DESPLEGABLES "TORNEOS" / "COMUNIDAD" ---------- */
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{
     display:flex;
-    flex-direction:column;
-    gap:4px;
+    align-items:center;
+    gap:6px;
     background:none;
     border:none;
     cursor:pointer;
-    padding:6px 2px;
+    color:var(--crema);
+    font-weight:700;
+    font-size:.95rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    padding:4px 2px;
+    font-family:inherit;
   }
-  .nav-more-btn span{
-    width:24px;height:3px;background:var(--naranja);display:block;
-    transition:background .2s;
+  .nav-dropdown-btn:hover{color:var(--naranja);}
+  .nav-caret{
+    width:0;height:0;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-top:6px solid currentColor;
+    transition:transform .2s ease;
+    flex-shrink:0;
   }
-  .nav-more-btn:hover span{background:var(--blanco);}
-  .nav-more-menu{
+  .nav-dropdown-btn[aria-expanded="true"] .nav-caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{
     position:absolute;
     top:calc(100% + 14px);
-    right:0;
+    left:0;
     background:var(--negro);
     border:2px solid var(--naranja);
     list-style:none;
@@ -149,15 +160,15 @@
     box-shadow:6px 6px 0 rgba(251,157,69,.25);
     z-index:50;
   }
-  .nav-more-menu.open{display:flex;}
-  .nav-more-menu li{width:100%;}
-  .nav-more-menu a{
+  .nav-dropdown-menu.open{display:flex;}
+  .nav-dropdown-menu li{width:100%;}
+  .nav-dropdown-menu a{
     display:block;
     padding:10px 20px;
     white-space:nowrap;
   }
-  .nav-more-menu a:hover{background:rgba(251,157,69,.12);}
-  .nav-more-menu a::after{display:none;}
+  .nav-dropdown-menu a:hover{background:rgba(251,157,69,.12);}
+  .nav-dropdown-menu a::after{display:none;}
 
   /* ---------- HERO ---------- */
   .hero{
@@ -1033,9 +1044,9 @@
 
   @media(max-width:640px){
     nav ul{gap:12px;}
-    nav a{font-size:.78rem;}
+    nav a, .nav-dropdown-btn{font-size:.78rem;}
     .logo img{height:36px;width:36px;}
-    .nav-more-menu{
+    .nav-dropdown-menu{
       right:auto;
       left:50%;
       transform:translateX(-50%);
@@ -1044,7 +1055,7 @@
   }
   @media(max-width:400px){
     nav ul{gap:8px;}
-    nav a{font-size:.68rem;}
+    nav a, .nav-dropdown-btn{font-size:.68rem;}
   }
 </style>
 </head>
@@ -1056,25 +1067,28 @@
     <nav>
       <ul id="navList">
         <li><a href="#top">Inicio</a></li>
-        <li><a href="#quienes-somos">Quiénes somos</a></li>
-        <li><a href="#evento">Próximo evento</a></li>
-        <li><a href="#inscripcion">Inscripción</a></li>
-        <li class="nav-more">
-          <button class="nav-more-btn" id="moreBtn" aria-label="Más secciones" aria-expanded="false">
-            <span></span><span></span><span></span>
-          </button>
-          <ul class="nav-more-menu" id="moreMenu">
-            <li><a href="#galeria">Galería</a></li>
+        <li class="nav-dropdown">
+          <button class="nav-dropdown-btn" id="torneosBtn" aria-expanded="false">Torneos<span class="nav-caret"></span></button>
+          <ul class="nav-dropdown-menu" id="torneosMenu">
+            <li><a href="#evento">Próximo evento</a></li>
             <li><a href="#clasificaciones">Clasificaciones</a></li>
-            <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
-            <li><a href="#mapa">Mapa</a></li>
-            <li><a href="#patrocinadores">Patrocinadores</a></li>
-            <li><a href="#unete">Únete</a></li>
-            <li><a href="#contacto">Contacto</a></li>
-            <li><a href="megadraft/index.html">Megadraft</a></li>
             <li><a href="historial/index.html">Historial de partidas</a></li>
+            <li><a href="megadraft/index.html">Megadraft</a></li>
           </ul>
         </li>
+        <li class="nav-dropdown">
+          <button class="nav-dropdown-btn" id="comunidadBtn" aria-expanded="false">Comunidad<span class="nav-caret"></span></button>
+          <ul class="nav-dropdown-menu" id="comunidadMenu">
+            <li><a href="#quienes-somos">Quiénes somos</a></li>
+            <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
+            <li><a href="#galeria">Galería</a></li>
+            <li><a href="#patrocinadores">Patrocinadores</a></li>
+            <li><a href="#unete">Únete</a></li>
+            <li><a href="#mapa">Mapa</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+          </ul>
+        </li>
+        <li><a href="#inscripcion">Inscripción</a></li>
       </ul>
     </nav>
   </div>
@@ -1117,18 +1131,6 @@
         <span class="num">04</span>
         <p>Nacidos en Puçol en 2023, hoy seguimos creciendo hacia nuevas localidades de Valencia.</p>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- GALERÍA -->
-<section id="galeria" style="background:var(--negro);color:var(--blanco);">
-  <div class="section-inner">
-    <span class="section-kicker">🎮 Recuerdos</span>
-    <h2 class="section-title" style="color:var(--blanco);">Galería de <span class="accent">ediciones</span></h2>
-    <p class="section-lead" style="color:var(--crema);opacity:.85;">Momentos de nuestros torneos anteriores.</p>
-    <div class="gallery-accordion" id="galleryAccordion">
-      <p class="gallery-note" id="galleryNote">* En cuanto se añadan apartados desde el panel de administración, aparecerán aquí.</p>
     </div>
   </div>
 </section>
@@ -1351,6 +1353,18 @@
   </div>
 </section>
 
+<!-- GALERÍA -->
+<section id="galeria" style="background:var(--negro);color:var(--blanco);">
+  <div class="section-inner">
+    <span class="section-kicker">🎮 Recuerdos</span>
+    <h2 class="section-title" style="color:var(--blanco);">Galería de <span class="accent">ediciones</span></h2>
+    <p class="section-lead" style="color:var(--crema);opacity:.85;">Momentos de nuestros torneos anteriores.</p>
+    <div class="gallery-accordion" id="galleryAccordion">
+      <p class="gallery-note" id="galleryNote">* En cuanto se añadan apartados desde el panel de administración, aparecerán aquí.</p>
+    </div>
+  </div>
+</section>
+
 <!-- PATROCINADORES -->
 <section id="patrocinadores" style="background:var(--crema);">
   <div class="section-inner">
@@ -1361,12 +1375,16 @@
   </div>
 </section>
 
-<section class="cta-stripe" id="inscripcion-cta">
-  <div class="cta-inner">
-    <span class="section-kicker">Formulario de registro</span>
-    <h2>¡Reserva tu plaza en el torneo!</h2>
-    <p>Inscríbete junto a tu equipo, elige tu categoría y prepárate para competir en el próximo evento de Showcast.</p>
-    <a href="#inscripcion" class="btn btn-primary">Ir a inscripción</a>
+<!-- ÚNETE A NOSOTROS -->
+<section id="unete" style="background:var(--negro);color:var(--blanco);">
+  <div class="section-inner" style="text-align:center;">
+    <span class="section-kicker">🤝 Forma parte del show</span>
+    <h2 class="section-title" style="color:var(--blanco);">Únete a <span class="accent">nosotros</span></h2>
+    <p class="section-lead" style="color:var(--crema);opacity:.85;margin:14px auto 0;">Buscamos gente joven, apasionada por los videojuegos y con ganas de ayudar a organizar torneos, streaming, diseño o comunidad. Si quieres formar parte del equipo Showcast, escríbenos.</p>
+    <div class="hero-ctas" style="justify-content:center;margin-top:36px;">
+      <a href="#contacto" class="btn btn-primary">Quiero unirme</a>
+      <a href="https://www.instagram.com/showcast.es" target="_blank" rel="noopener" class="btn btn-outline">Síguenos en Instagram</a>
+    </div>
   </div>
 </section>
 
@@ -1391,16 +1409,12 @@
   </div>
 </section>
 
-<!-- ÚNETE A NOSOTROS -->
-<section id="unete" style="background:var(--negro);color:var(--blanco);">
-  <div class="section-inner" style="text-align:center;">
-    <span class="section-kicker">🤝 Forma parte del show</span>
-    <h2 class="section-title" style="color:var(--blanco);">Únete a <span class="accent">nosotros</span></h2>
-    <p class="section-lead" style="color:var(--crema);opacity:.85;margin:14px auto 0;">Buscamos gente joven, apasionada por los videojuegos y con ganas de ayudar a organizar torneos, streaming, diseño o comunidad. Si quieres formar parte del equipo Showcast, escríbenos.</p>
-    <div class="hero-ctas" style="justify-content:center;margin-top:36px;">
-      <a href="#contacto" class="btn btn-primary">Quiero unirme</a>
-      <a href="https://www.instagram.com/showcast.es" target="_blank" rel="noopener" class="btn btn-outline">Síguenos en Instagram</a>
-    </div>
+<section class="cta-stripe" id="inscripcion-cta">
+  <div class="cta-inner">
+    <span class="section-kicker">Formulario de registro</span>
+    <h2>¡Reserva tu plaza en el torneo!</h2>
+    <p>Inscríbete junto a tu equipo, elige tu categoría y prepárate para competir en el próximo evento de Showcast.</p>
+    <a href="#inscripcion" class="btn btn-primary">Ir a inscripción</a>
   </div>
 </section>
 
@@ -1438,10 +1452,10 @@
       <h4>Navegación</h4>
       <ul>
         <li><a href="#quienes-somos">Quiénes somos</a></li>
-        <li><a href="#galeria">Galería</a></li>
         <li><a href="#evento">Próximo evento</a></li>
         <li><a href="#inscripcion">Inscripción</a></li>
         <li><a href="#clasificaciones">Clasificaciones</a></li>
+        <li><a href="#galeria">Galería</a></li>
         <li><a href="#unete">Únete</a></li>
       </ul>
     </div>
@@ -1460,22 +1474,31 @@
 
 <script src="content.js"></script>
 <script>
-  const moreBtn = document.getElementById('moreBtn');
-  const moreMenu = document.getElementById('moreMenu');
-  moreBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isOpen = moreMenu.classList.toggle('open');
-    moreBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  // Desplegables "Torneos" / "Comunidad": abrir uno cierra el otro, clic
+  // fuera o en un enlace los cierra — mismo patrón para ambos.
+  const navDropdowns = [
+    { btn: document.getElementById('torneosBtn'), menu: document.getElementById('torneosMenu') },
+    { btn: document.getElementById('comunidadBtn'), menu: document.getElementById('comunidadMenu') },
+  ];
+  function closeAllDropdowns(except) {
+    navDropdowns.forEach(d => {
+      if (d === except) return;
+      d.menu.classList.remove('open');
+      d.btn.setAttribute('aria-expanded', 'false');
+    });
+  }
+  navDropdowns.forEach(d => {
+    d.btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = d.menu.classList.toggle('open');
+      d.btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (isOpen) closeAllDropdowns(d);
+    });
+    d.menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => closeAllDropdowns()));
   });
-  moreMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-    moreMenu.classList.remove('open');
-    moreBtn.setAttribute('aria-expanded', 'false');
-  }));
   document.addEventListener('click', (e) => {
-    if(!moreMenu.contains(e.target) && e.target !== moreBtn){
-      moreMenu.classList.remove('open');
-      moreBtn.setAttribute('aria-expanded', 'false');
-    }
+    const insideAny = navDropdowns.some(d => d.menu.contains(e.target) || e.target === d.btn);
+    if (!insideAny) closeAllDropdowns();
   });
 
   // Challonge tabs
