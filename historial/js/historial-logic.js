@@ -78,9 +78,24 @@ const HD = (function () {
     return null;
   }
 
+  // La API v2.1 real no expone player1_id/player2_id/scores_csv (esos son
+  // nombres heredados de v1 que aparecían en la documentación) — los partidos
+  // llevan un array points_by_participant: [{participant_id, scores}, ...],
+  // y la fecha de actualización va anidada en timestamps.updated_at.
+  function matchParticipantIds(match) {
+    if (match.player1_id != null && match.player2_id != null) {
+      return [match.player1_id, match.player2_id];
+    }
+    const points = match.points_by_participant || [];
+    return [points[0] && points[0].participant_id, points[1] && points[1].participant_id];
+  }
+
+  function matchUpdatedAt(match) {
+    return match.updated_at || (match.timestamps && match.timestamps.updated_at) || null;
+  }
+
   function correlateMatch(match, participantsById, tagsByParticipant, battlelogsByTag, windowMinutes) {
-    const pAId = match.player1_id;
-    const pBId = match.player2_id;
+    const [pAId, pBId] = matchParticipantIds(match);
     const equipoA = { participantId: pAId, nombre: (participantsById[pAId] || {}).name || ('Participante ' + pAId) };
     const equipoB = { participantId: pBId, nombre: (participantsById[pBId] || {}).name || ('Participante ' + pBId) };
     const tagsA = tagsByParticipant[pAId] || [];
@@ -97,7 +112,8 @@ const HD = (function () {
       });
     });
 
-    const centro = match.updated_at ? new Date(match.updated_at) : new Date();
+    const updatedAt = matchUpdatedAt(match);
+    const centro = updatedAt ? new Date(updatedAt) : new Date();
     const enVentana = candidatas.filter(b => withinWindow(b.battleTime, centro, windowMinutes));
     const emparejadas = enVentana
       .filter(b => b.type === 'friendly')
@@ -124,7 +140,7 @@ const HD = (function () {
       ronda: match.round || null,
       equipoA,
       equipoB,
-      resultadoChallonge: { scoresCsv: match.scores_csv || '', ganador },
+      resultadoChallonge: { scoresCsv: match.scores || match.scores_csv || '', ganador },
       juegos,
     };
   }
@@ -147,8 +163,9 @@ const HD = (function () {
 
         const tagsNeeded = new Set();
         nuevos.forEach(m => {
-          (participantesTags[m.player1_id] || []).forEach(t => tagsNeeded.add(normalizeTag(t)));
-          (participantesTags[m.player2_id] || []).forEach(t => tagsNeeded.add(normalizeTag(t)));
+          const [pAId, pBId] = matchParticipantIds(m);
+          (participantesTags[pAId] || []).forEach(t => tagsNeeded.add(normalizeTag(t)));
+          (participantesTags[pBId] || []).forEach(t => tagsNeeded.add(normalizeTag(t)));
         });
 
         // Peticiones al proxy de Brawl Stars EN SERIE (no en paralelo), para
