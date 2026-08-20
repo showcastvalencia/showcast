@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial de partidas — Admin — Showcast</title>
+<link rel="stylesheet" href="historial.css">
+</head>
+<body>
+
+<header class="hd-header">
+  <a href="../index.html" class="logo">
+    <img src="../assets/logo.png" alt="Logo Showcast">
+    <span>SHOWCAST <span class="tag">Historial — Admin</span></span>
+  </a>
+  <nav>
+    <a href="index.html">Ver historial público</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <h1 style="margin-bottom:6px;">Historial de partidas</h1>
+  <p class="hint" style="margin-bottom:24px;">
+    Cruza los resultados de Challonge con el battlelog de Brawl Stars. Challonge y los equipos se
+    siguen gestionando a mano en challonge.com — esto solo lee y guarda un historial enriquecido.
+  </p>
+
+  <div class="card" style="margin-bottom:24px;">
+    <h2 style="font-size:1rem;margin-bottom:16px;">1. Torneo</h2>
+    <div class="field">
+      <label for="torneoSlug">Identificador local (carpeta en el historial de Showcast)</label>
+      <input type="text" id="torneoSlug" placeholder="ej. torneo-3v3-junio-2026">
+    </div>
+    <div class="field">
+      <label for="challongeId">Slug o ID del torneo en Challonge</label>
+      <input type="text" id="challongeId" placeholder="ej. torneo_3v3_showcast">
+    </div>
+    <button type="button" class="btn" id="btnCargar">Cargar torneo y participantes</button>
+    <p id="cargarMsg" class="hint" style="margin-top:10px;"></p>
+  </div>
+
+  <div class="card" id="participantesCard" style="display:none;margin-bottom:24px;">
+    <h2 style="font-size:1rem;margin-bottom:6px;">2. Vincular participantes con Brawl Stars</h2>
+    <p class="hint" style="margin-bottom:16px;">
+      Escribe 1-3 tags de Brawl Stars por participante (los de sus miembros). Si hay un equipo de
+      Megadraft con el mismo nombre, se rellena solo — pero siempre puedes editarlo a mano.
+    </p>
+    <div id="participantesList"></div>
+    <button type="button" class="btn btn-outline" id="btnGuardarTags" style="margin-top:10px;">Guardar vinculación</button>
+    <p id="tagsMsg" class="hint" style="margin-top:10px;"></p>
+  </div>
+
+  <div class="card" id="actualizarCard" style="display:none;">
+    <h2 style="font-size:1rem;margin-bottom:6px;">3. Actualizar historial de partidas</h2>
+    <p class="hint" style="margin-bottom:16px;">
+      Lee los partidos ya <code>complete</code> en Challonge que todavía no estén guardados, y
+      cruza cada uno con el battlelog de los tags vinculados arriba. Pulsa esto ronda a ronda
+      durante el evento — el battlelog solo guarda las últimas ~25 batallas por jugador
+      (CHALLONGE-API.md §12), así que cuanto antes se actualice, mejor.
+    </p>
+    <button type="button" class="btn" id="btnActualizar">Actualizar historial de partidas</button>
+    <div id="actualizarSpinner" class="spinner" style="display:none;"></div>
+    <p id="actualizarMsg" class="hint" style="margin-top:10px;"></p>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/historial-logic.js"></script>
+<script>
+  auth.signInAnonymously().catch(err => console.error('Error de autenticación anónima:', err));
+
+  let participants = [];
+  let tagsByParticipant = {};
+
+  function torneoSlug() { return document.getElementById('torneoSlug').value.trim(); }
+  function challongeId() { return document.getElementById('challongeId').value.trim(); }
+
+  function renderParticipantes() {
+    const list = document.getElementById('participantesList');
+    list.innerHTML = participants.map(p => {
+      const tags = tagsByParticipant[p.id] || ['', '', ''];
+      return `
+        <div class="participant-row" data-pid="${p.id}">
+          <div class="p-name">${p.name || ('Participante ' + p.id)}</div>
+          <div class="p-tags">
+            ${[0, 1, 2].map(i => `<input type="text" data-tag-idx="${i}" placeholder="#TAG${i + 1}" value="${tags[i] || ''}">`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function collectTagsFromForm() {
+    const result = {};
+    document.querySelectorAll('#participantesList .participant-row').forEach(row => {
+      const pid = row.dataset.pid;
+      const tags = Array.from(row.querySelectorAll('input[data-tag-idx]'))
+        .map(inp => inp.value.trim())
+        .filter(Boolean);
+      if (tags.length) result[pid] = tags;
+    });
+    return result;
+  }
+
+  function prefillFromMegadraft() {
+    return db.ref('megadraft/teams').once('value').then(snap => {
+      const teams = snap.val() || {};
+      const teamsByName = {};
+      Object.values(teams).forEach(t => {
+        if (t && t.name) teamsByName[String(t.name).trim().toLowerCase()] = t;
+      });
+      participants.forEach(p => {
+        if (tagsByParticipant[p.id]) return;
+        const match = teamsByName[String(p.name || '').trim().toLowerCase()];
+        if (match && Array.isArray(match.miembros)) {
+          const tags = match.miembros.map(m => m.tag).filter(Boolean);
+          if (tags.length) tagsByParticipant[p.id] = tags;
+        }
+      });
+    }).catch(() => {});
+  }
+
+  document.getElementById('btnCargar').addEventListener('click', () => {
+    const slug = torneoSlug(), cid = challongeId();
+    const msg = document.getElementById('cargarMsg');
+    if (!slug || !cid) { msg.textContent = 'Rellena los dos campos antes de cargar.'; msg.className = 'msg-error'; return; }
+
+    msg.textContent = 'Cargando...'; msg.className = 'hint';
+    Promise.all([
+      HD.fetchTournament(cid),
+      db.ref('historial/' + slug + '/participantes').once('value'),
+    ]).then(([body, tagsSnap]) => {
+      participants = body.participants || [];
+      tagsByParticipant = tagsSnap.val() || {};
+      return prefillFromMegadraft();
+    }).then(() => {
+      renderParticipantes();
+      document.getElementById('participantesCard').style.display = '';
+      document.getElementById('actualizarCard').style.display = '';
+      msg.textContent = `Torneo cargado: ${participants.length} participante(s).`;
+      msg.className = 'msg-ok';
+    }).catch(err => {
+      msg.textContent = err.message || 'Error al cargar el torneo.';
+      msg.className = 'msg-error';
+    });
+  });
+
+  document.getElementById('btnGuardarTags').addEventListener('click', () => {
+    const slug = torneoSlug();
+    const msg = document.getElementById('tagsMsg');
+    tagsByParticipant = collectTagsFromForm();
+    const updates = {};
+    participants.forEach(p => {
+      updates['historial/' + slug + '/participantes/' + p.id] = tagsByParticipant[p.id] || null;
+    });
+    db.ref().update(updates).then(() => {
+      msg.textContent = 'Vinculación guardada.';
+      msg.className = 'msg-ok';
+    }).catch(err => {
+      msg.textContent = err.message || 'Error al guardar.';
+      msg.className = 'msg-error';
+    });
+  });
+
+  document.getElementById('btnActualizar').addEventListener('click', () => {
+    const slug = torneoSlug(), cid = challongeId();
+    const msg = document.getElementById('actualizarMsg');
+    const spinner = document.getElementById('actualizarSpinner');
+    tagsByParticipant = collectTagsFromForm();
+
+    spinner.style.display = ''; msg.textContent = ''; msg.className = 'hint';
+    HD.actualizarHistorial(slug, cid, tagsByParticipant).then(res => {
+      spinner.style.display = 'none';
+      msg.textContent = res.procesados
+        ? `Historial actualizado: ${res.procesados} partido(s) nuevo(s) procesado(s) de ${res.total} en total.`
+        : 'No hay partidos nuevos que procesar (o ya están todos guardados).';
+      msg.className = 'msg-ok';
+    }).catch(err => {
+      spinner.style.display = 'none';
+      msg.textContent = err.message || 'Error al actualizar el historial.';
+      msg.className = 'msg-error';
+    });
+  });
+</script>
+</body>
+</html>

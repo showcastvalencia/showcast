@@ -1,0 +1,203 @@
+/*
+  HISTORIAL DE PARTIDAS — estilos compartidos
+  ---------------------------------------------
+  Reutiliza la paleta y tipografías de la web principal de Showcast
+  (index.html) para mantener coherencia visual. Autocontenido: no depende
+  del CSS del sitio principal ni del de Megadraft.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Rajdhani:wght@500;600;700&display=swap');
+
+:root{
+  --naranja:#fb9d45;
+  --naranja-dark:#e07f28;
+  --crema:#fee5ce;
+  --negro:#0c0c0c;
+  --blanco:#ffffff;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:600;
+  background:var(--negro);
+  color:var(--crema);
+  min-height:100vh;
+}
+
+h1,h2,h3{
+  font-family:'Anton',sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+.tag{font-family:'Permanent Marker',cursive;color:var(--naranja);}
+a{color:inherit;text-decoration:none;}
+
+.wrap{max-width:1100px;margin:0 auto;padding:26px 20px 60px;}
+
+.hd-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 24px;
+  border-bottom:4px solid var(--naranja);
+  background:var(--negro);
+}
+.hd-header .logo{display:flex;align-items:center;gap:10px;font-family:'Anton',sans-serif;font-size:1.2rem;}
+.hd-header .logo img{height:38px;width:38px;border-radius:50%;background:var(--blanco);padding:3px;border:2px solid var(--naranja);}
+.hd-header nav a{font-weight:700;text-transform:uppercase;font-size:.85rem;letter-spacing:.5px;opacity:.85;}
+.hd-header nav a:hover{opacity:1;color:var(--naranja);}
+
+.btn{
+  display:inline-block;
+  font-family:'Anton',sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  font-size:.95rem;
+  padding:12px 26px;
+  border:3px solid var(--negro);
+  cursor:pointer;
+  background:var(--naranja);
+  color:var(--negro);
+  box-shadow:5px 5px 0 var(--negro);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--negro);}
+.btn:active{transform:translate(0,0);box-shadow:2px 2px 0 var(--negro);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:5px 5px 0 var(--negro);}
+.btn-outline{background:transparent;color:var(--naranja);border-color:var(--naranja);box-shadow:5px 5px 0 var(--naranja);}
+.btn-outline:hover{box-shadow:7px 7px 0 var(--naranja);}
+
+.hint{font-size:.85rem;opacity:.7;font-weight:600;}
+.msg-error{color:#ff6b6b;font-weight:700;margin-top:10px;}
+.msg-ok{color:#7be08c;font-weight:700;margin-top:10px;}
+
+.card{background:rgba(255,255,255,.04);border:2px solid var(--naranja);padding:20px;}
+
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:.85rem;text-transform:uppercase;letter-spacing:.5px;color:var(--naranja);margin-bottom:6px;font-weight:700;}
+.field input, .field select{
+  width:100%;
+  padding:12px 14px;
+  border:2px solid var(--naranja);
+  background:var(--crema);
+  color:var(--negro);
+  font-family:'Rajdhani',sans-serif;
+  font-weight:600;
+  font-size:1rem;
+}
+.field input:focus, .field select:focus{outline:3px solid var(--blanco);}
+
+.spinner{
+  width:36px;height:36px;
+  border:5px solid var(--naranja);
+  border-top-color:transparent;
+  border-radius:50%;
+  margin:18px auto;
+  animation:hd-spin .8s linear infinite;
+}
+@keyframes hd-spin{to{transform:rotate(360deg);}}
+
+/* ---------- LISTA DE PARTICIPANTES (admin) ---------- */
+.participant-row{
+  display:grid;
+  grid-template-columns:1fr 2fr;
+  gap:14px;
+  align-items:center;
+  border:1px solid rgba(251,157,69,.3);
+  padding:10px 12px;
+  margin-bottom:8px;
+  background:rgba(0,0,0,.15);
+}
+.participant-row .p-name{font-weight:700;word-break:break-word;}
+.participant-row .p-tags{display:flex;gap:8px;flex-wrap:wrap;}
+.participant-row .p-tags input{
+  flex:1 1 110px;
+  padding:8px 10px;
+  border:2px solid var(--naranja);
+  background:var(--crema);
+  color:var(--negro);
+  font-family:'Permanent Marker',cursive;
+  letter-spacing:1px;
+  font-size:.85rem;
+}
+@media(max-width:640px){
+  .participant-row{grid-template-columns:1fr;}
+}
+
+/* ---------- RONDAS / PARTIDOS (público) ---------- */
+.ronda-block{margin-bottom:28px;}
+.ronda-block h2{font-size:1.1rem;color:var(--naranja);margin-bottom:12px;}
+
+.match-card{
+  border:2px solid var(--naranja);
+  background:rgba(255,255,255,.03);
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.match-summary{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px 16px;
+  background:none;
+  border:none;
+  color:inherit;
+  cursor:pointer;
+  text-align:left;
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+}
+.match-summary .m-teams{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.match-summary .m-teams .winner{color:var(--naranja);}
+.match-summary .m-score{
+  font-family:'Anton',sans-serif;
+  color:var(--negro);
+  background:var(--naranja);
+  padding:3px 12px;
+  white-space:nowrap;
+}
+.match-summary .m-chev{
+  width:10px;height:10px;
+  border-right:3px solid var(--naranja);
+  border-bottom:3px solid var(--naranja);
+  transform:rotate(45deg);
+  transition:transform .2s ease;
+  flex-shrink:0;
+}
+.match-card.open .m-chev{transform:rotate(-135deg);}
+
+.match-body{
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows .25s ease;
+}
+.match-card.open .match-body{grid-template-rows:1fr;}
+.match-body > div{overflow:hidden;}
+
+.juego-row{
+  display:grid;
+  grid-template-columns:auto 1fr 1fr;
+  gap:14px;
+  padding:12px 16px;
+  border-top:1px dashed rgba(251,157,69,.35);
+  font-size:.85rem;
+}
+.juego-row .j-meta{opacity:.8;}
+.juego-row .j-meta strong{display:block;color:var(--naranja);font-family:'Anton',sans-serif;font-size:.75rem;text-transform:uppercase;margin-bottom:2px;}
+.juego-row .j-picks{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;}
+.juego-row .pick-pill{
+  background:rgba(251,157,69,.12);
+  border:1px solid var(--naranja);
+  padding:3px 8px;
+  font-size:.75rem;
+  white-space:nowrap;
+}
+@media(max-width:640px){
+  .juego-row{grid-template-columns:1fr;}
+}
+
+.empty-note{opacity:.7;padding:20px 0;text-align:center;}

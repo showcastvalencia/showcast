@@ -2,4 +2,6 @@
 proxy/config.php
 
 # Panel de edición interno - NUNCA publicarlo (contiene el flujo de publicación con token de GitHub)
-admin.html
+# Anclado a la raíz: los paneles de admin de subsistemas (megadraft/admin.html,
+# historial/admin.html) no tienen ese token y sí se versionan normalmente.
+/admin.html

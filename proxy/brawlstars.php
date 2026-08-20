@@ -56,7 +56,10 @@ if ($tag === '' || !preg_match('/^[0289PYLQGRJCUV]{3,15}$/', $tag)) {
     fail(400, 'Ese código de jugador no tiene un formato válido. Revisa que esté bien escrito (ej. #8CG8LUJ).');
 }
 
-$url = 'https://api.brawlstars.com/v1/players/%23' . $tag;
+$isBattlelog = isset($_GET['battlelog']);
+$url = $isBattlelog
+    ? 'https://api.brawlstars.com/v1/players/%23' . $tag . '/battlelog'
+    : 'https://api.brawlstars.com/v1/players/%23' . $tag;
 
 $ch = curl_init($url);
 curl_setopt_array($ch, [
@@ -93,6 +96,35 @@ if ($httpCode !== 200) {
 $data = json_decode((string) $response, true);
 if (!is_array($data)) {
     fail(502, 'Respuesta inválida de la API de Brawl Stars.');
+}
+
+if ($isBattlelog) {
+    // Historial de partidas (cruce con Challonge, ver CHALLONGE-API.md §12-13):
+    // solo los campos que hacen falta para el cruce, nunca la respuesta cruda.
+    $items = array_map(function ($item) {
+        $teams = array_map(function ($team) {
+            return array_map(function ($player) {
+                return [
+                    'tag' => $player['tag'] ?? '',
+                    'name' => $player['name'] ?? '',
+                    'brawler' => $player['brawler']['name'] ?? '',
+                ];
+            }, $team);
+        }, $item['battle']['teams'] ?? []);
+
+        return [
+            'battleTime' => $item['battleTime'] ?? '',
+            'mode' => $item['event']['mode'] ?? ($item['battle']['mode'] ?? ''),
+            'map' => $item['event']['map'] ?? '',
+            'type' => $item['battle']['type'] ?? '',
+            'result' => $item['battle']['result'] ?? '',
+            'duration' => $item['battle']['duration'] ?? null,
+            'teams' => $teams,
+        ];
+    }, $data['items'] ?? []);
+
+    echo json_encode(['ok' => true, 'tag' => '#' . $tag, 'items' => $items]);
+    exit;
 }
 
 echo json_encode([

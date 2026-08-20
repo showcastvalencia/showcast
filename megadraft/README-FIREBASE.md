@@ -44,9 +44,15 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
       "currentPickIndex": { ".write": "auth != null" },
       "timers": { ".write": "auth != null" }
     }
+  },
+  "historial": {
+    ".read": true,
+    "$torneoSlug": { ".write": "auth != null" }
   }
 }
 ```
+
+**Nodo `historial`** (usado por el subsistema `historial/` — cruce de resultados de Challonge con el battlelog de Brawl Stars, ver [`CHALLONGE-API.md`](../CHALLONGE-API.md)): mismo patrón que Megadraft, lectura pública y escritura solo autenticada. `historial/admin.html` hace `signInAnonymously()` igual que `megadraft/admin.html`, sin necesidad de un sistema de roles nuevo — es el mismo proyecto Firebase, solo un nodo raíz distinto.
 
 **Qué protege esto:**
 - Lectura pública (para que `screen.html` funcione sin que nadie tenga que loguearse).
