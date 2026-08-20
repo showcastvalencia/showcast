@@ -1,6 +1,9 @@
 # Clave secreta de la API de Brawl Stars - NUNCA subir a GitHub
 proxy/config.php
 
+# Token de acceso de Challonge cacheado por proxy/challonge.php - se regenera solo
+proxy/challonge-token-cache.json
+
 # Panel de edición interno - NUNCA publicarlo (contiene el flujo de publicación con token de GitHub)
 # Anclado a la raíz: los paneles de admin de subsistemas (megadraft/admin.html,
 # historial/admin.html) no tienen ese token y sí se versionan normalmente.
