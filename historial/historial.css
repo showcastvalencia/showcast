@@ -264,19 +264,14 @@ a{color:inherit;text-decoration:none;}
   letter-spacing:.3px;
 }
 .vs-badge{
-  font-family:'Anton',sans-serif;
-  font-size:2.6rem;
-  color:var(--naranja);
-  -webkit-text-stroke:2.5px var(--negro);
-  paint-order:stroke fill;
-  text-shadow:3px 3px 0 var(--negro);
+  width:64px;
+  height:64px;
+  object-fit:contain;
   flex-shrink:0;
-  transform:skewX(-8deg);
-  padding:0 8px;
 }
 @media(max-width:760px){
   .juego-vs-row{flex-direction:column;gap:16px;}
-  .vs-badge{transform:none;font-size:2rem;}
+  .vs-badge{width:48px;height:48px;}
 }
 
 .empty-note{opacity:.7;padding:20px 0;text-align:center;}
