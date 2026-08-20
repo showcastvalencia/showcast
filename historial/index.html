@@ -56,27 +56,35 @@
     return b ? String(b) : '?';
   }
 
-  function brawlerIconHtml(b) {
-    const icon = brawlerIcons[normalizeBrawlerName(b)];
-    return icon ? `<img src="${icon}" alt="" class="pick-icon">` : '';
+  function jugadorCardHtml(p) {
+    // Un jugador puede llevar más de un Brawler (Duelo, cambia entre rondas) —
+    // el icono muestra el primero, el texto de debajo los enseña todos.
+    const primerBrawler = (p.brawler || '').split('/')[0];
+    const icon = brawlerIcons[normalizeBrawlerName(primerBrawler)];
+    const iconHtml = icon
+      ? `<img src="${icon}" alt="" class="jugador-icon">`
+      : `<div class="jugador-icon-fallback">${brawlerLabel(p.brawler)}</div>`;
+    return `
+      <div class="jugador-card">
+        ${iconHtml}
+        <span class="jugador-nombre">${p.jugador}</span>
+        <span class="jugador-brawler">${brawlerLabel(p.brawler)}</span>
+      </div>`;
   }
 
   function pintarJuegos(juegos) {
     if (!juegos || !juegos.length) {
-      return '<p class="hint" style="padding:12px 16px;">Sin datos de Brawl Stars cruzados para este partido todavía.</p>';
+      return '<p class="hint" style="padding:16px 20px;">Sin datos de Brawl Stars cruzados para este partido todavía.</p>';
     }
     return juegos.map(j => `
-      <div class="juego-row">
+      <div class="juego-card">
         <div class="j-meta">
-          <strong>Juego ${j.orden}</strong>
-          ${j.mapa || j.modo || ''}${j.mapa && j.modo ? ' · ' : ''}${j.modo || ''}
-          ${j.duracion ? `<br>${j.duracion}s` : ''}
+          Juego ${j.orden} — ${j.mapa || ''}${j.mapa && j.modo ? ' · ' : ''}${j.modo || ''}${j.duracion ? ` · ${j.duracion}s` : ''}
         </div>
-        <div class="j-picks">
-          ${(j.picksEquipoA || []).map(p => `<span class="pick-pill">${brawlerIconHtml(p.brawler)}${p.jugador}: ${brawlerLabel(p.brawler)}</span>`).join('')}
-        </div>
-        <div class="j-picks">
-          ${(j.picksEquipoB || []).map(p => `<span class="pick-pill">${brawlerIconHtml(p.brawler)}${p.jugador}: ${brawlerLabel(p.brawler)}</span>`).join('')}
+        <div class="juego-vs-row">
+          <div class="jugadores-lado">${(j.picksEquipoA || []).map(jugadorCardHtml).join('')}</div>
+          <div class="vs-badge">VS</div>
+          <div class="jugadores-lado">${(j.picksEquipoB || []).map(jugadorCardHtml).join('')}</div>
         </div>
       </div>
     `).join('');
