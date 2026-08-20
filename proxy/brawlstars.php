@@ -101,20 +101,42 @@ if (!is_array($data)) {
 if ($isBattlelog) {
     // Historial de partidas (cruce con Challonge, ver CHALLONGE-API.md §12-13):
     // solo los campos que hacen falta para el cruce, nunca la respuesta cruda.
+    //
+    // Ojo: no todos los modos usan la misma forma. Los modos por equipos
+    // (3v3, etc.) llevan battle.teams (array de equipos, cada uno un array
+    // de jugadores). Duelo (1v1) es distinto: battle.players es una lista
+    // plana de 2 jugadores, y cada uno lleva "brawlers" en PLURAL (puede
+    // cambiar de personaje entre rondas) en vez de un solo "brawler".
+    // Normalizamos ambas formas a la misma estructura "teams" de 2 lados
+    // para que el resto del cruce no tenga que distinguir el modo.
     $items = array_map(function ($item) {
-        $teams = array_map(function ($team) {
-            return array_map(function ($player) {
-                return [
+        $rawTeams = $item['battle']['teams'] ?? null;
+        if ($rawTeams) {
+            $teams = array_map(function ($team) {
+                return array_map(function ($player) {
+                    return [
+                        'tag' => $player['tag'] ?? '',
+                        'name' => $player['name'] ?? '',
+                        'brawler' => $player['brawler']['name'] ?? '',
+                    ];
+                }, $team);
+            }, $rawTeams);
+        } else {
+            // Duelo (u otro modo 1 contra 1 sin "teams"): cada jugador es su
+            // propio "equipo" de un solo elemento.
+            $teams = array_map(function ($player) {
+                $brawlerNames = array_map(fn($b) => $b['name'] ?? '', $player['brawlers'] ?? []);
+                return [[
                     'tag' => $player['tag'] ?? '',
                     'name' => $player['name'] ?? '',
-                    'brawler' => $player['brawler']['name'] ?? '',
-                ];
-            }, $team);
-        }, $item['battle']['teams'] ?? []);
+                    'brawler' => implode('/', array_filter($brawlerNames)),
+                ]];
+            }, $item['battle']['players'] ?? []);
+        }
 
         return [
             'battleTime' => $item['battleTime'] ?? '',
-            'mode' => $item['event']['mode'] ?? ($item['battle']['mode'] ?? ''),
+            'mode' => $item['battle']['mode'] ?? ($item['event']['mode'] ?? ''),
             'map' => $item['event']['map'] ?? '',
             'type' => $item['battle']['type'] ?? '',
             'result' => $item['battle']['result'] ?? '',
