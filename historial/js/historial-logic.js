@@ -105,6 +105,22 @@ const HD = (function () {
     return match.updated_at || (match.timestamps && match.timestamps.updated_at) || null;
   }
 
+  // battle.result ("victory"/"defeat"/"draw") es la perspectiva del jugador
+  // cuyo battlelog se consultó (battle.perspectivaTag, añadido al recoger
+  // las candidatas) — no dice directamente si ganó "equipoA" o "equipoB".
+  // Hay que traducirlo mirando en qué lado estaba ese tag.
+  function resultadoJuego(battle, sides) {
+    const perspectiva = normalizeTag(battle.perspectivaTag);
+    if (!battle.result || !perspectiva) return null;
+    const enA = sides.equipoA.some(p => normalizeTag(p.tag) === perspectiva);
+    const enB = sides.equipoB.some(p => normalizeTag(p.tag) === perspectiva);
+    if (!enA && !enB) return null;
+    if (battle.result === 'draw') return 'empate';
+    if (battle.result === 'victory') return enA ? 'equipoA' : 'equipoB';
+    if (battle.result === 'defeat') return enA ? 'equipoB' : 'equipoA';
+    return null;
+  }
+
   // Convierte una batalla del battlelog + a qué lado pertenece cada equipo
   // en un "juego" tal como se guarda en Firebase (§14 de CHALLONGE-API.md).
   function battleToJuego(battle, sides, orden) {
@@ -114,6 +130,7 @@ const HD = (function () {
       modo: battle.mode || '',
       mapa: battle.map || '',
       duracion: battle.duration || null,
+      ganador: resultadoJuego(battle, sides),
       picksEquipoA: sides.equipoA.map(p => ({ jugador: p.name, brawler: p.brawler })),
       picksEquipoB: sides.equipoB.map(p => ({ jugador: p.name, brawler: p.brawler })),
     };
@@ -133,7 +150,9 @@ const HD = (function () {
         const key = b.battleTime + '|' + JSON.stringify(b.teams);
         if (vistas.has(key)) return;
         vistas.add(key);
-        candidatas.push(b);
+        // Qué tag trajo esta entrada — hace falta para traducir battle.result
+        // (perspectiva de ESE jugador) a "ganó equipoA/equipoB" en battleToJuego.
+        candidatas.push(Object.assign({}, b, { perspectivaTag: tag }));
       });
     });
 
