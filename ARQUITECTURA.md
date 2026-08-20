@@ -106,9 +106,20 @@ No hay `package.json`, ni bundler, ni framework. Cada HTML carga sus `<script>` 
 
 Una única página de ~1700 líneas, sin router, dividida en secciones ancladas por `id`. No hay JavaScript de "aplicación": la interactividad es puntual (formulario, galería, menú).
 
-**Orden de las secciones en el DOM** (coincide con el orden de scroll de la página), agrupado por audiencia/momento en vez de por orden de creación: `#top` (hero) → `#quienes-somos` → `#evento` → `.about` (bloque de hype sin id) → `#inscripcion` → `#clasificaciones` → `#sobre-nosotros` → `#galeria` → `#patrocinadores` → `#unete` → `#mapa` → `.cta-stripe` (recordatorio final de inscripción, sin id propio salvo `#inscripcion-cta`) → `#contacto` (footer). `#quienes-somos` se queda como intro nada más entrar (hook de la página), aunque en el menú aparezca agrupado bajo "Comunidad".
+**Orden de las secciones en el DOM** (coincide con el orden de scroll de la página), agrupado por audiencia/momento en vez de por orden de creación, con dos cabeceras de bloque visibles que marcan dónde empieza cada grupo:
 
-**Nav** (`<ul id="navList">`, cabecera): `Inicio` · desplegable `Torneos` (Próximo evento, Clasificaciones, Historial de partidas, Megadraft) · desplegable `Comunidad` (Quiénes somos, Sobre nosotros, Galería, Patrocinadores, Únete, Mapa, Contacto) · `Inscripción`. Ambos desplegables comparten el mismo componente CSS/JS genérico `.nav-dropdown`/`.nav-dropdown-btn`/`.nav-dropdown-menu` (antes había un único desplegable "más secciones" sin agrupar, con icono de hamburguesa en vez de texto) — abrir uno cierra el otro, y un clic fuera cierra cualquiera que esté abierto (`navDropdowns` en el `<script>` inline al final del `<body>`). El footer tiene una lista de navegación secundaria (sitemap) que se mantiene sincronizada a mano con este mismo orden, no se genera dinámicamente.
+```
+#top (hero, "Inicio")
+→ #torneos (cabecera de bloque, .group-header)
+→ #evento → .about (hype sin id) → #inscripcion → #clasificaciones
+→ #comunidad (cabecera de bloque, .group-header)
+→ #quienes-somos → #sobre-nosotros → #galeria → #patrocinadores → #unete → #mapa
+→ .cta-stripe (#inscripcion-cta, recordatorio final) → #contacto (footer)
+```
+
+`#quienes-somos` vive físicamente dentro del bloque Comunidad, justo tras su cabecera (se movió ahí en un cambio posterior a que las secciones se reordenaran por primera vez, para que el scroll bajo "COMUNIDAD" coincida con lo que promete el menú). `.group-header` es un componente pequeño reutilizado 2 veces: fondo `var(--naranja)` + texto `var(--negro)` (mismo contraste que ya usan `.btn-primary`/`.event-card`), reutiliza `.section-inner`/`.section-kicker`/`.section-title` en vez de tipografía nueva.
+
+**Nav** (`<ul id="navList">`, cabecera): `Inicio` · desplegable `Torneos` (Próximo evento, **Inscripción**, Clasificaciones, Historial de partidas, Megadraft) · desplegable `Comunidad` (Quiénes somos, Sobre nosotros, Galería, Patrocinadores, Únete, Mapa, Contacto). Ya no hay ningún enlace suelto fuera de los desplegables aparte de "Inicio" — "Inscripción" se movió dentro de "Torneos" (antes era un enlace siempre visible en el nav principal). Ambos desplegables comparten el mismo componente CSS/JS genérico `.nav-dropdown`/`.nav-dropdown-btn`/`.nav-dropdown-menu` (antes había un único desplegable "más secciones" sin agrupar, con icono de hamburguesa en vez de texto) — abrir uno cierra el otro, y un clic fuera cierra cualquiera que esté abierto (`navDropdowns` en el `<script>` inline al final del `<body>`). El footer tiene una lista de navegación secundaria (sitemap) que se mantiene sincronizada a mano con este mismo orden, no se genera dinámicamente.
 
 El HTML de cada sección es **estático** en el marcado, pero el texto que muestra se rellena en tiempo de carga desde `window.SHOWCAST_CONTENT` (definido en `content.js`, cargado antes de que `index.html` lo necesite). Si `content.js` desaparece o no carga, la página muestra los placeholders escritos a mano en el HTML como red de seguridad.
 
