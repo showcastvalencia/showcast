@@ -36,9 +36,29 @@
 <script>
   const params = new URLSearchParams(location.search);
   let slugActual = params.get('torneo') || '';
+  let torneoRef = null;
+  let ultimaData = null;
+  const matchesAbiertos = new Set();
+
+  // Mapa nombre de Brawler (normalizado) -> icono, reutilizando los 106
+  // iconos ya autoalojados para Megadraft (assets/brawlers.json) en vez de
+  // depender de brawlify.com — ver ARQUITECTURA.md §15 (problema conocido).
+  let brawlerIcons = {};
+  function normalizeBrawlerName(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  fetch('../assets/brawlers.json').then(r => r.json()).then(list => {
+    (list || []).forEach(b => { brawlerIcons[normalizeBrawlerName(b.name)] = b.icon; });
+    if (ultimaData) pintarTorneo(ultimaData);
+  }).catch(() => {});
 
   function brawlerLabel(b) {
     return b ? String(b) : '?';
+  }
+
+  function brawlerIconHtml(b) {
+    const icon = brawlerIcons[normalizeBrawlerName(b)];
+    return icon ? `<img src="${icon}" alt="" class="pick-icon">` : '';
   }
 
   function pintarJuegos(juegos) {
@@ -53,10 +73,10 @@
           ${j.duracion ? `<br>${j.duracion}s` : ''}
         </div>
         <div class="j-picks">
-          ${(j.picksEquipoA || []).map(p => `<span class="pick-pill">${p.jugador}: ${brawlerLabel(p.brawler)}</span>`).join('')}
+          ${(j.picksEquipoA || []).map(p => `<span class="pick-pill">${brawlerIconHtml(p.brawler)}${p.jugador}: ${brawlerLabel(p.brawler)}</span>`).join('')}
         </div>
         <div class="j-picks">
-          ${(j.picksEquipoB || []).map(p => `<span class="pick-pill">${p.jugador}: ${brawlerLabel(p.brawler)}</span>`).join('')}
+          ${(j.picksEquipoB || []).map(p => `<span class="pick-pill">${brawlerIconHtml(p.brawler)}${p.jugador}: ${brawlerLabel(p.brawler)}</span>`).join('')}
         </div>
       </div>
     `).join('');
@@ -69,8 +89,9 @@
     const claseA = ganador && ganador === (m.equipoA && m.equipoA.participantId) ? 'winner' : '';
     const claseB = ganador && ganador === (m.equipoB && m.equipoB.participantId) ? 'winner' : '';
     const score = (m.resultadoChallonge && m.resultadoChallonge.scoresCsv) || '';
+    const abierto = matchesAbiertos.has(String(m.challongeMatchId)) ? ' open' : '';
     return `
-      <div class="match-card">
+      <div class="match-card${abierto}" data-match-id="${m.challongeMatchId}">
         <button type="button" class="match-summary">
           <span class="m-teams">
             <span class="${claseA}">${nombreA}</span> vs <span class="${claseB}">${nombreB}</span>
@@ -82,7 +103,11 @@
       </div>`;
   }
 
+  // Vuelve a pintar entero en cada cambio de Firebase — se conserva qué
+  // partidos estaban desplegados (matchesAbiertos) para que una actualización
+  // en vivo no cierre lo que la persona tenía abierto.
   function pintarTorneo(data) {
+    ultimaData = data;
     const contenido = document.getElementById('contenido');
     const matches = Object.values(data.matches || {});
     if (!matches.length) {
@@ -102,15 +127,25 @@
       </div>
     `).join('');
 
-    contenido.querySelectorAll('.match-summary').forEach(btn => {
-      btn.addEventListener('click', () => btn.closest('.match-card').classList.toggle('open'));
+    contenido.querySelectorAll('.match-card').forEach(card => {
+      card.querySelector('.match-summary').addEventListener('click', () => {
+        const abierto = card.classList.toggle('open');
+        const id = card.dataset.matchId;
+        if (abierto) matchesAbiertos.add(id); else matchesAbiertos.delete(id);
+      });
     });
   }
 
+  // Escucha en tiempo real (no .once): quien tenga la pantalla abierta
+  // durante el torneo ve los partidos nuevos aparecer solos, sin recargar.
   function cargar(slug) {
+    if (torneoRef) torneoRef.off();
+    matchesAbiertos.clear();
     document.getElementById('spinner').style.display = '';
     document.getElementById('contenido').innerHTML = '';
-    db.ref('historial/' + slug).once('value').then(snap => {
+
+    torneoRef = db.ref('historial/' + slug);
+    torneoRef.on('value', snap => {
       document.getElementById('spinner').style.display = 'none';
       const data = snap.val();
       if (!data) {

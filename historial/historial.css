@@ -190,11 +190,18 @@ a{color:inherit;text-decoration:none;}
 .juego-row .j-meta strong{display:block;color:var(--naranja);font-family:'Anton',sans-serif;font-size:.75rem;text-transform:uppercase;margin-bottom:2px;}
 .juego-row .j-picks{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;}
 .juego-row .pick-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
   background:rgba(251,157,69,.12);
   border:1px solid var(--naranja);
   padding:3px 8px;
   font-size:.75rem;
   white-space:nowrap;
+}
+.juego-row .pick-pill .pick-icon{
+  width:20px;height:20px;border-radius:50%;object-fit:cover;
+  background:var(--crema);border:1px solid var(--naranja);flex-shrink:0;
 }
 @media(max-width:640px){
   .juego-row{grid-template-columns:1fr;}
