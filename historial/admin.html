@@ -395,10 +395,20 @@
       sides = { equipoA: teams[0] || [], equipoB: teams[1] || [] };
     }
 
+    // El battlelog llega del más reciente al más antiguo, así que da igual
+    // en qué orden se arrastren las batallas — se reordenan siempre por
+    // battleTime (el primer partido jugado de la ronda queda como Juego 1).
     m.juegos = m.juegos || [];
     m.juegos.push(HD.battleToJuego(battle, sides, m.juegos.length + 1));
+    ordenarJuegosPorBattleTime(m.juegos);
     renderJuegosAsignados(matchId);
   });
+
+  function ordenarJuegosPorBattleTime(juegos) {
+    juegos.sort((a, b) => HD.parseBattleTime(a.battleTime) - HD.parseBattleTime(b.battleTime));
+    juegos.forEach((j, idx) => { j.orden = idx + 1; });
+    return juegos;
+  }
 
   document.getElementById('btnGuardarJuegos').addEventListener('click', () => {
     const slug = torneoSlug();
@@ -406,7 +416,7 @@
     const msg = document.getElementById('reajudicarMsg');
     const m = matchesGuardados[matchId];
     if (!m) return;
-    m.juegos = (m.juegos || []).map((j, idx) => Object.assign({}, j, { orden: idx + 1 }));
+    m.juegos = ordenarJuegosPorBattleTime((m.juegos || []).map(j => Object.assign({}, j)));
     db.ref('historial/' + slug + '/matches/' + matchId + '/juegos').set(m.juegos).then(() => {
       msg.textContent = 'Guardado.';
       msg.className = 'msg-ok';
