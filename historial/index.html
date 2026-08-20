@@ -29,10 +29,57 @@
   <div id="contenido"></div>
 </div>
 
+<!-- VISOR DE PERFIL DE JUGADOR -->
+<div class="pmodal-overlay" id="pmodalOverlay">
+  <div class="pmodal-card" id="pmodalCard">
+    <button type="button" class="pmodal-close" id="pmodalClose" aria-label="Cerrar">✕</button>
+
+    <div id="pmodalLoading" class="pmodal-state">
+      <div class="spinner"></div>
+      <p>Buscando jugador...</p>
+    </div>
+
+    <div id="pmodalError" class="pmodal-state" style="display:none;">
+      <div class="pmodal-error-icon">✕</div>
+      <p id="pmodalErrorMsg">No se ha podido comprobar la cuenta.</p>
+    </div>
+
+    <div id="pmodalResult" style="display:none;">
+      <div class="pmodal-preview">
+        <img id="pm-icon" class="pmodal-icon" src="" alt="Icono de jugador">
+        <div>
+          <h3 id="pm-name">—</h3>
+          <span id="pm-tag" class="pmodal-tag">#000000</span>
+        </div>
+        <div class="pmodal-prestige" title="Prestigio">
+          <img src="../assets/prestigio.webp" alt="Prestigio">
+          <span class="pmodal-prestige-num" id="pm-prestige">0</span>
+        </div>
+      </div>
+      <div class="pmodal-stats">
+        <div class="pmodal-stat-box">
+          <span class="pmodal-stat-num" id="pm-trophies">0</span>
+          <span class="pmodal-stat-label">Trofeos</span>
+        </div>
+        <div class="pmodal-stat-box">
+          <span class="pmodal-stat-num" id="pm-v3v3">0</span>
+          <span class="pmodal-stat-label">Victorias 3v3</span>
+        </div>
+        <div class="pmodal-stat-box">
+          <span class="pmodal-stat-num" id="pm-rank" style="font-size:.95rem;">—</span>
+          <span class="pmodal-stat-label">Máx. ranked (histórico)</span>
+        </div>
+      </div>
+      <p class="pmodal-hint" id="pm-current-ranked"></p>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+<script src="js/historial-logic.js"></script>
 <script>
   const params = new URLSearchParams(location.search);
   let slugActual = params.get('torneo') || '';
@@ -64,8 +111,13 @@
     const iconHtml = icon
       ? `<img src="${icon}" alt="" class="jugador-icon">`
       : `<div class="jugador-icon-fallback">${brawlerLabel(p.brawler)}</div>`;
+    // Solo es clicable si el juego se procesó después de que se empezara a
+    // guardar el tag del jugador (ver ARQUITECTURA.md §15) — sin tag no hay
+    // forma de consultar su perfil.
+    const clickable = p.tag ? ' jugador-card-clickable' : '';
+    const dataTag = p.tag ? ` data-tag="${p.tag}"` : '';
     return `
-      <div class="jugador-card">
+      <div class="jugador-card${clickable}"${dataTag}>
         ${iconHtml}
         <span class="jugador-nombre">${p.jugador}</span>
         <span class="jugador-brawler">${brawlerLabel(p.brawler)}</span>
@@ -149,6 +201,46 @@
       });
     });
   }
+
+  // VISOR DE PERFIL DE JUGADOR — mismo contenido que el modal "¿Es esta tu
+  // cuenta?" de index.html, sin los botones de confirmación (aquí solo se
+  // consulta, no se vincula ningún tag). Delegado sobre #contenido para que
+  // funcione también con las tarjetas repintadas por la escucha en vivo.
+  const pmodalOverlay = document.getElementById('pmodalOverlay');
+  function pmodalShowState(state) {
+    document.getElementById('pmodalLoading').style.display = state === 'loading' ? 'block' : 'none';
+    document.getElementById('pmodalError').style.display = state === 'error' ? 'block' : 'none';
+    document.getElementById('pmodalResult').style.display = state === 'result' ? 'block' : 'none';
+  }
+  function abrirPerfil(tag) {
+    pmodalOverlay.classList.add('open');
+    pmodalShowState('loading');
+    HD.fetchPlayer(tag).then(body => {
+      document.getElementById('pm-icon').src = body.iconUrl || '';
+      document.getElementById('pm-name').textContent = body.name || '(sin nombre)';
+      document.getElementById('pm-tag').textContent = body.tag || tag;
+      document.getElementById('pm-prestige').textContent = body.prestige ?? 0;
+      document.getElementById('pm-trophies').textContent = body.trophies ?? 0;
+      document.getElementById('pm-v3v3').textContent = body.victories3v3 ?? 0;
+      document.getElementById('pm-rank').textContent = body.rankedAllTimePeakName || '—';
+      const currentEl = document.getElementById('pm-current-ranked');
+      currentEl.textContent = body.rankedCurrentName
+        ? 'Ranked actual: ' + body.rankedCurrentName
+        : 'Este jugador todavía no tiene partidas de Ranked registradas.';
+      pmodalShowState('result');
+    }).catch(err => {
+      document.getElementById('pmodalErrorMsg').textContent = err.message || 'No se ha podido comprobar la cuenta.';
+      pmodalShowState('error');
+    });
+  }
+  document.getElementById('contenido').addEventListener('click', e => {
+    const card = e.target.closest('.jugador-card-clickable');
+    if (card && card.dataset.tag) abrirPerfil(card.dataset.tag);
+  });
+  document.getElementById('pmodalClose').addEventListener('click', () => pmodalOverlay.classList.remove('open'));
+  pmodalOverlay.addEventListener('click', e => {
+    if (e.target === pmodalOverlay) pmodalOverlay.classList.remove('open');
+  });
 
   // Escucha en tiempo real (no .once): quien tenga la pantalla abierta
   // durante el torneo ve los partidos nuevos aparecer solos, sin recargar.

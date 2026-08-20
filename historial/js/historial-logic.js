@@ -44,6 +44,19 @@ const HD = (function () {
       .then(body => (body.ok ? (body.items || []) : []));
   }
 
+  // Perfil de un jugador (icono, trofeos, prestigio...) — usado por el
+  // visor de perfil al pulsar un jugador en la pantalla pública.
+  function fetchPlayer(tag) {
+    const cleanTag = normalizeTag(tag);
+    if (!cleanTag) return Promise.reject(new Error('Tag vacío.'));
+    return fetch(BRAWL_PROXY + '?tag=' + encodeURIComponent(cleanTag))
+      .then(r => r.json())
+      .then(body => {
+        if (!body.ok) throw new Error(body.error || 'No se ha podido comprobar la cuenta.');
+        return body;
+      });
+  }
+
   // "Bot N" con un tag corto (3-4 caracteres) es el patrón de los bots que
   // rellenan huecos en salas amistosas — ver CHALLONGE-API.md §12.
   function isBot(player) {
@@ -131,8 +144,8 @@ const HD = (function () {
       mapa: battle.map || '',
       duracion: battle.duration || null,
       ganador: resultadoJuego(battle, sides),
-      picksEquipoA: sides.equipoA.map(p => ({ jugador: p.name, brawler: p.brawler })),
-      picksEquipoB: sides.equipoB.map(p => ({ jugador: p.name, brawler: p.brawler })),
+      picksEquipoA: sides.equipoA.map(p => ({ jugador: p.name, brawler: p.brawler, tag: p.tag || '' })),
+      picksEquipoB: sides.equipoB.map(p => ({ jugador: p.name, brawler: p.brawler, tag: p.tag || '' })),
     };
   }
 
@@ -253,7 +266,7 @@ const HD = (function () {
   }
 
   return {
-    fetchTournament, fetchBattlelog, actualizarHistorial, normalizeTag,
+    fetchTournament, fetchBattlelog, fetchPlayer, actualizarHistorial, normalizeTag,
     // Expuestas para la pantalla de reajudicación manual (admin.html):
     filterRealPlayers, isBot, parseBattleTime, battleToJuego,
   };
