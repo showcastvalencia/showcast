@@ -403,7 +403,7 @@ La pieza que hace posible todo esto: la API oficial de Brawl Stars expone, para 
 
 | Detalle | Implicación |
 |---|---|
-| Devuelve solo las **últimas ~25 batallas** de ese jugador | sin filtro por fecha ni paginación — si no se consulta a tiempo, la batalla del torneo puede "caer" del historial sin recuperación posible |
+| Devuelve solo las **últimas ~25 batallas** de ese jugador | sin filtro por fecha ni paginación — si no se consulta a tiempo, la batalla del torneo puede "caer" del historial sin recuperación posible. Esto es **por jugador de forma independiente**: la misma batalla puede seguir visible en el battlelog de quien juega poco y haber caído ya del de quien juega mucho — comprobado en la práctica al reprocesar un partido con distintos tags vinculados y ver que aparecían/desaparecían juegos sin que la batalla real hubiera cambiado. |
 | No hay ID único de batalla | la única forma de identificar "esta es la batalla del partido X" es cruzar tiempo + jugadores (§13) |
 | `type` distingue el tipo de sala | una partida jugada en sala privada (la forma normal de organizar un torneo) aparece como `"friendly"`; ya confirmado con el ejemplo real de arriba |
 | `teams` es una lista de listas | cada sublista son los jugadores de un lado — perfecto para comparar contra el roster de cada equipo de Showcast |

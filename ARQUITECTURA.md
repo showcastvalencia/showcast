@@ -329,6 +329,14 @@ El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar l
 - **Arreglo**: las claves de Brawl Stars no desaparecen de la cuenta aunque se pierda el archivo — siguen listadas en `developer.brawlstars.com` hasta que se revocan. Se localizó ahí la clave cuyo `cidrs` coincidía con la IP de la VM (se puede comprobar decodificando la parte central del JWT en base64, sin librerías: contiene `{"cidrs": ["..."], "type": "client"}`) y se volvió a desplegar.
 - **Lección para la próxima vez**: antes de sobrescribir `proxy/config.php` en el servidor, hacer `cp config.php config.php.bak` ahí mismo. Es un paso de 5 segundos que habría evitado todo esto.
 
+### 🟡 Baja — El degradado ganador/perdedor no salía en algunos partidos (no era un bug de CSS)
+
+- **Síntoma**: tras desplegar el campo `ganador` y su degradado azul/rojo, un partido reprocesado sí lo mostraba pero otro (con varios juegos) no mostraba nada — parecía un fallo intermitente del CSS o del cálculo.
+- **Causa real**: `actualizarHistorial()` solo recalcula los partidos que **no** estén ya en `historial/{slug}/procesados`. Si se pulsa "Actualizar" **sin** marcar "Modo de prueba", cualquier partido ya procesado se salta por completo — se queda con los datos exactamente como estaban la última vez que sí se procesó, que en este caso era de antes de que existiera el campo `ganador`. No es que el degradado fallara para ese partido: es que ese partido nunca llegó a pasar por el código nuevo.
+- **Complicación añadida al diagnosticarlo**: los "juegos viejos" de ese partido concreto incluían batallas donde el tag actualmente vinculado ya ni siquiera aparecía como participante — porque el battlelog de cada jugador solo guarda sus ~25 batallas más recientes de forma **independiente** (§12 de `CHALLONGE-API.md`), así que la misma batalla puede seguir visible en el log de un jugador (el que juega menos) y haber "caído" ya del de otro (el que juega más). Reprocesar con tags distintos a los de la vez anterior puede hacer que aparezcan/desaparezcan juegos aunque la batalla real no haya cambiado.
+- **Arreglo**: no hay ningún cambio de código — es el comportamiento esperado de "Modo de prueba" (§14), solo que no era obvio desde fuera. Se reprocesó ese partido con la casilla marcada y el campo `ganador` se calculó bien.
+- **Lección**: mientras se sigan ajustando la lógica de correlación o los tags vinculados, conviene tener "Modo de prueba" marcado al pulsar "Actualizar" — si no, partidos ya procesados quedan silenciosamente desactualizados sin ningún aviso en pantalla.
+
 ## 16. Limitaciones conocidas (asumidas, no bugs)
 
 - **El PIN de `megadraft/admin.html` es cosmético.** Es un código de 4 cifras fijo en el propio JavaScript del cliente, pensado solo para que no cualquiera con el enlace entre y toque el draft por error — no es seguridad real ante alguien que abra el código fuente.
