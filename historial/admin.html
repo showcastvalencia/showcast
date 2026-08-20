@@ -340,10 +340,17 @@
     e.preventDefault();
     dropZone.classList.remove('drag-over');
     const idx = +e.dataTransfer.getData('text/plain');
-    const battle = battlelogEncontrado[idx];
+    const battleRaw = battlelogEncontrado[idx];
     const matchId = document.getElementById('reajudicarMatchSelect').value;
     const m = matchesGuardados[matchId];
-    if (!battle || !m) return;
+    if (!battleRaw || !m) return;
+
+    // battle.result es la perspectiva del jugador cuyo battlelog se buscó
+    // (el tag escrito arriba) — hace falta marcarlo igual que hace el cruce
+    // automático en correlateMatch(), o resultadoJuego() no puede traducir
+    // "victory"/"defeat" a "ganó equipoA/equipoB" y el juego se guarda sin
+    // campo "ganador" (sin degradado en la pantalla pública).
+    const battle = Object.assign({}, battleRaw, { perspectivaTag: document.getElementById('reajudicarTagInput').value.trim() });
 
     const tagsA = tagsByParticipant[m.equipoA && m.equipoA.participantId] || [];
     const tagsB = tagsByParticipant[m.equipoB && m.equipoB.participantId] || [];
