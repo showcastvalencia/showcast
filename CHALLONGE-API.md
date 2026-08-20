@@ -426,6 +426,11 @@ Challonge sabe *quién jugó contra quién y quién ganó*. Brawl Stars sabe *qu
 
 > ⚠️ **Cuanto antes se actualice, mejor.** Como el battlelog solo guarda ~25 batallas por jugador sin filtro de fecha (§12), si el organizador espera al día siguiente para pulsar "Actualizar", los jugadores más activos pueden haber jugado de sobra fuera del torneo como para que la batalla del partido ya no esté en su historial — y esa entrada del historial de Showcast se queda sin datos de Brawl Stars, de forma irrecuperable. Conviene actualizar **ronda a ronda**, no al final del día.
 
+> ⚠️ **Este algoritmo es el diseño original; la implementación real cambió en tres puntos, ya probados contra un torneo real** (detalle completo en `ARQUITECTURA.md` §14):
+> - Paso 3: el partido no trae `player1_id`/`player2_id` — la API v2.1 real usa `points_by_participant` (array de `{participant_id, scores}`).
+> - Paso 5: se quitó la ventana de tiempo por completo. En la práctica era un número mágico frágil que no evitaba los falsos positivos reales (entrenos, revanchas) y sí podía descartar partidas legítimas reportadas tarde.
+> - Paso 7: por defecto se exige que coincidan **todos** los tags vinculados de cada equipo, no "al menos 2 de 3" — más estricto que el diseño original. Existe además un "modo de prueba" que relaja esto a 1 tag y acepta cualquier tipo de sala, y una pantalla de reajudicación manual (arrastrar batallas del battlelog a un partido) para los casos que el automático no acierte.
+
 ## 14. Estructura del historial resultante
 
 Lo que queda guardado en Firebase tras el cruce, listo para que el sitio lo lea y lo pinte (igual que ya lee `screen.html` el estado de Megadraft):
@@ -441,6 +446,7 @@ Lo que queda guardado en Firebase tras el cruce, listo para que el sitio lo lea 
     {
       "orden": 1, "battleTime": "2026-08-19T19:05:12Z",
       "modo": "brawlBall", "mapa": "Sneaky Fields", "duracion": 128,
+      "ganador": "equipoA",
       "picksEquipoA": [ { "jugador": "jugador1", "brawler": "SHELLY" } /* ...x3 */ ],
       "picksEquipoB": [ /* ...x3 */ ]
     },
@@ -449,6 +455,8 @@ Lo que queda guardado en Firebase tras el cruce, listo para que el sitio lo lea 
   "actualizadoEn": "2026-08-19T19:40:03Z"
 }
 ```
+
+`juegos[].ganador` (`"equipoA"` / `"equipoB"` / `"empate"`) sale de `battle.result` de Brawl Stars (`"victory"`/`"defeat"`/`"draw"`) — pero ese campo es la perspectiva del jugador cuyo battlelog se consultó, no dice directamente qué equipo ganó. Hay que comprobar en qué lado (`equipoA`/`equipoB`) estaba ese jugador concreto para traducirlo correctamente.
 
 Con esto, una nueva sección tipo "Historial de partidas" en el sitio podría mostrar, por ronda o por equipo, no solo quién ganó (eso ya lo enseña el *embed* público de Challonge) sino **qué se jugó realmente**: mapa, duración, y los 6 personajes elegidos — algo que Challonge por sí solo nunca podría mostrar, porque no tiene ni idea de que el juego es Brawl Stars.
 
