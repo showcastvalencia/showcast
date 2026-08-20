@@ -4,6 +4,16 @@
   Implementación del algoritmo descrito en CHALLONGE-API.md sección 13.
   Se usa desde admin.html al pulsar "Actualizar historial de partidas"
   (nunca automático/polling, ver sección 11 del mismo documento).
+
+  El emparejamiento automático es una heurística, no puede ser perfecto:
+  no hay ningún campo en la API de Brawl Stars que diga "esta batalla es
+  el partido X de Challonge". Se empareja por sala amistosa + que
+  coincidan TODOS los tags vinculados de cada equipo — sin ventana de
+  tiempo, porque acotar por minutos era un número mágico frágil que no
+  evitaba los falsos positivos reales (entrenos, revanchas con los
+  mismos jugadores). Para esos casos existe la pantalla "Reajudicar
+  partidos" del admin, pensada para corregir a mano lo que el automático
+  no pueda distinguir.
 */
 const HD = (function () {
   // El proxy PHP no vive en GitHub Pages (que no ejecuta PHP) sino en la VM
@@ -51,33 +61,23 @@ const HD = (function () {
     return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
   }
 
-  function withinWindow(battleTimeIso, centerDate, windowMinutes) {
-    const t = parseBattleTime(battleTimeIso);
-    if (!t) return false;
-    return Math.abs(t.getTime() - centerDate.getTime()) <= windowMinutes * 60 * 1000;
-  }
-
   function countKnownTags(team, knownTags) {
     const known = new Set((knownTags || []).map(normalizeTag));
     return (team || []).filter(p => known.has(normalizeTag(p.tag))).length;
   }
 
-  // Al menos 2 de los tags conocidos de cada equipo deben aparecer en el
-  // lado correspondiente — ver CHALLONGE-API.md §13 paso 7. Pero si un
-  // equipo solo tiene 1 tag vinculado (o ninguno), exigir 2 haría que la
-  // correlación fuera imposible incluso en un caso legítimo — el mínimo se
-  // adapta a cuántos tags hay realmente vinculados para ese equipo.
-  function battleMatchesTeams(battle, tagsA, tagsB, minMatches) {
-    minMatches = minMatches || 2;
+  // Deben coincidir TODOS los tags vinculados de cada equipo (no solo
+  // algunos) en el lado correspondiente. Un equipo sin ningún tag vinculado
+  // nunca puede dar positivo — no hay nada que comprobar.
+  function battleMatchesTeams(battle, tagsA, tagsB) {
+    if (!tagsA.length || !tagsB.length) return null;
     const teams = filterRealPlayers(battle.teams);
     if (teams.length !== 2) return null;
     const [t1, t2] = teams;
-    const reqA = Math.min(minMatches, tagsA.length || 1);
-    const reqB = Math.min(minMatches, tagsB.length || 1);
-    if (countKnownTags(t1, tagsA) >= reqA && countKnownTags(t2, tagsB) >= reqB) {
+    if (countKnownTags(t1, tagsA) === tagsA.length && countKnownTags(t2, tagsB) === tagsB.length) {
       return { equipoA: t1, equipoB: t2 };
     }
-    if (countKnownTags(t2, tagsA) >= reqA && countKnownTags(t1, tagsB) >= reqB) {
+    if (countKnownTags(t2, tagsA) === tagsA.length && countKnownTags(t1, tagsB) === tagsB.length) {
       return { equipoA: t2, equipoB: t1 };
     }
     return null;
@@ -99,7 +99,21 @@ const HD = (function () {
     return match.updated_at || (match.timestamps && match.timestamps.updated_at) || null;
   }
 
-  function correlateMatch(match, participantsById, tagsByParticipant, battlelogsByTag, windowMinutes) {
+  // Convierte una batalla del battlelog + a qué lado pertenece cada equipo
+  // en un "juego" tal como se guarda en Firebase (§14 de CHALLONGE-API.md).
+  function battleToJuego(battle, sides, orden) {
+    return {
+      orden,
+      battleTime: battle.battleTime,
+      modo: battle.mode || '',
+      mapa: battle.map || '',
+      duracion: battle.duration || null,
+      picksEquipoA: sides.equipoA.map(p => ({ jugador: p.name, brawler: p.brawler })),
+      picksEquipoB: sides.equipoB.map(p => ({ jugador: p.name, brawler: p.brawler })),
+    };
+  }
+
+  function correlateMatch(match, participantsById, tagsByParticipant, battlelogsByTag, debugLines) {
     const [pAId, pBId] = matchParticipantIds(match);
     const equipoA = { participantId: pAId, nombre: (participantsById[pAId] || {}).name || ('Participante ' + pAId) };
     const equipoB = { participantId: pBId, nombre: (participantsById[pBId] || {}).name || ('Participante ' + pBId) };
@@ -117,24 +131,31 @@ const HD = (function () {
       });
     });
 
-    const updatedAt = matchUpdatedAt(match);
-    const centro = updatedAt ? new Date(updatedAt) : new Date();
-    const enVentana = candidatas.filter(b => withinWindow(b.battleTime, centro, windowMinutes));
-    const emparejadas = enVentana
+    if (debugLines) {
+      debugLines.push(`Partido ${match.id} (${equipoA.nombre} vs ${equipoB.nombre}): ${candidatas.length} batalla(s) en el battlelog de los tags vinculados.`);
+      candidatas.forEach(b => {
+        if (b.type !== 'friendly') {
+          debugLines.push(`  · ${b.battleTime}: descartada, tipo="${b.type}" (se necesita "friendly")`);
+          return;
+        }
+        const sides = battleMatchesTeams(b, tagsA, tagsB);
+        if (sides) {
+          debugLines.push(`  · ${b.battleTime}: ✓ coincide (mapa ${b.map}, modo ${b.mode})`);
+        } else {
+          const teams = filterRealPlayers(b.teams);
+          const detalle = teams.map((t, i) => `lado ${i + 1}: ${countKnownTags(t, tagsA)}/${tagsA.length} tag(s) de ${equipoA.nombre}, ${countKnownTags(t, tagsB)}/${tagsB.length} de ${equipoB.nombre}`).join(' / ');
+          debugLines.push(`  · ${b.battleTime}: descartada, no coinciden todos los tags (${detalle})`);
+        }
+      });
+    }
+
+    const emparejadas = candidatas
       .filter(b => b.type === 'friendly')
       .map(b => ({ battle: b, sides: battleMatchesTeams(b, tagsA, tagsB) }))
       .filter(x => x.sides)
       .sort((a, b) => parseBattleTime(a.battle.battleTime) - parseBattleTime(b.battle.battleTime));
 
-    const juegos = emparejadas.map((x, idx) => ({
-      orden: idx + 1,
-      battleTime: x.battle.battleTime,
-      modo: x.battle.mode || '',
-      mapa: x.battle.map || '',
-      duracion: x.battle.duration || null,
-      picksEquipoA: x.sides.equipoA.map(p => ({ jugador: p.name, brawler: p.brawler })),
-      picksEquipoB: x.sides.equipoB.map(p => ({ jugador: p.name, brawler: p.brawler })),
-    }));
+    const juegos = emparejadas.map((x, idx) => battleToJuego(x.battle, x.sides, idx + 1));
 
     let ganador = null;
     if (match.winner_id === pAId) ganador = pAId;
@@ -152,18 +173,24 @@ const HD = (function () {
 
   // Orquesta todo el flujo de un clic en "Actualizar historial de partidas".
   // participantesTags: { [participantId]: ["#TAG1","#TAG2","#TAG3"] }
-  function actualizarHistorial(torneoSlug, challongeTournamentId, participantesTags, windowMinutes) {
-    windowMinutes = windowMinutes || 30;
+  // opciones: { ignorarProcesados, debug } — "Modo de prueba" en el admin
+  // activa ambas, para poder reprocesar un partido ya guardado sin
+  // depender de generar partidos nuevos en Challonge, y ver por qué cada
+  // batalla candidata sí o no encajó.
+  function actualizarHistorial(torneoSlug, challongeTournamentId, participantesTags, opciones) {
+    opciones = opciones || {};
+    const debugLines = opciones.debug ? [] : null;
+
     return fetchTournament(challongeTournamentId).then(body => {
       const participantsById = {};
       (body.participants || []).forEach(p => { participantsById[p.id] = p; });
 
       return db.ref('historial/' + torneoSlug + '/procesados').once('value').then(snap => {
-        const procesados = snap.val() || {};
+        const procesados = opciones.ignorarProcesados ? {} : (snap.val() || {});
         const nuevos = (body.matches || []).filter(m => m.state === 'complete' && !procesados[m.id]);
 
         if (!nuevos.length) {
-          return { procesados: 0, total: (body.matches || []).length };
+          return { procesados: 0, total: (body.matches || []).length, debugLines };
         }
 
         const tagsNeeded = new Set();
@@ -182,7 +209,7 @@ const HD = (function () {
           .then(() => {
             const updates = {};
             nuevos.forEach(m => {
-              const resultado = correlateMatch(m, participantsById, participantesTags, battlelogs, windowMinutes);
+              const resultado = correlateMatch(m, participantsById, participantesTags, battlelogs, debugLines);
               updates['historial/' + torneoSlug + '/matches/' + m.id] = resultado;
               updates['historial/' + torneoSlug + '/procesados/' + m.id] = true;
             });
@@ -191,11 +218,15 @@ const HD = (function () {
               nombre: body.tournament.name || '',
               actualizadoEn: new Date().toISOString(),
             };
-            return db.ref().update(updates).then(() => ({ procesados: nuevos.length, total: (body.matches || []).length }));
+            return db.ref().update(updates).then(() => ({ procesados: nuevos.length, total: (body.matches || []).length, debugLines }));
           });
       });
     });
   }
 
-  return { fetchTournament, fetchBattlelog, actualizarHistorial, normalizeTag };
+  return {
+    fetchTournament, fetchBattlelog, actualizarHistorial, normalizeTag,
+    // Expuestas para la pantalla de reajudicación manual (admin.html):
+    filterRealPlayers, isBot, parseBattleTime, battleToJuego,
+  };
 })();
