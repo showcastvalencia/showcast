@@ -292,6 +292,10 @@ La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Sta
 
 **Reajudicación manual y `perspectivaTag`**: `battleToJuego()` necesita que la batalla lleve marcado `perspectivaTag` (el tag desde cuyo battlelog se consultó) para que `resultadoJuego()` pueda traducir `victory`/`defeat` a `equipoA`/`equipoB` — el cruce automático (`correlateMatch()`) lo añade solo. El flujo de arrastrar-y-soltar de "Reajudicar partidos a mano" también tiene que añadirlo explícitamente (con el tag escrito en el buscador) antes de llamar a `HD.battleToJuego()`, o el juego se guarda sin `ganador` — ver §15.
 
+**Visor de perfil de jugador**: al pulsar sobre un jugador en `historial/index.html` se abre un modal con su perfil (icono, nombre, tag, prestigio, trofeos, victorias 3v3, ranked histórico/actual) — mismo contenido que el modal "¿Es esta tu cuenta?" de la página principal (§8), sin los botones de confirmación sí/no, consultado con `HD.fetchPlayer(tag)` (mismo proxy, sin `battlelog=1`). Para esto, `battleToJuego()` guarda ahora también el `tag` de cada jugador dentro de `picksEquipoA`/`picksEquipoB` (antes solo `jugador`/`brawler`) — los juegos guardados **antes** de este cambio no tienen ese `tag`, así que sus tarjetas no son clicables hasta que se reprocesen.
+
+**Un 4º tag (suplente) por participante**: `historial/admin.html` muestra normalmente 3 campos de tag por participante (equipo 3v3), con un botón "+" para añadir un 4º opcional. Si un participante ya tenía 4 tags guardados de antes, se renderiza directamente con los 4 campos y sin el botón. No hace falta ningún cambio en la lógica de cruce — `battleMatchesTeams()` ya soporta cualquier número de tags vinculados por equipo.
+
 ## 15. Problemas encontrados (y cómo se resolvieron)
 
 El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar la lógica de picks o el sistema de imágenes: son los sitios donde ya ha dolido una vez.
