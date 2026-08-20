@@ -533,6 +533,11 @@
   .gallery-edicion-body > div{overflow:hidden;}
   .gallery-edicion-empty{padding:0 22px 22px;font-style:italic;opacity:.6;font-size:.9rem;}
   .gallery-edicion .gallery-grid{padding:0 22px 22px;margin-top:0;}
+
+  /* Subdivisión por año dentro de cada ciudad */
+  .gallery-accordion.nested{margin:0 22px 22px;gap:10px;}
+  .gallery-edicion.sub{border-left:4px solid var(--naranja);background:var(--crema);}
+  .gallery-edicion.sub .gallery-edicion-toggle{font-size:1rem;padding:14px 18px;}
   .avatar-placeholder img{
     width:100%;height:100%;object-fit:cover;border-radius:50%;
   }
@@ -1488,7 +1493,18 @@
 
     if(galeriaEdiciones.length){
       const wrap = document.getElementById('galleryAccordion');
-      wrap.innerHTML = galeriaEdiciones.map((edicion, idx) => {
+
+      // Cada edición real (año) se agrupa bajo su ciudad — dos categorías
+      // principales (Puçol / Sagunto) con los años como subdivisión interna.
+      const ciudades = [];
+      const porCiudad = {};
+      galeriaEdiciones.forEach(edicion => {
+        const ciudad = edicion.ciudad || 'Sin ciudad';
+        if(!(ciudad in porCiudad)){ porCiudad[ciudad] = []; ciudades.push(ciudad); }
+        porCiudad[ciudad].push(edicion);
+      });
+
+      function edicionCuerpoHtml(edicion){
         const items = Array.isArray(edicion.items) ? edicion.items : [];
         const tilesHtml = items.map(item => {
           let media;
@@ -1510,22 +1526,41 @@
         const mapaHtml = edicion.ubicacion
           ? `<div class="edicion-map"><iframe src="https://www.google.com/maps?q=${encodeURIComponent(edicion.ubicacion + ', Valencia')}&output=embed" loading="lazy" title="Mapa ${edicion.ubicacion}"></iframe></div>`
           : '';
-        const bodyHtml = `
+        return `
           <div class="edicion-meta">
             <span>📅 ${edicion.fecha || 'Próximamente'}</span>
             ${edicion.ubicacion ? `<span>📍 ${edicion.ubicacion}</span>` : ''}
           </div>
           ${mapaHtml}
           ${galleryHtml}`;
+      }
+
+      function edicionHtml(edicion, abierta){
+        return `
+        <div class="gallery-edicion sub${abierta ? ' open' : ''}">
+          <button type="button" class="gallery-edicion-toggle" aria-expanded="${abierta ? 'true' : 'false'}">
+            <span>${edicion.anio || edicion.titulo || 'Sin título'}</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="gallery-edicion-body"><div>${edicionCuerpoHtml(edicion)}</div></div>
+        </div>`;
+      }
+
+      wrap.innerHTML = ciudades.map((ciudad, idx) => {
+        const edicionesCiudad = porCiudad[ciudad];
+        const subAccordionHtml = edicionesCiudad.map((edicion, i) => edicionHtml(edicion, idx === 0 && i === 0)).join('');
         return `
         <div class="gallery-edicion${idx === 0 ? ' open' : ''}">
           <button type="button" class="gallery-edicion-toggle" aria-expanded="${idx === 0 ? 'true' : 'false'}">
-            <span>${edicion.titulo || 'Sin título'}</span>
+            <span>${ciudad}</span>
             <span class="chev" aria-hidden="true"></span>
           </button>
-          <div class="gallery-edicion-body"><div>${bodyHtml}</div></div>
+          <div class="gallery-edicion-body"><div>
+            <div class="gallery-accordion nested">${subAccordionHtml}</div>
+          </div></div>
         </div>`;
       }).join('');
+
       wrap.querySelectorAll('.gallery-edicion-toggle').forEach(btn => {
         btn.addEventListener('click', () => {
           const edicion = btn.closest('.gallery-edicion');
