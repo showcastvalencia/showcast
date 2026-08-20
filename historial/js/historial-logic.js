@@ -62,17 +62,22 @@ const HD = (function () {
     return (team || []).filter(p => known.has(normalizeTag(p.tag))).length;
   }
 
-  // Al menos 2 de los 3 tags conocidos de cada equipo deben aparecer en el
-  // lado correspondiente — ver CHALLONGE-API.md §13 paso 7.
+  // Al menos 2 de los tags conocidos de cada equipo deben aparecer en el
+  // lado correspondiente — ver CHALLONGE-API.md §13 paso 7. Pero si un
+  // equipo solo tiene 1 tag vinculado (o ninguno), exigir 2 haría que la
+  // correlación fuera imposible incluso en un caso legítimo — el mínimo se
+  // adapta a cuántos tags hay realmente vinculados para ese equipo.
   function battleMatchesTeams(battle, tagsA, tagsB, minMatches) {
     minMatches = minMatches || 2;
     const teams = filterRealPlayers(battle.teams);
     if (teams.length !== 2) return null;
     const [t1, t2] = teams;
-    if (countKnownTags(t1, tagsA) >= minMatches && countKnownTags(t2, tagsB) >= minMatches) {
+    const reqA = Math.min(minMatches, tagsA.length || 1);
+    const reqB = Math.min(minMatches, tagsB.length || 1);
+    if (countKnownTags(t1, tagsA) >= reqA && countKnownTags(t2, tagsB) >= reqB) {
       return { equipoA: t1, equipoB: t2 };
     }
-    if (countKnownTags(t2, tagsA) >= minMatches && countKnownTags(t1, tagsB) >= minMatches) {
+    if (countKnownTags(t2, tagsA) >= reqA && countKnownTags(t1, tagsB) >= reqB) {
       return { equipoA: t2, equipoB: t1 };
     }
     return null;
