@@ -952,6 +952,62 @@
     background:var(--negro);
   }
 
+  /* ---------- CLASIFICACIONES: predicciones ---------- */
+  .predicciones-wrap{
+    margin-top:36px;
+    border:4px solid var(--negro);
+    box-shadow:10px 10px 0 rgba(0,0,0,.12);
+    padding:26px 24px;
+  }
+  .predicciones-wrap h3{
+    font-family:'Anton',sans-serif;
+    letter-spacing:.5px;
+    margin-bottom:8px;
+  }
+  .predicciones-intro{opacity:.8;margin-bottom:20px;max-width:640px;}
+  .pred-list{list-style:none;margin:0 0 18px;padding:0;max-width:480px;}
+  .pred-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:2px solid var(--negro);
+    padding:8px 12px;
+    margin-bottom:8px;
+    background:var(--crema);
+  }
+  .pred-item .pi-rank{
+    font-family:'Anton',sans-serif;
+    background:var(--negro);
+    color:var(--naranja);
+    min-width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .pred-item .pi-name{flex:1;font-weight:600;}
+  .pred-item .pi-moves{display:flex;gap:4px;}
+  .pred-item .pi-moves button{
+    width:28px;height:28px;
+    border:2px solid var(--negro);
+    background:var(--blanco);
+    font-family:'Anton',sans-serif;
+    cursor:pointer;
+  }
+  .pred-item .pi-moves button:disabled{opacity:.3;cursor:default;}
+  .pred-item .pi-moves button:not(:disabled):hover{background:var(--naranja);}
+  .pred-resultado-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:10px;
+  }
+  .pred-resultado-item .pr-name{min-width:140px;font-weight:600;}
+  .pred-resultado-item .pr-bar-wrap{flex:1;background:var(--negro);height:20px;}
+  .pred-resultado-item .pr-bar{background:var(--naranja);height:100%;}
+  .pred-resultado-item .pr-pct{min-width:52px;text-align:right;font-family:'Anton',sans-serif;}
+  .predicciones-status{font-weight:600;margin-bottom:16px;}
+  .predicciones-status.ok{color:var(--naranja-dark);}
+
   /* ---------- TEAM ---------- */
   .team-grid{
     display:grid;
@@ -1364,6 +1420,13 @@
         </div>
       </div>
     </div>
+
+    <div class="predicciones-wrap" id="prediccionesWrap" style="display:none;">
+      <h3>🔮 Predicciones — ¿cómo va a quedar la fase clasificatoria?</h3>
+      <p class="predicciones-intro">Ordena los equipos del 1º al último según creas que van a terminar la fase clasificatoria. Cada predicción cuenta puntos para todos los equipos, no solo para el primero — así el resultado es interesante aunque voten pocas personas.</p>
+      <div id="prediccionesForm"></div>
+      <div id="prediccionesResultado"></div>
+    </div>
   </div>
 </section>
 
@@ -1670,6 +1733,134 @@
         <p>${mensaje || 'Pega el ID del torneo de Challonge de esta categoría en el panel de administración (admin.html), sección "Clasificaciones".'}</p>
       </div>`;
     document.getElementById('clasifVistaTabs').style.display = 'none';
+    document.getElementById('prediccionesWrap').style.display = 'none';
+  }
+
+  // ---------- PREDICCIONES: fase clasificatoria (ranking por puntos) ----------
+  // Sistema propio, separado de Challonge (su función "predictions" no expone
+  // nada por API — investigado y confirmado en la conversación). Los votos se
+  // mandan a proxy/predicciones.php (que sí ve la IP real y evita duplicados)
+  // y se leen directamente de la Realtime Database de Firebase (lectura
+  // pública por reglas, sin necesitar el proxy ni ningún secreto — mismo
+  // proyecto "showcast-md" que ya usan Megadraft e Historial).
+  const FIREBASE_DB_URL = 'https://showcast-md-default-rtdb.europe-west1.firebasedatabase.app';
+  let prediccionesOrder = [];
+  let prediccionesParticipantsById = {};
+
+  function prediccionesLocalKey(torneoId) {
+    return 'pred_' + torneoId;
+  }
+
+  function prediccionesRenderLista() {
+    const el = document.getElementById('prediccionesForm');
+    const lista = prediccionesOrder.map((id, i) => `
+      <li class="pred-item">
+        <span class="pi-rank">${i + 1}</span>
+        <span class="pi-name">${(prediccionesParticipantsById[id] || {}).name || '?'}</span>
+        <span class="pi-moves">
+          <button type="button" data-move="up" data-id="${id}" ${i === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" data-move="down" data-id="${id}" ${i === prediccionesOrder.length - 1 ? 'disabled' : ''}>↓</button>
+        </span>
+      </li>`).join('');
+    el.innerHTML = `
+      <ol class="pred-list">${lista}</ol>
+      <button type="button" class="btn btn-primary" id="prediccionesEnviar">Enviar predicción</button>`;
+    el.querySelectorAll('[data-move]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const idx = prediccionesOrder.indexOf(id);
+        const destino = btn.dataset.move === 'up' ? idx - 1 : idx + 1;
+        if (destino < 0 || destino >= prediccionesOrder.length) return;
+        [prediccionesOrder[idx], prediccionesOrder[destino]] = [prediccionesOrder[destino], prediccionesOrder[idx]];
+        prediccionesRenderLista();
+      });
+    });
+    document.getElementById('prediccionesEnviar').addEventListener('click', () => prediccionesSubmit());
+  }
+
+  function prediccionesSubmit() {
+    const torneoId = (clasifCategorias[clasifCategoriaActual] || {}).torneoId;
+    const endpoint = (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.prediccionesProxyEndpoint) || 'proxy/predicciones.php';
+    const btn = document.getElementById('prediccionesEnviar');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ torneoId, fase: 'clasificatoria', ranking: prediccionesOrder }),
+    })
+      .then(r => r.json())
+      .then(body => {
+        if (!body.ok) throw new Error(body.error || 'Error al enviar la predicción.');
+        localStorage.setItem(prediccionesLocalKey(torneoId), '1');
+        prediccionesInit(torneoId, Object.values(prediccionesParticipantsById));
+      })
+      .catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Enviar predicción';
+        alert('No se ha podido enviar la predicción. Inténtalo de nuevo.');
+      });
+  }
+
+  function prediccionesRenderResultado(torneoId, numParticipantes) {
+    const el = document.getElementById('prediccionesResultado');
+    el.innerHTML = '<div class="challonge-placeholder"><div class="spinner"></div></div>';
+    fetch(FIREBASE_DB_URL + '/predicciones/' + encodeURIComponent(torneoId) + '/clasificatoria/votos.json')
+      .then(r => r.json())
+      .then(votos => {
+        votos = (votos && typeof votos === 'object' && !votos.error) ? votos : {};
+        const votosArr = Object.values(votos);
+        if (!votosArr.length) {
+          el.innerHTML = '<p class="hint">Todavía no hay predicciones para esta categoría — ¡sé el primero!</p>';
+          return;
+        }
+        const puntos = {};
+        votosArr.forEach(v => {
+          (v.ranking || []).forEach((id, i) => {
+            puntos[id] = (puntos[id] || 0) + ((v.ranking.length - i));
+          });
+        });
+        const maxPosible = votosArr.length * numParticipantes;
+        const filas = Object.keys(puntos)
+          .sort((a, b) => puntos[b] - puntos[a])
+          .map(id => {
+            const pct = Math.round((puntos[id] / maxPosible) * 100);
+            const nombre = (prediccionesParticipantsById[id] || {}).name || '?';
+            return `
+              <div class="pred-resultado-item">
+                <span class="pr-name">${nombre}</span>
+                <span class="pr-bar-wrap"><span class="pr-bar" style="width:${pct}%;"></span></span>
+                <span class="pr-pct">${pct}%</span>
+              </div>`;
+          }).join('');
+        el.innerHTML = `<p class="hint">${votosArr.length} predicción${votosArr.length === 1 ? '' : 'es'} recibida${votosArr.length === 1 ? '' : 's'}.</p>${filas}`;
+      })
+      .catch(() => { el.innerHTML = '<p class="hint">No se han podido cargar las predicciones.</p>'; });
+  }
+
+  function prediccionesInit(torneoId, participants) {
+    const wrap = document.getElementById('prediccionesWrap');
+    if (!torneoId || !participants || participants.length < 2) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+
+    prediccionesParticipantsById = {};
+    participants.forEach(p => { prediccionesParticipantsById[p.id] = p; });
+    prediccionesOrder = participants.map(p => p.id);
+
+    const yaVoto = localStorage.getItem(prediccionesLocalKey(torneoId)) === '1';
+    const formEl = document.getElementById('prediccionesForm');
+    if (yaVoto) {
+      formEl.innerHTML = `
+        <p class="predicciones-status ok">✅ Ya has enviado tu predicción para esta categoría.</p>
+        <button type="button" class="btn btn-outline-dark" id="prediccionesEditar">Volver a predecir</button>`;
+      document.getElementById('prediccionesEditar').addEventListener('click', () => {
+        localStorage.removeItem(prediccionesLocalKey(torneoId));
+        prediccionesRenderLista();
+      });
+    } else {
+      prediccionesRenderLista();
+    }
+    prediccionesRenderResultado(torneoId, participants.length);
   }
 
   function clasifRenderVista(data, esEliminacionSimple) {
@@ -1696,6 +1887,7 @@
       vistaTabs.style.display = esEliminacionSimple ? 'flex' : 'none';
       if (!esEliminacionSimple) clasifVistaActual = 'tabla';
       clasifRenderVista(data, esEliminacionSimple);
+      prediccionesInit(id, data.participants || []);
     });
   }
 

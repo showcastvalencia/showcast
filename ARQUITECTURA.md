@@ -30,6 +30,7 @@ Este documento explica cómo encajan las piezas, por qué se tomaron ciertas dec
 16. [Limitaciones conocidas (asumidas, no bugs)](#16-limitaciones-conocidas-asumidas-no-bugs)
 17. [Dónde viven los secretos](#17-dónde-viven-los-secretos)
 18. [Qué queda pendiente](#18-qué-queda-pendiente)
+19. [Sistema de predicciones propio (fase clasificatoria)](#19-sistema-de-predicciones-propio-fase-clasificatoria)
 
 ---
 
@@ -407,7 +408,36 @@ Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que rege
 | Personal Access Token de GitHub | `localStorage` del navegador, pegado en `admin.html` | que el editor de contenido pueda abrir PRs |
 | Config del SDK de Firebase | `megadraft/js/firebase-config.js` y `historial/js/firebase-config.js` (sí están en git, mismo proyecto `showcast-md`) | inicializar Firebase — **no es secreta**, es pública por diseño; la seguridad real la dan las reglas de la base de datos, no el secretismo de estas claves |
 | PIN de `megadraft/admin.html` | hardcodeado en el JS del propio archivo | disuasión visual, no seguridad (§16) |
+| Database secret de Firebase + sal de hash de IP | `proxy/config.php` (mismo archivo, excluido por `.gitignore`) | que `proxy/predicciones.php` pueda escribir en `/predicciones` saltándose las reglas de la base de datos, y que la IP de cada votante nunca se guarde en claro (§19) |
 
 ## 18. Qué queda pendiente
 
 **Animación de revelado en `stream.html`**: el panel lateral de "última elección" en la vista de stream tiene una animación CSS provisional. Se decidió explícitamente esperar a los archivos oficiales del Fan Kit de Supercell (ilustraciones/gifs de personaje a tamaño grande) antes de construir la versión final — no hay que iterar más sobre esto hasta que esos assets lleguen.
+
+**Fase eliminatoria del sistema de predicciones** (§19): de momento solo existe la fase clasificatoria (ranking por puntos). La fase eliminatoria (elegir ganador de cada cruce del bracket, con reapertura de voto si el cruce real no coincide con lo predicho) queda para una segunda entrega — ver el plan completo en el historial de la conversación.
+
+**Reglas de Firebase del nodo `/predicciones` sin aplicar todavía en la consola real**: el bloque de reglas de §19/`megadraft/README-FIREBASE.md` está documentado pero alguien con acceso a la consola de Firebase (`showcast-md`) tiene que pegarlo a mano en Realtime Database → Reglas → Publicar, igual que se hizo la primera vez para Megadraft/Historial — hasta entonces, `GET .../predicciones/...json` devuelve `{"error":"Permission denied"}` (el código ya lo trata como "sin predicciones todavía", no rompe nada, pero tampoco se puede votar de verdad).
+
+## 19. Sistema de predicciones propio (fase clasificatoria)
+
+Challonge tiene su propia función de "predictions" (pronósticos de bracket), pero se investigó a fondo (documentación oficial v1/v2.1 + fuentes secundarias) y es **100% interna a su web**: no hay ningún endpoint público que permita leer ni agregar los pronósticos de la gente. Así que para que Showcast pueda mostrar en pantalla "cuánto apoyo tiene cada equipo", hacía falta un sistema propio, completamente separado de Challonge.
+
+**El problema de partida**: los eventos de Showcast son pequeños. Una votación de "un clic = un equipo" daría muy pocos datos útiles (5-10 votos repartidos entre 8 equipos no dice nada interesante). La solución: **cada votante ordena TODOS los equipos**, del que cree que va a quedar 1º al que cree que va a quedar último — así cada voto aporta señal sobre todos los equipos, no solo sobre uno, y el agregado es interesante incluso con pocos votantes.
+
+**Puntuación (Borda count)**: con N equipos, el puesto 1º del ranking de un votante vale N puntos para ese equipo, el 2º vale N-1, ... el último vale 1 punto. Sumando los puntos de todos los votantes por equipo se obtiene el ranking agregado de "apoyo", mostrado como % sobre el máximo posible (`puntos del equipo / (nº de votantes × N equipos) × 100`) — un equipo con 100% significaría que todo el mundo lo puso 1º.
+
+**Anti-duplicados por IP, sin poder hacerlo desde el navegador**: el navegador no puede leer ni demostrar su propia IP de forma fiable, así que a diferencia de Clasificaciones (que llama a `proxy/challonge.php` directamente desde el navegador), los votos van a un endpoint PHP nuevo: **`proxy/predicciones.php`** (mismo patrón que los otros proxies — código en el repo, secretos en `proxy/config.php` fuera de git). Este proxy:
+- Es **de solo escritura** — no lee ni expone nada de Firebase, solo recibe `POST {torneoId, fase, ranking}`.
+- Lee `$_SERVER['REMOTE_ADDR']` del lado servidor y calcula `hash('sha256', ip + PREDICCIONES_IP_SALT)` — nunca guarda la IP en claro.
+- Usa ese hash como clave del voto en Firebase: `PUT /predicciones/{torneoId}/clasificatoria/votos/{ipHash}.json`. Si la misma IP vuelve a votar, **sobrescribe** su voto anterior en vez de duplicarlo — no bloquea revotar, solo evita contar dos veces a la misma persona.
+- La escritura usa el **database secret** heredado de Firebase (`FIREBASE_DB_SECRET` en `proxy/config.php`), que bypassa las reglas de seguridad por completo — por eso tiene que quedarse en el servidor, nunca en JavaScript de cliente.
+
+**Lectura**: a diferencia de la escritura, la lectura de los votos agregados la hace **directamente el navegador** contra la Realtime Database (`GET https://showcast-md-default-rtdb.../predicciones/{torneoId}/clasificatoria/votos.json`, pública por reglas — igual que ya hace `screen.html` de Megadraft con su propio nodo) — no hace falta pasar por ningún proxy para leer, solo para escribir. El cálculo de puntos/porcentajes se hace en el JS de `index.html` (`prediccionesRenderResultado`), mismo reparto de trabajo que ya usa Clasificaciones con los datos de Challonge.
+
+**Dónde vive el dato**: mismo proyecto Firebase `showcast-md` que ya comparten Megadraft e Historial, nodo nuevo `/predicciones/{torneoId}/clasificatoria/votos/{ipHash}: {ranking: [...ids de participante], ts}`. Es la **primera vez que `index.html`** (el sitio principal) toca esta base de datos — hasta ahora solo la tocaban Megadraft e Historial. Reglas nuevas en `megadraft/README-FIREBASE.md`: `"predicciones": { ".read": true, ".write": false }` — nadie puede escribir por las reglas normales (ni con `auth != null`, porque el sitio principal no tiene ningún login de visitante), solo el proxy con el database secret salta esa restricción.
+
+**Dónde vive la UI**: dentro de `#clasificaciones` en `index.html`, en una caja nueva `.predicciones-wrap` justo debajo de la tabla/bracket ya existentes. Reutiliza los participantes que ya trae `clasifFetchTorneo` (mismo torneo de Challonge que Tabla/Bracket) — no hace ninguna llamada nueva a Challonge. El reordenamiento de equipos se hace con botones ↑/↓ por fila (`pi-moves`) en vez de arrastrar — más simple de implementar en JS vainilla y funciona igual de bien en móvil. `localStorage` recuerda si el visitante ya votó en ese torneo concreto (`pred_{torneoId}`) para no mostrarle el formulario de nuevo — es solo una comodidad de UI, el deduplicado real (evitar contar dos votos como dos personas distintas) lo hace el hash de IP en el servidor, no esto.
+
+**Endpoint nuevo en `content.js`/`admin.html`**: `prediccionesProxyEndpoint` (mismo patrón que `challongeProxyEndpoint`/`brawlProxyEndpoint` — campo de formulario + `fillForm`/`collectForm`/bloque semilla añadidos en el mismo cambio, para no repetir el bug de §15).
+
+**Qué falta (segunda entrega, ver §18)**: la fase eliminatoria (elegir ganador de cada cruce del bracket por adelantado, con reapertura de voto si el cruce real no coincide con lo predicho) y aplicar las reglas de Firebase de verdad en la consola — sin eso, la sección de predicciones se ve pero no hay forma real de votar en producción todavía.
