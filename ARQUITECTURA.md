@@ -416,9 +416,7 @@ Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que rege
 
 **Animación de revelado en `stream.html`**: el panel lateral de "última elección" en la vista de stream tiene una animación CSS provisional. Se decidió explícitamente esperar a los archivos oficiales del Fan Kit de Supercell (ilustraciones/gifs de personaje a tamaño grande) antes de construir la versión final — no hay que iterar más sobre esto hasta que esos assets lleguen.
 
-**Fase eliminatoria del sistema de predicciones** (§19): de momento solo existe la fase clasificatoria (ranking por puntos). La fase eliminatoria (elegir ganador de cada cruce del bracket, con reapertura de voto si el cruce real no coincide con lo predicho) queda para una segunda entrega — ver el plan completo en el historial de la conversación.
-
-**Reglas de Firebase del nodo `/predicciones` sin aplicar todavía en la consola real**: el bloque de reglas de §19/`enfrentamientos/README-FIREBASE.md` está documentado pero alguien con acceso a la consola de Firebase (`showcast-md`) tiene que pegarlo a mano en Realtime Database → Reglas → Publicar, igual que se hizo la primera vez para Enfrentamientos/Historial — hasta entonces, `GET .../predicciones/...json` devuelve `{"error":"Permission denied"}` (el código ya lo trata como "sin predicciones todavía", no rompe nada, pero tampoco se puede votar de verdad).
+**Fase eliminatoria del sistema de predicciones** (§19): de momento solo existe la fase clasificatoria (ranking por puntos), ya en producción de verdad (reglas publicadas, `proxy/predicciones.php` desplegado en la VM, probado extremo a extremo con un voto real). La fase eliminatoria (elegir ganador de cada cruce del bracket, con reapertura de voto si el cruce real no coincide con lo predicho) queda para una segunda entrega — ver el plan completo en el historial de la conversación.
 
 ## 19. Sistema de predicciones propio (fase clasificatoria)
 
@@ -442,4 +440,6 @@ Challonge tiene su propia función de "predictions" (pronósticos de bracket), p
 
 **Endpoint nuevo en `content.js`/`admin.html`**: `prediccionesProxyEndpoint` (mismo patrón que `challongeProxyEndpoint`/`brawlProxyEndpoint` — campo de formulario + `fillForm`/`collectForm`/bloque semilla añadidos en el mismo cambio, para no repetir el bug de §15).
 
-**Qué falta (segunda entrega, ver §18)**: la fase eliminatoria (elegir ganador de cada cruce del bracket por adelantado, con reapertura de voto si el cruce real no coincide con lo predicho) y aplicar las reglas de Firebase de verdad en la consola — sin eso, la sección de predicciones se ve pero no hay forma real de votar en producción todavía.
+**Ya en producción de verdad** (verificado extremo a extremo el 29 de agosto de 2026): `FIREBASE_DB_SECRET`/`PREDICCIONES_IP_SALT` reales rellenados en el `config.php` de la VM, `proxy/predicciones.php` subido al servidor (`/var/www/html/proxy/`, tenía que subirse a mano igual que los demás proxies — no forma parte del despliegue automático de GitHub Pages), reglas de Firebase publicadas, y comprobado con un voto de prueba real: `POST` al proxy → hash de IP guardado en Firebase → lectura pública del voto → dato de prueba borrado después.
+
+**Qué falta (segunda entrega, ver §18)**: solo la fase eliminatoria (elegir ganador de cada cruce del bracket por adelantado, con reapertura de voto si el cruce real no coincide con lo predicho).
