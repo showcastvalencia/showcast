@@ -1,6 +1,6 @@
 # Guía de la API de Challonge
 
-> **Implementado y probado contra un torneo real (20 agosto 2026).** El subsistema `historial/` (proxy, panel de administración, pantalla pública) ya existe en el repositorio. Este documento sigue siendo la referencia de diseño; la sección 4 (Autenticación) se actualizó tras descubrir, al implementarlo, que Challonge ya no ofrece la clave v1 simple para aplicaciones nuevas.
+> **Implementado y probado contra un torneo real (20 agosto 2026).** El cruce Challonge + Brawl Stars descrito aquí ya existe en el repositorio — al principio como el subsistema separado `historial/` (proxy, panel de administración, pantalla pública), después fusionado (29 agosto 2026) dentro de `#clasificaciones` en `index.html` y del panel "Clasificaciones — vinculación de equipos" en `admin.html`, ver `ARQUITECTURA.md` §14. Este documento sigue siendo la referencia de diseño; la sección 4 (Autenticación) se actualizó tras descubrir, al implementarlo, que Challonge ya no ofrece la clave v1 simple para aplicaciones nuevas.
 
 Challonge es el servicio que ya usan muchísimas comunidades de esports para publicar brackets (llaves) de torneo: eliminación simple, doble, round robin y suizo. Este documento explica su API pública paso a paso — autenticación, recursos, límites reales de cuota — y, en la segunda mitad, el diseño concreto que Showcast construye: **usar Challonge solo en lectura** (el torneo y los equipos se siguen dando de alta a mano en la web de Challonge, como siempre) y cruzar cada partido con el *battlelog* de la API de Brawl Stars para tener un historial propio con qué personajes se usaron en cada partida.
 
@@ -310,7 +310,7 @@ Se activa al crear el torneo, con dos bloques nuevos de configuración:
 ```
 pending ──start_group_stage──→ group stage en curso
      (se reportan los partidos de grupos con el mismo
-      endpoint PUT de matches que en §8, con group_id)
+      endpoint PUT de matches que en §8)
                       │
             finalize_group_stage
                       ▼
@@ -321,7 +321,9 @@ pending ──start_group_stage──→ group stage en curso
                torneo completo (final_rank asignado a cada participante)
 ```
 
-Los partidos de la fase de grupos son partidos normales (mismo endpoint `PUT .../matches/{id}` de siempre), solo que llevan un `group_id` asociado. Al terminar y llamar a `finalize_group_stage`, Challonge calcula automáticamente quién avanza según `participant_count_to_advance_per_group` y genera el bracket de la fase final ya con esos equipos.
+Los partidos de la fase de grupos son partidos normales (mismo endpoint `PUT .../matches/{id}` de siempre). Al terminar y llamar a `finalize_group_stage`, Challonge calcula automáticamente quién avanza según `participant_count_to_advance_per_group` y genera el bracket de la fase final ya con esos equipos.
+
+> ⚠️ **Corrección tras probar contra un torneo real** (`w0qlsvze`, 29 agosto 2026, ver `ARQUITECTURA.md` §14): el **partido** de la API v2.1 real **no** lleva ningún campo `group_id` (a diferencia de lo que se documentó aquí originalmente, antes de probarlo). El que sí lo lleva es el **participante** — cada participante trae su `group_id` (todos los de un mismo grupo comparten el mismo valor). Para saber si un partido pertenece a la fase de grupos hay que mirar el `group_id` de sus participantes, no el del partido. `assets/js/clasificaciones-logic.js` (`isGroupStageMatch()`) hace esto así.
 
 ---
 

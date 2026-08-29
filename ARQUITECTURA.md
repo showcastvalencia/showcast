@@ -50,14 +50,18 @@ Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visu
 
 ```
 /
-├── index.html              # sitio público — landing + inscripciones
+├── index.html              # sitio público — landing + inscripciones + Clasificaciones (ver §4/§14)
 ├── content.js               # todo el texto/imágenes del sitio, en un objeto JS
-├── admin.html                # editor visual de content.js — NO está en git (ver §6)
+├── admin.html                # editor visual de content.js — NO está en git (ver §6). También aloja
+│                               el panel de vinculación de equipos/tags de Clasificaciones (§14).
 ├── assets/
 │   ├── logo.png
-│   ├── brawlers.json          # catálogo de 106 Brawlers para Enfrentamientos
+│   ├── brawlers.json          # catálogo de 106 Brawlers para Enfrentamientos y Clasificaciones
 │   ├── brawlers/*.png          # iconos autoalojados de cada Brawler (ver §15)
-│   └── uploads/*.jpg            # fotos subidas desde admin.html
+│   ├── uploads/*.jpg            # fotos subidas desde admin.html
+│   └── js/
+│       └── clasificaciones-logic.js  # cruce Challonge + battlelog de Brawl Stars — compartido
+│                                        entre index.html (solo lectura) y admin.html (lectura+escritura)
 ├── proxy/
 │   ├── brawlstars.php            # intermediario hacia la API oficial de Brawl Stars
 │   ├── challonge.php              # intermediario hacia la API de Challonge (solo lectura)
@@ -66,25 +70,20 @@ Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visu
 │   └── .htaccess                     # bloquea el acceso directo a config.php
 ├── google-apps-script/
 │   └── Code.gs                      # recibe el formulario → fila en Google Sheets
-├── enfrentamientos/                        # subsistema del draft en vivo — ver §9
-│   ├── index.html                     # portada: "soy capitán" / pantalla principal
-│   ├── draft.html                      # vista del capitán (login por PIN + picks)
-│   ├── admin.html                       # panel del organizador — con PIN de acceso
-│   ├── screen.html                       # pantalla/proyector, solo lectura
-│   ├── stream.html                        # salida 16:9 pensada para OBS
-│   ├── enfrentamientos.css                       # estilos propios del subsistema
-│   ├── README-FIREBASE.md                   # cómo montar el proyecto Firebase desde cero (reglas de AMBOS: enfrentamientos e historial)
-│   └── js/
-│       ├── firebase-config.js                 # claves públicas del SDK de Firebase
-│       └── draft-logic.js                      # TODA la lógica compartida entre páginas
-└── historial/                          # subsistema de historial de partidas — ver §14
-    ├── index.html                       # pantalla pública: partidos por ronda, expandibles
-    ├── admin.html                        # panel: vincular participantes, disparar el cruce
-    ├── historial.css                      # estilos propios del subsistema
+└── enfrentamientos/                        # subsistema del draft en vivo — ver §9
+    ├── index.html                     # portada: "soy capitán" / pantalla principal
+    ├── draft.html                      # vista del capitán (login por PIN + picks)
+    ├── admin.html                       # panel del organizador — con PIN de acceso
+    ├── screen.html                       # pantalla/proyector, solo lectura
+    ├── stream.html                        # salida 16:9 pensada para OBS
+    ├── enfrentamientos.css                       # estilos propios del subsistema
+    ├── README-FIREBASE.md                   # cómo montar el proyecto Firebase desde cero (reglas de Enfrentamientos y Clasificaciones)
     └── js/
-        ├── firebase-config.js               # mismo proyecto Firebase que Enfrentamientos (showcast-md)
-        └── historial-logic.js                # algoritmo de correlación Challonge ↔ Brawl Stars
+        ├── firebase-config.js                 # claves públicas del SDK de Firebase (reutilizadas también por admin.html)
+        └── draft-logic.js                      # TODA la lógica compartida entre páginas
 ```
+
+> El antiguo subsistema `historial/` (pantalla y admin separados) se retiró: su lógica se fusionó dentro de `#clasificaciones` en `index.html` y del panel "Clasificaciones — vinculación de equipos" en `admin.html` — ver §14.
 
 No hay `package.json`, ni bundler, ni framework. Cada HTML carga sus `<script>` directamente por CDN o ruta relativa. Esto es deliberado: cualquiera puede abrir un archivo, editarlo y recargar la página sin instalar nada.
 
@@ -126,7 +125,7 @@ Los enlaces a "Historial de partidas" (`historial/index.html`) y "Enfrentamiento
 
 **Galería = ediciones del torneo, agrupadas por ciudad** (`#galeria`): acordeón de **dos niveles**. El nivel exterior agrupa por `ciudad` (dos categorías principales: Puçol y Sagunto) — se calcula en JS a partir del array plano `galeriaEdiciones` (primer orden de aparición decide el orden de las ciudades, sin campo de orden explícito). Dentro de cada ciudad, un sub-acordeón (`.gallery-accordion.nested`, mismas clases `.gallery-edicion`/`.gallery-edicion-toggle`/`.gallery-edicion-body` con el modificador `.sub`) lista sus años (`anio`): fecha (placeholder "📅 Próximamente" hasta rellenarla), ubicación en texto + su propio iframe de Google Maps (`https://www.google.com/maps?q=<ubicación>, Valencia&output=embed`, un mapa por año, no uno compartido por ciudad) y las fotos/vídeos de esa edición concreta (con el placeholder "Todavía no hay fotos en este apartado" ya existente cuando está vacía). El listener de apertura/cierre no distingue niveles — un único `wrap.querySelectorAll('.gallery-edicion-toggle')` sobre todo el árbol ya cubre los toggles anidados. Esto sustituye lo que antes eran tres cosas separadas (galería plana, sección `#mapa`, timeline "Torneos ya organizados"), fusionadas primero en una tarjeta por edición y ahora agrupadas por ciudad. Ediciones actuales: Puçol (2024 — con fotos reales, 2025, 2026) y Sagunto (2025), ubicación "Espai Jove Puçol" o "Casal Jove del Port de Sagunt" respectivamente.
 
-**Clasificaciones** (`#clasificaciones`): tabla de resultados y bracket visual propios, ya no un iframe de Challonge. Reutiliza `proxy/challonge.php` (§14) sin cambiarlo. Pestañas de categoría generadas dinámicamente desde `content.js.clasificaciones.categorias` (1 o 2 categorías, nombre + ID de torneo, editable desde `admin.html`) — con 1 sola categoría no se muestra ninguna pestaña que elegir. Un segundo interruptor "Tabla"/"Bracket" solo aparece si el torneo activo tiene `tournamentType: "single elimination"`: la API de Challonge no expone ningún campo que enlace un partido con el siguiente (nada tipo `next_match_id`), así que el árbol solo se puede dibujar de forma fiable asumiendo el emparejamiento binario estándar por `round`/`suggested_play_order` — válido para eliminación simple, sin sentido para suizo/liga (para esos formatos solo se ofrece la tabla, con una nota explicándolo).
+**Clasificaciones** (`#clasificaciones`): tabla de posiciones real + bracket + cruce con el battlelog de Brawl Stars, todo propio — nunca un iframe de Challonge. Fusiona lo que antes eran dos sistemas separados (la vieja tabla/bracket de esta sección, alimentada solo por Challonge, y el subsistema `historial/`, retirado) — ver el diseño completo en §14. Cada torneo de Challonge es de **dos fases** (grupos → final); un interruptor "Fase de grupos"/"Fase final" solo aparece si el torneo tiene partidos de ambas fases. Todo es clicable: una fila de la tabla de posiciones abre el roster del equipo, una fila de partido o una caja del bracket abre el detalle del partido (mapa, modo, Brawlers elegidos, si ya se cruzó con Brawl Stars), y un jugador dentro de ese detalle abre su perfil. Pestañas de categoría generadas dinámicamente desde `content.js.clasificaciones.categorias` (1 o 2 categorías, nombre + ID de torneo, editable desde `admin.html`) — con 1 sola categoría no se muestra ninguna pestaña que elegir.
 
 **Galería — menú de descarga**: al pulsar una foto (no vídeos/YouTube) se abre un modal con 3 versiones para descargar — Original, Mediana (−20% de resolución) y Pequeña (−40%) — cada una mostrando sus píxeles y peso reales. Las versiones reducidas se generan al vuelo en el navegador con `<canvas>` (`drawImage` a la escala correspondiente + `toBlob('image/jpeg', calidad)`), no hay backend de procesamiento de imágenes.
 
@@ -169,6 +168,8 @@ Es un formulario que refleja campo a campo la forma de `content.js` (título del
 Nunca hace commit ni merge directo — la persona que gestiona la web revisa y fusiona la PR desde GitHub, igual que cualquier otro cambio de código. Esto es intencional: da un punto de revisión humano entre "alguien edita el formulario" y "el cambio está en producción", sin que esa persona necesite saber usar git.
 
 **Por qué está fuera de git**: el PAT de GitHub se pega en un `<input>` y se guarda en `localStorage` del navegador para no tener que volver a pegarlo cada vez. Es una herramienta interna de gestión de contenido, no algo pensado para visitantes. Mantenerlo fuera del repo público es más simple que añadirle autenticación.
+
+**Panel "Clasificaciones — vinculación de equipos" (Firebase, no GitHub)**: a diferencia de todo lo demás en este archivo, este panel no toca `content.js` ni pasa por el flujo de PR — escribe directamente en la Realtime Database de Firebase (`/clasificaciones/{torneoId}`, ver §14), con sesión anónima igual que `enfrentamientos/admin.html`. Necesita el SDK de Firebase (`firebase-app-compat.js`/`firebase-database-compat.js`/`firebase-auth-compat.js`) y `enfrentamientos/js/firebase-config.js`, cargados solo en este archivo — es la primera vez que `admin.html` habla con Firebase.
 
 ## 7. Inscripciones — Google Apps Script
 
@@ -275,13 +276,13 @@ El requisito era que el organizador solo tuviera que pulsar **un botón** ("Inic
 
 **Quién dispara el paso de "preparación" a "elección"**: no hay un servidor que vigile el reloj. En su lugar, **todas** las páginas conectadas (incluidas `screen.html` y `stream.html`, que antes eran de solo lectura) ejecutan `MD.maybeAdvancePrepPhase(state)` en su propio `setInterval`. La función comprueba si el tiempo de preparación ya llegó a cero y, si es así, escribe la transición. Es una escritura redundante e idempotente: la primera pestaña que lo detecta gana, todas las demás ven el estado ya actualizado y no hacen nada. Por eso `screen.html` y `stream.html` tuvieron que empezar a llamar a `MD.signInAnon()` aunque nadie interactúe con ellas — necesitan permiso de escritura para poder disparar ese cambio de fase si son la única pestaña abierta.
 
-## 14. Historial de partidas: cruce Challonge + Brawl Stars
+## 14. Clasificaciones: tabla de posiciones + bracket + cruce con Brawl Stars
 
-Un tercer subsistema, `historial/`, independiente de Enfrentamientos aunque comparte su mismo proyecto Firebase. Diseño completo y contexto en [`CHALLONGE-API.md`](CHALLONGE-API.md) — este apartado es el resumen operativo.
+`#clasificaciones` en `index.html` fusiona lo que originalmente eran dos sistemas separados: la vieja tabla/bracket de esta sección (alimentada solo por Challonge, sin datos de Brawl Stars) y el subsistema `historial/` (cruce Challonge + battlelog, con su propia pantalla y admin aparte). Ahora es un único sistema: la lógica de cruce vive en [`assets/js/clasificaciones-logic.js`](assets/js/clasificaciones-logic.js) (namespace `CD`), leída por `index.html` (solo lectura) y por `admin.html` (lectura + escritura, panel "Clasificaciones — vinculación de equipos"). Diseño completo y contexto de la API de Challonge en [`CHALLONGE-API.md`](CHALLONGE-API.md) — este apartado es el resumen operativo.
 
-**Qué hace**: Challonge sabe quién jugó contra quién y quién ganó; Brawl Stars sabe qué Brawler usó cada uno y en qué mapa. Ninguno de los dos sabe del otro. `historial/admin.html` cruza ambos por tiempo y por jugadores cuando el organizador pulsa **"Actualizar historial de partidas"** (nunca automático — ver el aviso de cuota en `CHALLONGE-API.md` §11), y guarda el resultado combinado en Firebase para que `historial/index.html` lo muestre al público.
+**Qué hace**: Challonge sabe quién jugó contra quién y quién ganó; Brawl Stars sabe qué Brawler usó cada uno y en qué mapa. Ninguno de los dos sabe del otro. `admin.html` cruza ambos por tiempo y por jugadores cuando el organizador pulsa **"Actualizar historial de partidos"** (nunca automático — ver el aviso de cuota en `CHALLONGE-API.md` §11), y guarda el resultado combinado en Firebase para que `index.html` lo muestre al público.
 
-**Challonge se sigue gestionando 100% a mano** en challonge.com — crear el torneo, dar de alta equipos, iniciar fases, reportar resultados. La API (via `proxy/challonge.php`) solo se usa para **leer**, nunca para escribir; es una decisión de diseño deliberada, no una limitación técnica.
+**Cada torneo es de dos fases** (grupos → final), creado y gestionado 100% a mano en challonge.com — crear el torneo, dar de alta equipos, iniciar fases, reportar resultados. La API (vía `proxy/challonge.php`, sin cambios) solo se usa para **leer**, nunca para escribir.
 
 **Autenticación de Challonge — OAuth2 Client Credentials, no una clave simple.** A diferencia de Brawl Stars (una sola clave JWT que se pega y ya está), Challonge migró su Developer Portal a `connect.challonge.com` y ya no permite generar una clave v1 suelta para aplicaciones nuevas. Hace falta:
 1. Crear una "Application" en `connect.challonge.com` (ya hecha: **"Showcast — Historial de partidas"**, id `58701`) → da un `Client ID` + `Client Secret`.
@@ -291,39 +292,43 @@ Un tercer subsistema, `historial/`, independiente de Enfrentamientos aunque comp
 **Tres bugs reales encontrados al desplegar contra un torneo real** (no en desarrollo local, donde todo parecía funcionar):
 - El endpoint de la API v2.1 es `/v2.1/tournaments/{id}.json` (**plural**) — parte de la documentación oficial de Challonge todavía muestra el singular (`/tournament/{id}.json`, heredado de v1), que devuelve 404 aunque el torneo exista.
 - Falta la cabecera `Content-Type: application/vnd.api+json` en la petición `GET`, aunque no lleve cuerpo — sin ella, la API responde `415 Unsupported Media Type`.
-- Un partido de la API v2.1 **no** tiene `player1_id`/`player2_id`/`scores_csv` (nombres heredados de v1 que aparecían en ejemplos de documentación) — usa `points_by_participant` (array de `{participant_id, scores}`) y la fecha de actualización va anidada en `timestamps.updated_at`. `historial-logic.js` tiene `matchParticipantIds()`/`matchUpdatedAt()` para normalizar esto.
+- Un partido de la API v2.1 **no** tiene `player1_id`/`player2_id`/`scores_csv` (nombres heredados de v1 que aparecían en ejemplos de documentación) — usa `points_by_participant` (array de `{participant_id, scores}`) y la fecha de actualización va anidada en `timestamps.updated_at`. `clasificaciones-logic.js` tiene `matchParticipantIds()`/`matchUpdatedAt()` para normalizar esto.
 
-**Modelo de datos** (nodo nuevo `/historial` en el mismo Firebase `showcast-md` de Enfrentamientos, reglas en [`enfrentamientos/README-FIREBASE.md`](enfrentamientos/README-FIREBASE.md)):
+**Modelo de datos** (nodo `/clasificaciones` en el mismo Firebase `showcast-md` de Enfrentamientos, reglas en [`enfrentamientos/README-FIREBASE.md`](enfrentamientos/README-FIREBASE.md)), indexado directamente por el id/slug del torneo de Challonge — sin ningún identificador local aparte:
 
 ```
-/historial/{torneoSlug}/
-  meta: { challongeTournamentId, nombre, actualizadoEn }
-  participantes/{challongeParticipantId}: { nombre, tags: ["#XXXX", ...] }
+/clasificaciones/{torneoId}/
+  meta: { nombre, actualizadoEn }
+  participantes/{challongeParticipantId}: { nombreEquipo, tags: ["#XXXX", ...] }
   matches/{challongeMatchId}: {
-    ronda, equipoA, equipoB, resultadoChallonge,
+    ronda, esFaseDeGrupos, equipoA, equipoB, resultadoChallonge,
     juegos: [ { orden, battleTime, modo, mapa, duracion, ganador, picksEquipoA, picksEquipoB } ]
   }
   procesados/{challongeMatchId}: true
 ```
 
-`juegos[].ganador` es `"equipoA"` / `"equipoB"` / `"empate"` / `null` — traducido de `battle.result` de Brawl Stars (`"victory"`/`"defeat"`/`"draw"`), que es la perspectiva del jugador cuyo battlelog se consultó, no dice directamente qué equipo ganó. Hay que mirar en qué lado estaba ese jugador para saberlo (`resultadoJuego()` en `historial-logic.js`).
+`esFaseDeGrupos` distingue los partidos de la fase de grupos de los de la fase final — es lo que decide qué pestaña ("Fase de grupos"/"Fase final") muestra cada partido y si se calcula tabla de posiciones o bracket. **Corrección tras probar contra un torneo real** (`w0qlsvze`, 29 agosto 2026): el diseño original (§9 de `CHALLONGE-API.md`) asumía que el propio **partido** llevaría un campo `group_id` — no es así, la API v2.1 real no expone ningún `group_id` en el objeto de partido. Lo que sí lleva `group_id` es el **participante** (confirmado: los 8 equipos de ese torneo de prueba comparten el mismo `group_id`, al estar todos en un único grupo suizo). `CD.isGroupStageMatch(match, participantsById)` ahora mira si alguno de los dos participantes del partido tiene `group_id` asignado, en vez de mirar el partido. Esto asume un solo grupo por fase (el caso real de Showcast — un grupo suizo de todos contra todos que corta a un top N); no distingue entre varios grupos si un torneo los tuviera. `nombreEquipo` permite que el nombre mostrado en el sitio difiera del nombre del participante en Challonge, sin tocar nada en Challonge — si no se rellena, se usa el nombre de Challonge tal cual.
 
-La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Stars" se hace a mano desde `historial/admin.html` (con pre-relleno automático si existe un equipo de Enfrentamientos con el mismo nombre) — no se asume que el torneo tenga que venir de Enfrentamientos.
+`juegos[].ganador` es `"equipoA"` / `"equipoB"` / `"empate"` / `null` — traducido de `battle.result` de Brawl Stars (`"victory"`/`"defeat"`/`"draw"`), que es la perspectiva del jugador cuyo battlelog se consultó, no dice directamente qué equipo ganó. Hay que mirar en qué lado estaba ese jugador para saberlo (`resultadoJuego()` en `clasificaciones-logic.js`).
 
-**Emparejamiento automático**: sala amistosa (`type: "friendly"`) + coinciden **todos** los tags vinculados de cada equipo en el mismo lado de la batalla. Sin ventana de tiempo — se probó primero con un límite de ±30 min, pero era un número mágico frágil que no evitaba los falsos positivos reales (entrenos, revanchas con los mismos jugadores) y sí podía descartar partidas legítimas reportadas tarde. Al no ser infalible (dos equipos pueden jugar más de una sala amistosa entre sí), existen dos herramientas para lo que el automático no resuelva:
+**Tabla de posiciones de la fase de grupos** (`CD.computeStandings()`): no replica el algoritmo exacto de Challonge (con sus desempates propios, p.ej. Buchholz) — es un cálculo propio a partir de los partidos `complete` de la fase de grupos (victorias, derrotas, empates, diferencia de sets), ordenado por victorias y luego por diferencia de sets. Suficiente para mostrar una clasificación real sin tener que replicar bit a bit el ranking interno de Challonge.
 
-- **"Modo de prueba"** (checkbox en `historial/admin.html`): reprocesa partidos ya guardados, acepta cualquier tipo de sala (no solo `friendly`) y basta con que coincida **1** tag por equipo en vez de todos — pensado para poder probar el cruce con una partida real de ladder/ranked cualquiera, sin tener que montar una sala amistosa con la composición exacta del torneo. Muestra además un log de por qué cada batalla candidata encajó o no.
+La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Stars" se hace a mano desde `admin.html` → panel "Clasificaciones — vinculación de equipos" (con pre-relleno automático si existe un equipo de Enfrentamientos con el mismo nombre) — no se asume que el torneo tenga que venir de Enfrentamientos. A diferencia del resto de `admin.html` (que solo edita `content.js` y publica vía PR de GitHub), este panel escribe **directamente en Firebase** — es la primera vez que `admin.html` toca Firebase, con sesión anónima (`signInAnonymously()`) igual que `enfrentamientos/admin.html`.
+
+**Emparejamiento automático**: sala amistosa (`type: "friendly"`) + coinciden **todos** los tags vinculados de cada equipo en el mismo lado de la batalla. Sin ventana de tiempo — se probó primero con un límite de ±30 min, pero era un número mágico frágil que no evitaba los falsos positivos reales (entrenos, revanchas con los mismos jugadores) y sí podía descartar partidas legítimas reportadas tarde. Al no ser infalible (dos equipos pueden jugar más de una sala amistosa entre sí), existen dos herramientas para lo que el automático no resuelva, ambas en el panel de `admin.html`:
+
+- **"Modo de prueba"** (checkbox): reprocesa partidos ya guardados, acepta cualquier tipo de sala (no solo `friendly`) y basta con que coincida **1** tag por equipo en vez de todos — pensado para poder probar el cruce con una partida real de ladder/ranked cualquiera, sin tener que montar una sala amistosa con la composición exacta del torneo. Muestra además un log de por qué cada batalla candidata encajó o no.
 - **"Reajudicar partidos a mano"**: pantalla con vista dividida — a la izquierda el battlelog de un jugador (búsqueda por tag), a la derecha los juegos ya asignados a un partido elegido; arrastrar (drag-and-drop nativo del navegador) una batalla de la izquierda a la derecha la añade al partido, con botón para quitarla y otro para guardar. Sirve para corregir manualmente lo que el emparejamiento automático haya hecho mal.
 
 **Un modo de juego con formato distinto, no soportado**: Duelo (1v1) no usa `battle.teams` (array de equipos) como el resto de modos — usa `battle.players`, una lista plana, con `brawlers` en **plural** por jugador porque se puede cambiar de personaje entre rondas. El proxy no lo normaliza (`teams` sale vacío para esas batallas) — decisión consciente: Duelo no es un modo que se vaya a jugar en el torneo y es poco jugado en general, así que no compensaba la complejidad. Si hiciera falta soportarlo, el código de referencia (sin desplegar) está en la PR #23.
 
-**Diseño visual de la pantalla pública**: cada partido se despliega mostrando, por juego, a los jugadores de cada lado con su icono de Brawler (reutilizando `assets/brawlers.json`/`assets/brawlers/`, ver §15 "iconos no cargaban") en tarjetas cuadradas, con la imagen de marca `assets/VS.png` en el centro (antes era texto "VS" con contorno CSS; se sustituyó por el asset de diseño). El lado ganador de cada juego se resalta con un degradado de color desde el borde exterior hacia dentro (azul, con más alcance) y el perdedor con otro más tenue y de caída más rápida (rojo) — ambos calculados a partir de `juegos[].ganador`. La pantalla usa un listener de Firebase en tiempo real (`.on('value')`, no `.once()`) para que los partidos nuevos aparezan solos sin recargar mientras alguien tiene la pantalla abierta durante el evento.
+**Diseño de los modales clicables**: pulsar una fila de la tabla de posiciones abre el modal de equipo (roster de tags vinculados, cada uno clicable); pulsar un partido (fila de la lista de la fase de grupos, o una caja del bracket de la fase final) abre el modal de partido, con — si ya se cruzó con Brawl Stars — el mapa/modo/duración/Brawler elegido por juego, con el degradado ganador/perdedor calculado a partir de `juegos[].ganador` (azul, con más alcance, para el ganador; rojo, más tenue y de caída más rápida, para el perdedor); pulsar un jugador dentro de ese detalle abre su perfil (icono, nombre, tag, prestigio, trofeos, victorias 3v3, ranked histórico/actual — mismo contenido que el modal "¿Es esta tu cuenta?" de la propia inscripción, §8, consultado con `CD.fetchPlayer(tag)`). Los iconos de Brawler reutilizan `assets/brawlers.json`/`assets/brawlers/` (ver §15 "iconos no cargaban") y la imagen de marca `assets/VS.png`.
 
-**Reajudicación manual y `perspectivaTag`**: `battleToJuego()` necesita que la batalla lleve marcado `perspectivaTag` (el tag desde cuyo battlelog se consultó) para que `resultadoJuego()` pueda traducir `victory`/`defeat` a `equipoA`/`equipoB` — el cruce automático (`correlateMatch()`) lo añade solo. El flujo de arrastrar-y-soltar de "Reajudicar partidos a mano" también tiene que añadirlo explícitamente (con el tag escrito en el buscador) antes de llamar a `HD.battleToJuego()`, o el juego se guarda sin `ganador` — ver §15.
+**Reajudicación manual y `perspectivaTag`**: `battleToJuego()` necesita que la batalla lleve marcado `perspectivaTag` (el tag desde cuyo battlelog se consultó) para que `resultadoJuego()` pueda traducir `victory`/`defeat` a `equipoA`/`equipoB` — el cruce automático (`correlateMatch()`) lo añade solo. El flujo de arrastrar-y-soltar de "Reajudicar partidos a mano" también tiene que añadirlo explícitamente (con el tag escrito en el buscador) antes de llamar a `CD.battleToJuego()`, o el juego se guarda sin `ganador` — ver §15.
 
-**Visor de perfil de jugador**: al pulsar sobre un jugador en `historial/index.html` se abre un modal con su perfil (icono, nombre, tag, prestigio, trofeos, victorias 3v3, ranked histórico/actual) — mismo contenido que el modal "¿Es esta tu cuenta?" de la página principal (§8), sin los botones de confirmación sí/no, consultado con `HD.fetchPlayer(tag)` (mismo proxy, sin `battlelog=1`). Para esto, `battleToJuego()` guarda ahora también el `tag` de cada jugador dentro de `picksEquipoA`/`picksEquipoB` (antes solo `jugador`/`brawler`) — los juegos guardados **antes** de este cambio no tienen ese `tag`, así que sus tarjetas no son clicables hasta que se reprocesen.
+**El `tag` de cada jugador se guarda en cada pick**: `battleToJuego()` guarda el `tag` de cada jugador dentro de `picksEquipoA`/`picksEquipoB` (no solo `jugador`/`brawler`) — sin él, el modal de partido no puede abrir el perfil de ese jugador al pulsarlo.
 
-**Un 4º tag (suplente) por participante**: `historial/admin.html` muestra normalmente 3 campos de tag por participante (equipo 3v3), con un botón "+" para añadir un 4º opcional. Si un participante ya tenía 4 tags guardados de antes, se renderiza directamente con los 4 campos y sin el botón. No hace falta ningún cambio en la lógica de cruce — `battleMatchesTeams()` ya soporta cualquier número de tags vinculados por equipo.
+**Un 4º tag (suplente) por participante**: el panel de `admin.html` muestra normalmente 3 campos de tag por participante (equipo 3v3), con un botón "+" para añadir un 4º opcional. Si un participante ya tenía 4 tags guardados de antes, se renderiza directamente con los 4 campos y sin el botón. No hace falta ningún cambio en la lógica de cruce — `battleMatchesTeams()` ya soporta cualquier número de tags vinculados por equipo.
 
 ## 15. Problemas encontrados (y cómo se resolvieron)
 
@@ -417,6 +422,10 @@ Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que rege
 **Animación de revelado en `stream.html`**: el panel lateral de "última elección" en la vista de stream tiene una animación CSS provisional. Se decidió explícitamente esperar a los archivos oficiales del Fan Kit de Supercell (ilustraciones/gifs de personaje a tamaño grande) antes de construir la versión final — no hay que iterar más sobre esto hasta que esos assets lleguen.
 
 **Fase eliminatoria del sistema de predicciones** (§19): de momento solo existe la fase clasificatoria (ranking por puntos), ya en producción de verdad (reglas publicadas, `proxy/predicciones.php` desplegado en la VM, probado extremo a extremo con un voto real). La fase eliminatoria (elegir ganador de cada cruce del bracket, con reapertura de voto si el cruce real no coincide con lo predicho) queda para una segunda entrega — ver el plan completo en el historial de la conversación.
+
+**Migración de datos del viejo nodo `/historial`**: ✅ hecho (29 agosto 2026) — el nodo `historial` solo tenía una prueba sin datos relevantes, así que se borró directamente sin migrar nada, y las reglas nuevas (`clasificaciones` en vez de `historial`) ya están publicadas en la consola de Firebase.
+
+**Probar el cruce con el battlelog real de Brawl Stars (Nivel 2) — pendiente.** La tabla de posiciones y el bracket de §14 ya están probados contra un torneo real de dos fases (`w0qlsvze`, "prueba 8 equipos suizo top 4 cut") y funcionan correctamente (fue justo esta prueba la que sacó a la luz el bug de `group_id` corregido más arriba). Lo que **todavía no** se ha probado de punta a punta es la parte que cruza con Brawl Stars: vincular tags reales a un equipo desde `admin.html`, jugar una batalla real en sala amistosa, pulsar "Actualizar historial de partidos" y comprobar que el modal de partido muestra bien el mapa/modo/Brawlers. Para retomarlo: jugar una batalla con 2 tags reales conocidos, vincularlos a dos equipos del torneo `w0qlsvze` (o del que esté activo entonces) desde el panel de `admin.html`, activar "Modo de prueba" y pulsar "Actualizar historial de partidos".
 
 ## 19. Sistema de predicciones propio (fase clasificatoria)
 

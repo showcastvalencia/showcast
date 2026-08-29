@@ -951,6 +951,95 @@
     width:25px;height:2px;
     background:var(--negro);
   }
+  .bracket-match.clickable, .clasif-match.clickable{cursor:pointer;}
+  .bracket-match.clickable:hover, .clasif-match.clickable:hover{background:var(--naranja);}
+
+  /* ---------- CLASIFICACIONES: tabla de posiciones (fase de grupos) ---------- */
+  .standings-wrap{padding:26px;overflow-x:auto;}
+  .standings-table{width:100%;border-collapse:collapse;font-weight:700;}
+  .standings-table th, .standings-table td{
+    padding:11px 14px;
+    text-align:left;
+    border-bottom:2px solid var(--negro);
+    white-space:nowrap;
+  }
+  .standings-table th{
+    font-family:'Anton',sans-serif;
+    letter-spacing:.5px;
+    font-size:.75rem;
+    text-transform:uppercase;
+    color:var(--naranja-dark);
+  }
+  .standings-table td:nth-child(2){white-space:normal;min-width:140px;}
+  .standings-row{cursor:pointer;transition:background .1s ease;}
+  .standings-row:hover{background:var(--naranja);}
+  .standings-row .sr-pos{
+    display:inline-block;
+    font-family:'Anton',sans-serif;
+    width:24px;
+  }
+
+  /* ---------- CLASIFICACIONES: modal de equipo ---------- */
+  .clasif-team-roster{list-style:none;margin:14px 0 0;padding:0;}
+  .clasif-team-roster li{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    border:2px solid var(--negro);
+    margin-bottom:8px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .clasif-team-roster li:hover{background:var(--naranja);}
+  .clasif-team-roster li .ctr-tag{font-family:'Permanent Marker',cursive;color:var(--naranja-dark);font-size:.85rem;}
+
+  /* ---------- CLASIFICACIONES: modal de partido ---------- */
+  .clasif-match-modal .modal-card{max-width:640px;}
+  .cmm-teams{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    font-family:'Anton',sans-serif;
+    font-size:1.1rem;
+    margin:6px 0 20px;
+    flex-wrap:wrap;
+  }
+  .cmm-teams .cmm-score{background:var(--negro);color:var(--crema);padding:5px 14px;white-space:nowrap;}
+  .cmm-juego{padding:16px 0;border-top:2px dashed var(--negro);}
+  .cmm-juego:first-of-type{border-top:none;}
+  .cmm-juego-meta{
+    text-align:center;
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--naranja-dark);
+    font-family:'Anton',sans-serif;
+    margin-bottom:12px;
+  }
+  .cmm-juego-row{display:flex;align-items:center;justify-content:center;gap:16px;}
+  .cmm-lado{
+    display:flex;gap:14px;flex-wrap:wrap;justify-content:center;
+    flex:1;position:relative;border-radius:8px;padding:12px 10px;
+  }
+  .cmm-juego-row .cmm-lado:first-child.ganador{background:linear-gradient(90deg, rgba(60,130,255,.35) 0%, rgba(60,130,255,0) 85%);}
+  .cmm-juego-row .cmm-lado:first-child.perdedor{background:linear-gradient(90deg, rgba(255,55,55,.28) 0%, rgba(255,55,55,0) 50%);}
+  .cmm-juego-row .cmm-lado:last-child.ganador{background:linear-gradient(270deg, rgba(60,130,255,.35) 0%, rgba(60,130,255,0) 85%);}
+  .cmm-juego-row .cmm-lado:last-child.perdedor{background:linear-gradient(270deg, rgba(255,55,55,.28) 0%, rgba(255,55,55,0) 50%);}
+  .cmm-jugador{display:flex;flex-direction:column;align-items:center;gap:6px;width:82px;cursor:default;}
+  .cmm-jugador.clickable{cursor:pointer;}
+  .cmm-jugador .cj-icon{width:60px;height:60px;border-radius:8px;object-fit:cover;background:var(--blanco);border:3px solid var(--naranja);}
+  .cmm-jugador .cj-icon-fallback{
+    width:60px;height:60px;border-radius:8px;background:rgba(251,157,69,.15);
+    border:3px dashed var(--naranja);display:flex;align-items:center;justify-content:center;
+    font-family:'Anton',sans-serif;font-size:.55rem;text-align:center;padding:4px;
+  }
+  .cmm-jugador .cj-nombre{font-size:.75rem;font-weight:700;text-align:center;max-width:82px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cmm-jugador .cj-brawler{font-size:.65rem;opacity:.75;text-transform:uppercase;}
+  .cmm-vs{width:44px;height:44px;object-fit:contain;flex-shrink:0;}
+  @media(max-width:600px){.cmm-juego-row{flex-direction:column;}}
 
   /* ---------- CLASIFICACIONES: predicciones ---------- */
   .predicciones-wrap{
@@ -1401,18 +1490,85 @@
   </div>
 </div>
 
+<!-- MODAL: EQUIPO (CLASIFICACIONES) -->
+<div class="modal-overlay" id="equipoModalOverlay">
+  <div class="modal-card" id="equipoModalCard">
+    <button type="button" class="modal-close" id="equipoModalClose" aria-label="Cerrar">✕</button>
+    <span class="section-kicker">Equipo</span>
+    <h3 id="equipoModalNombre" style="margin-bottom:6px;">—</h3>
+    <p class="modal-hint" id="equipoModalRecord" style="margin-bottom:0;"></p>
+    <ul class="clasif-team-roster" id="equipoModalRoster"></ul>
+  </div>
+</div>
+
+<!-- MODAL: PARTIDO (CLASIFICACIONES) -->
+<div class="modal-overlay clasif-match-modal" id="partidoModalOverlay">
+  <div class="modal-card" id="partidoModalCard">
+    <button type="button" class="modal-close" id="partidoModalClose" aria-label="Cerrar">✕</button>
+    <span class="section-kicker" id="partidoModalRonda">Partido</span>
+    <div class="cmm-teams" id="partidoModalTeams"></div>
+    <div id="partidoModalJuegos"></div>
+  </div>
+</div>
+
+<!-- MODAL: PERFIL DE JUGADOR (CLASIFICACIONES) -->
+<div class="modal-overlay" id="clasifPlayerModalOverlay">
+  <div class="modal-card" id="clasifPlayerModalCard">
+    <button type="button" class="modal-close" id="clasifPlayerModalClose" aria-label="Cerrar">✕</button>
+
+    <div id="clasifPlayerModalLoading" class="modal-state">
+      <div class="spinner"></div>
+      <p>Buscando jugador...</p>
+    </div>
+
+    <div id="clasifPlayerModalError" class="modal-state" style="display:none;">
+      <div class="modal-error-icon">✕</div>
+      <p id="clasifPlayerModalErrorMsg">No se ha podido comprobar la cuenta.</p>
+    </div>
+
+    <div id="clasifPlayerModalResult" style="display:none;">
+      <div class="player-preview">
+        <img id="cpv-icon" class="player-icon" src="" alt="Icono de jugador">
+        <div>
+          <h3 id="cpv-name">—</h3>
+          <span id="cpv-tag" class="player-tag">#000000</span>
+        </div>
+        <div class="prestige-badge" title="Prestigio">
+          <img src="assets/prestigio.webp" alt="Prestigio">
+          <span class="prestige-badge-num" id="cpv-prestige">0</span>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div class="stat-box">
+          <span class="stat-num" id="cpv-trophies">0</span>
+          <span class="stat-label">Trofeos</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="cpv-v3v3">0</span>
+          <span class="stat-label">Victorias 3v3</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="cpv-rank" style="font-size:1.05rem;">—</span>
+          <span class="stat-label">Máx. ranked (histórico)</span>
+        </div>
+      </div>
+      <p class="modal-hint" id="cpv-current-ranked" style="margin-bottom:0;"></p>
+    </div>
+  </div>
+</div>
+
 <!-- CLASIFICACIONES EN VIVO -->
 <section id="clasificaciones" style="background:var(--crema);">
   <div class="section-inner">
     <span class="section-kicker">🔴 En directo</span>
     <h2 class="section-title">Clasificaciones</h2>
-    <p class="section-lead">Sigue en directo la clasificación de cada categoría, con las tablas de Challonge.</p>
+    <p class="section-lead">Sigue en directo la clasificación de cada categoría — tabla de posiciones, bracket, y qué se jugó de verdad en cada partido (mapa, modo y Brawlers elegidos). Toca un equipo, un partido o un jugador para ver el detalle.</p>
 
     <div class="challonge-wrap">
       <div class="challonge-tabs" id="clasifCategoriaTabs"></div>
       <div class="challonge-tabs clasif-view-tabs" id="clasifVistaTabs" style="display:none;">
-        <button type="button" class="active" data-vista="tabla">Tabla</button>
-        <button type="button" data-vista="bracket">Bracket</button>
+        <button type="button" class="active" data-vista="grupos">Fase de grupos</button>
+        <button type="button" data-vista="final">Fase final</button>
       </div>
       <div id="clasifContenido">
         <div class="challonge-placeholder">
@@ -1596,6 +1752,7 @@
 </footer>
 
 <script src="content.js"></script>
+<script src="assets/js/clasificaciones-logic.js"></script>
 <script>
   // Desplegables "Torneos" / "Comunidad": abrir uno cierra el otro, clic
   // fuera o en un enlace los cierra — mismo patrón para ambos.
@@ -1624,26 +1781,32 @@
     if (!insideAny) closeAllDropdowns();
   });
 
-  // ---------- CLASIFICACIONES: tabla + bracket propios, vía proxy/challonge.php ----------
-  // Categorías (nombre + ID de torneo de Challonge) editables desde admin.html
-  // ("Clasificaciones" — 1 o 2 categorías). Si content.js no las trae (versión
-  // vieja), se usa el mismo par Infantil/Juvenil de siempre como respaldo.
+  // ---------- CLASIFICACIONES: tabla de posiciones + bracket + Battle Log ----------
+  // Fusión del viejo #clasificaciones (tabla/bracket propios, solo Challonge)
+  // con el viejo subsistema historial/ (cruce Challonge + battlelog de Brawl
+  // Stars, con vinculación manual de equipos/tags) — ver ARQUITECTURA.md §14.
+  // Torneo de Challonge de dos fases (grupos → final) por categoría, editable
+  // desde admin.html ("Clasificaciones" — 1 o 2 categorías). Si content.js no
+  // las trae (versión vieja), se usa el mismo par Infantil/Juvenil de siempre.
   const clasifCategorias = (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.clasificaciones
     && window.SHOWCAST_CONTENT.clasificaciones.categorias && window.SHOWCAST_CONTENT.clasificaciones.categorias.length)
     ? window.SHOWCAST_CONTENT.clasificaciones.categorias
     : [{ nombre: 'Infantil', torneoId: '' }, { nombre: 'Juvenil', torneoId: '' }];
 
+  // Base pública de la Realtime Database de Firebase (mismo proyecto
+  // "showcast-md" que ya usan Enfrentamientos y Predicciones) — lectura
+  // directa por REST, sin cargar el SDK completo de Firebase en el sitio
+  // público (solo hace falta para escribir, desde admin.html).
+  const FIREBASE_DB_URL = 'https://showcast-md-default-rtdb.europe-west1.firebasedatabase.app';
+
   const clasifCache = {};
   let clasifCategoriaActual = 0;
-  let clasifVistaActual = 'tabla';
-
-  // Mismo patrón que matchParticipantIds() de historial-logic.js — la API real
-  // de Challonge v2.1 no expone player1_id/player2_id sueltos, sino un array
-  // points_by_participant con participant_id + scores.
-  function clasifParticipantIds(match) {
-    const points = match.points_by_participant || [];
-    return [points[0] && points[0].participant_id, points[1] && points[1].participant_id];
-  }
+  let clasifVistaActual = 'grupos';
+  // Datos de la categoría actualmente mostrada (Challonge + el cruce con
+  // Brawl Stars guardado en Firebase) — los usan los modales de equipo/
+  // partido/jugador sin tener que volver a pedir nada.
+  let clasifDataActual = null;
+  let clasifLocalActual = {};
 
   function clasifFetchTorneo(id) {
     if (!id) return Promise.resolve(null);
@@ -1656,19 +1819,38 @@
     return clasifCache[id];
   }
 
+  // El cruce con Brawl Stars (nombres de equipo sobreescritos a mano, tags
+  // vinculados, y los partidos ya procesados con sus Brawlers) vive en
+  // Firebase, escrito por admin.html — aquí solo se lee, en público.
+  function clasifFetchLocal(id) {
+    if (!id) return Promise.resolve(null);
+    return fetch(FIREBASE_DB_URL + '/clasificaciones/' + encodeURIComponent(id) + '.json')
+      .then(r => r.json())
+      .catch(() => null);
+  }
+
   function clasifEstadoLabel(state) {
     if (state === 'complete') return 'Completado';
     if (state === 'open') return 'En curso';
     return 'Pendiente';
   }
 
-  function clasifMatchRowHtml(m, participantsById) {
-    const [aId, bId] = clasifParticipantIds(m);
-    const nombreA = (participantsById[aId] || {}).name || '?';
-    const nombreB = (participantsById[bId] || {}).name || '?';
+  // El nombre mostrado puede haberse sobreescrito a mano desde admin.html
+  // (nombreEquipo) — si no, se usa el nombre del participante en Challonge.
+  function clasifDisplayName(id, participantsById, localById) {
+    if (id == null) return '?';
+    const local = localById[id];
+    if (local && local.nombreEquipo) return local.nombreEquipo;
+    return (participantsById[id] || {}).name || '?';
+  }
+
+  function clasifMatchRowHtml(m, participantsById, localById) {
+    const [aId, bId] = CD.matchParticipantIds(m);
+    const nombreA = clasifDisplayName(aId, participantsById, localById);
+    const nombreB = clasifDisplayName(bId, participantsById, localById);
     const ganador = m.winner_id;
     return `
-      <div class="clasif-match">
+      <div class="clasif-match clickable" data-match-id="${m.id}">
         <span class="cm-team${ganador === aId ? ' winner' : ''}">${nombreA}</span>
         <span class="cm-score">${m.scores || '—'}</span>
         <span class="cm-team${ganador === bId ? ' winner' : ''}">${nombreB}</span>
@@ -1676,42 +1858,53 @@
       </div>`;
   }
 
-  function clasifTablaHtml(data) {
-    const participantsById = {};
-    (data.participants || []).forEach(p => { participantsById[p.id] = p; });
+  function clasifTablaPartidosHtml(matches, participantsById, localById) {
+    if (!matches.length) return '';
     const porRonda = {};
-    (data.matches || []).forEach(m => {
+    matches.forEach(m => {
       const r = m.round || 0;
       (porRonda[r] = porRonda[r] || []).push(m);
     });
     const rondas = Object.keys(porRonda).map(Number).sort((a, b) => a - b);
     return `<div class="clasif-tabla">${rondas.map(r => `
       <div class="clasif-ronda">
-        <h4>${r > 0 ? 'Ronda ' + r : 'Ronda de perdedores ' + Math.abs(r)}</h4>
-        ${porRonda[r].map(m => clasifMatchRowHtml(m, participantsById)).join('')}
+        <h4>Ronda ${r}</h4>
+        ${porRonda[r].map(m => clasifMatchRowHtml(m, participantsById, localById)).join('')}
       </div>`).join('')}</div>`;
   }
 
-  function clasifBracketMatchHtml(m, participantsById) {
-    const [aId, bId] = clasifParticipantIds(m);
-    const nombreA = (participantsById[aId] || {}).name || (aId ? '?' : 'Bye');
-    const nombreB = (participantsById[bId] || {}).name || (bId ? '?' : 'Bye');
+  // Tabla de posiciones real de la fase de grupos (CD.computeStandings) —
+  // no existía en la versión anterior, que solo listaba partidos por ronda.
+  function clasifStandingsHtml(standings, localById) {
+    if (!standings.length) return '<p class="clasif-note">Todavía no hay partidos completados en la fase de grupos.</p>';
+    return `<div class="standings-wrap"><table class="standings-table">
+      <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>V</th><th>D</th><th>E</th><th>Sets</th></tr></thead>
+      <tbody>${standings.map((s, i) => `
+        <tr class="standings-row" data-team-id="${s.id}">
+          <td><span class="sr-pos">${i + 1}</span></td>
+          <td>${(localById[s.id] && localById[s.id].nombreEquipo) || s.nombre}</td>
+          <td>${s.pj}</td><td>${s.v}</td><td>${s.d}</td><td>${s.e}</td>
+          <td>${s.setsDiff > 0 ? '+' : ''}${s.setsDiff}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+
+  function clasifBracketMatchHtml(m, participantsById, localById) {
+    const [aId, bId] = CD.matchParticipantIds(m);
+    const nombreA = aId ? clasifDisplayName(aId, participantsById, localById) : 'Bye';
+    const nombreB = bId ? clasifDisplayName(bId, participantsById, localById) : 'Bye';
     const ganador = m.winner_id;
     const scores = (m.score_in_sets && m.score_in_sets[0]) || [];
     return `
-      <div class="bracket-match">
+      <div class="bracket-match clickable" data-match-id="${m.id}">
         <div class="bm-team${ganador === aId ? ' winner' : ''}"><span>${nombreA}</span><span>${scores[0] ?? ''}</span></div>
         <div class="bm-team${ganador === bId ? ' winner' : ''}"><span>${nombreB}</span><span>${scores[1] ?? ''}</span></div>
       </div>`;
   }
 
   // Sin campo que enlace un partido con el siguiente (nada tipo next_match_id) —
-  // se asume el emparejamiento binario estándar por ronda/suggested_play_order,
-  // correcto para eliminación simple (único formato en el que se ofrece esta vista).
-  function clasifBracketHtml(data) {
-    const participantsById = {};
-    (data.participants || []).forEach(p => { participantsById[p.id] = p; });
-    const matches = (data.matches || []).filter(m => (m.round || 0) > 0);
+  // se asume el emparejamiento binario estándar por ronda/suggested_play_order.
+  function clasifBracketHtml(matches, participantsById, localById) {
     const porRonda = {};
     matches.forEach(m => { (porRonda[m.round] = porRonda[m.round] || []).push(m); });
     const rondas = Object.keys(porRonda).map(Number).sort((a, b) => a - b);
@@ -1721,12 +1914,13 @@
       return `
       <div class="bracket-round">
         <h5>${r === ultimaRonda ? '🏆 Final' : 'Ronda ' + r}</h5>
-        ${partidos.map(m => clasifBracketMatchHtml(m, participantsById)).join('')}
+        ${partidos.map(m => clasifBracketMatchHtml(m, participantsById, localById)).join('')}
       </div>`;
     }).join('')}</div>`;
   }
 
   function clasifRenderVacio(mensaje) {
+    clasifDataActual = null;
     document.getElementById('clasifContenido').innerHTML = `
       <div class="challonge-placeholder">
         <h3>Clasificación pendiente de configurar</h3>
@@ -1736,14 +1930,208 @@
     document.getElementById('prediccionesWrap').style.display = 'none';
   }
 
+  function clasifRenderVista() {
+    if (!clasifDataActual) return;
+    const { matches, participantsById } = clasifDataActual;
+    const localById = clasifLocalActual.participantes || {};
+    const grupoMatches = matches.filter(m => CD.isGroupStageMatch(m, participantsById));
+    const finalMatches = matches.filter(m => !CD.isGroupStageMatch(m, participantsById) && (m.round || 0) > 0);
+
+    const vistaTabs = document.getElementById('clasifVistaTabs');
+    if (grupoMatches.length && finalMatches.length) {
+      vistaTabs.style.display = 'flex';
+    } else {
+      vistaTabs.style.display = 'none';
+      clasifVistaActual = finalMatches.length ? 'final' : 'grupos';
+    }
+    vistaTabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.vista === clasifVistaActual));
+
+    const contenido = document.getElementById('clasifContenido');
+    if (clasifVistaActual === 'final' && finalMatches.length) {
+      contenido.innerHTML = clasifBracketHtml(finalMatches, participantsById, localById);
+    } else if (grupoMatches.length) {
+      const standings = CD.computeStandings(grupoMatches, participantsById);
+      contenido.innerHTML = clasifStandingsHtml(standings, localById) + clasifTablaPartidosHtml(grupoMatches, participantsById, localById);
+    } else if (finalMatches.length) {
+      contenido.innerHTML = clasifBracketHtml(finalMatches, participantsById, localById);
+    } else {
+      contenido.innerHTML = '<div class="challonge-placeholder"><p>Todavía no hay partidos en este torneo.</p></div>';
+    }
+  }
+
+  function clasifRenderCategoria(idx) {
+    clasifCategoriaActual = idx;
+    const id = (clasifCategorias[idx] || {}).torneoId;
+    const vistaTabs = document.getElementById('clasifVistaTabs');
+    if (!id) { clasifRenderVacio(); return; }
+
+    document.getElementById('clasifContenido').innerHTML = '<div class="challonge-placeholder"><div class="spinner"></div></div>';
+    vistaTabs.style.display = 'none';
+
+    Promise.all([clasifFetchTorneo(id), clasifFetchLocal(id)]).then(([data, local]) => {
+      if (clasifCategoriaActual !== idx) return; // ya se cambió de pestaña mientras cargaba
+      if (!data) { clasifRenderVacio('No se ha podido cargar este torneo de Challonge — revisa el ID en admin.html.'); return; }
+      const participantsById = {};
+      (data.participants || []).forEach(p => { participantsById[p.id] = p; });
+      clasifDataActual = { matches: data.matches || [], participantsById, tournament: data.tournament };
+      clasifLocalActual = (local && typeof local === 'object') ? local : {};
+      clasifRenderVista();
+      prediccionesInit(id, data.participants || []);
+    });
+  }
+
+  // ---------- CLASIFICACIONES: iconos de Brawler (para el modal de partido) ----------
+  let clasifBrawlerIcons = {};
+  function clasifNormBrawler(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  fetch('assets/brawlers.json').then(r => r.json()).then(list => {
+    // brawlers.json guarda las rutas de icono relativas a una página que vive
+    // UN nivel por debajo de la raíz (enfrentamientos/, historial/) — index.html
+    // vive en la raíz, así que hay que quitar el "../" inicial.
+    (list || []).forEach(b => { clasifBrawlerIcons[clasifNormBrawler(b.name)] = (b.icon || '').replace(/^\.\.\//, ''); });
+  }).catch(() => {});
+
+  function clasifJugadorCardHtml(p) {
+    const primerBrawler = (p.brawler || '').split('/')[0];
+    const icon = clasifBrawlerIcons[clasifNormBrawler(primerBrawler)];
+    const iconHtml = icon
+      ? `<img src="${icon}" alt="" class="cj-icon">`
+      : `<div class="cj-icon-fallback">${p.brawler || '?'}</div>`;
+    const clickable = p.tag ? ' clickable' : '';
+    const dataTag = p.tag ? ` data-tag="${p.tag}"` : '';
+    return `
+      <div class="cmm-jugador${clickable}"${dataTag}>
+        ${iconHtml}
+        <span class="cj-nombre">${p.jugador}</span>
+        <span class="cj-brawler">${p.brawler || '?'}</span>
+      </div>`;
+  }
+
+  function clasifJuegoHtml(j) {
+    const claseA = j.ganador === 'equipoA' ? ' ganador' : (j.ganador === 'equipoB' ? ' perdedor' : '');
+    const claseB = j.ganador === 'equipoB' ? ' ganador' : (j.ganador === 'equipoA' ? ' perdedor' : '');
+    return `
+      <div class="cmm-juego">
+        <div class="cmm-juego-meta">
+          Juego ${j.orden} — ${j.mapa || ''}${j.mapa && j.modo ? ' · ' : ''}${j.modo || ''}${j.duracion ? ` · ${j.duracion}s` : ''}${j.ganador === 'empate' ? ' · Empate' : ''}
+        </div>
+        <div class="cmm-juego-row">
+          <div class="cmm-lado${claseA}">${(j.picksEquipoA || []).map(clasifJugadorCardHtml).join('')}</div>
+          <img class="cmm-vs" src="assets/VS.png" alt="VS">
+          <div class="cmm-lado${claseB}">${(j.picksEquipoB || []).map(clasifJugadorCardHtml).join('')}</div>
+        </div>
+      </div>`;
+  }
+
+  // ---------- CLASIFICACIONES: modal de equipo ----------
+  function abrirEquipoModal(teamId) {
+    if (!clasifDataActual) return;
+    const p = clasifDataActual.participantsById[teamId] || {};
+    const local = (clasifLocalActual.participantes && clasifLocalActual.participantes[teamId]) || {};
+    document.getElementById('equipoModalNombre').textContent = local.nombreEquipo || p.name || '?';
+
+    const grupoMatches = clasifDataActual.matches.filter(m => CD.isGroupStageMatch(m, clasifDataActual.participantsById));
+    const standings = CD.computeStandings(grupoMatches, clasifDataActual.participantsById);
+    const rec = standings.find(s => String(s.id) === String(teamId));
+    document.getElementById('equipoModalRecord').textContent = rec
+      ? `${rec.pj} partido(s) jugado(s) — ${rec.v}V ${rec.d}D${rec.e ? ` ${rec.e}E` : ''} · diferencia de sets ${rec.setsDiff > 0 ? '+' : ''}${rec.setsDiff}`
+      : '';
+
+    const tags = local.tags || [];
+    const rosterEl = document.getElementById('equipoModalRoster');
+    rosterEl.innerHTML = tags.length
+      ? tags.map(t => `<li data-tag="${t}"><span>${t}</span><span class="ctr-tag">Ver perfil →</span></li>`).join('')
+      : '<li style="cursor:default;">Todavía no hay jugadores vinculados a este equipo (admin.html → Clasificaciones).</li>';
+    document.getElementById('equipoModalOverlay').classList.add('open');
+  }
+
+  // ---------- CLASIFICACIONES: modal de partido ----------
+  function abrirPartidoModal(matchId) {
+    if (!clasifDataActual) return;
+    const m = clasifDataActual.matches.find(x => String(x.id) === String(matchId));
+    if (!m) return;
+    const localById = clasifLocalActual.participantes || {};
+    const [aId, bId] = CD.matchParticipantIds(m);
+    const nombreA = clasifDisplayName(aId, clasifDataActual.participantsById, localById);
+    const nombreB = clasifDisplayName(bId, clasifDataActual.participantsById, localById);
+
+    document.getElementById('partidoModalRonda').textContent =
+      (CD.isGroupStageMatch(m, clasifDataActual.participantsById) ? 'Fase de grupos' : 'Fase final') + (m.round ? ` — Ronda ${m.round}` : '');
+    document.getElementById('partidoModalTeams').innerHTML = `
+      <span class="cmm-team" data-team-id="${aId}">${nombreA}</span>
+      <span class="cmm-score">${m.scores || clasifEstadoLabel(m.state)}</span>
+      <span class="cmm-team" data-team-id="${bId}">${nombreB}</span>`;
+
+    const localMatch = clasifLocalActual.matches && clasifLocalActual.matches[matchId];
+    const juegos = localMatch && localMatch.juegos;
+    document.getElementById('partidoModalJuegos').innerHTML = (juegos && juegos.length)
+      ? juegos.map(clasifJuegoHtml).join('')
+      : '<p class="hint" style="padding:16px 0;">Sin datos de Brawl Stars cruzados para este partido todavía.</p>';
+
+    document.getElementById('partidoModalOverlay').classList.add('open');
+  }
+
+  // ---------- CLASIFICACIONES: visor de perfil de jugador ----------
+  function clasifPlayerShowState(state) {
+    document.getElementById('clasifPlayerModalLoading').style.display = state === 'loading' ? 'block' : 'none';
+    document.getElementById('clasifPlayerModalError').style.display = state === 'error' ? 'block' : 'none';
+    document.getElementById('clasifPlayerModalResult').style.display = state === 'result' ? 'block' : 'none';
+  }
+  function abrirJugadorModal(tag) {
+    document.getElementById('clasifPlayerModalOverlay').classList.add('open');
+    clasifPlayerShowState('loading');
+    CD.fetchPlayer(tag).then(body => {
+      document.getElementById('cpv-icon').src = body.iconUrl || '';
+      document.getElementById('cpv-name').textContent = body.name || '(sin nombre)';
+      document.getElementById('cpv-tag').textContent = body.tag || tag;
+      document.getElementById('cpv-prestige').textContent = body.prestige ?? 0;
+      document.getElementById('cpv-trophies').textContent = body.trophies ?? 0;
+      document.getElementById('cpv-v3v3').textContent = body.victories3v3 ?? 0;
+      document.getElementById('cpv-rank').textContent = body.rankedAllTimePeakName || '—';
+      const currentEl = document.getElementById('cpv-current-ranked');
+      currentEl.textContent = body.rankedCurrentName
+        ? 'Ranked actual: ' + body.rankedCurrentName
+        : 'Este jugador todavía no tiene partidas de Ranked registradas.';
+      clasifPlayerShowState('result');
+    }).catch(err => {
+      document.getElementById('clasifPlayerModalErrorMsg').textContent = err.message || 'No se ha podido comprobar la cuenta.';
+      clasifPlayerShowState('error');
+    });
+  }
+
+  // ---------- CLASIFICACIONES: cableado de clics (delegado) ----------
+  document.getElementById('clasifContenido').addEventListener('click', e => {
+    const row = e.target.closest('.standings-row');
+    if (row) { abrirEquipoModal(row.dataset.teamId); return; }
+    const matchEl = e.target.closest('[data-match-id]');
+    if (matchEl) { abrirPartidoModal(matchEl.dataset.matchId); }
+  });
+  document.getElementById('equipoModalRoster').addEventListener('click', e => {
+    const li = e.target.closest('li[data-tag]');
+    if (li) abrirJugadorModal(li.dataset.tag);
+  });
+  document.getElementById('partidoModalTeams').addEventListener('click', e => {
+    const el = e.target.closest('[data-team-id]');
+    if (el && el.dataset.teamId && el.dataset.teamId !== 'null' && el.dataset.teamId !== 'undefined') {
+      document.getElementById('partidoModalOverlay').classList.remove('open');
+      abrirEquipoModal(el.dataset.teamId);
+    }
+  });
+  document.getElementById('partidoModalJuegos').addEventListener('click', e => {
+    const card = e.target.closest('.cmm-jugador.clickable');
+    if (card && card.dataset.tag) abrirJugadorModal(card.dataset.tag);
+  });
+  [['equipoModalOverlay', 'equipoModalClose'], ['partidoModalOverlay', 'partidoModalClose'], ['clasifPlayerModalOverlay', 'clasifPlayerModalClose']].forEach(([ovId, closeId]) => {
+    const overlay = document.getElementById(ovId);
+    document.getElementById(closeId).addEventListener('click', () => overlay.classList.remove('open'));
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  });
+
   // ---------- PREDICCIONES: fase clasificatoria (ranking por puntos) ----------
   // Sistema propio, separado de Challonge (su función "predictions" no expone
   // nada por API — investigado y confirmado en la conversación). Los votos se
   // mandan a proxy/predicciones.php (que sí ve la IP real y evita duplicados)
   // y se leen directamente de la Realtime Database de Firebase (lectura
-  // pública por reglas, sin necesitar el proxy ni ningún secreto — mismo
-  // proyecto "showcast-md" que ya usan Enfrentamientos e Historial).
-  const FIREBASE_DB_URL = 'https://showcast-md-default-rtdb.europe-west1.firebasedatabase.app';
+  // pública por reglas, sin necesitar el proxy ni ningún secreto).
   let prediccionesOrder = [];
   let prediccionesParticipantsById = {};
 
@@ -1863,34 +2251,6 @@
     prediccionesRenderResultado(torneoId, participants.length);
   }
 
-  function clasifRenderVista(data, esEliminacionSimple) {
-    const contenido = document.getElementById('clasifContenido');
-    const nota = esEliminacionSimple ? '' : '<p class="clasif-note">El bracket visual solo está disponible para torneos de eliminación simple — aquí tienes la tabla de resultados.</p>';
-    contenido.innerHTML = (clasifVistaActual === 'bracket' && esEliminacionSimple)
-      ? clasifBracketHtml(data)
-      : nota + clasifTablaHtml(data);
-  }
-
-  function clasifRenderCategoria(idx) {
-    clasifCategoriaActual = idx;
-    const id = (clasifCategorias[idx] || {}).torneoId;
-    const vistaTabs = document.getElementById('clasifVistaTabs');
-    if (!id) { clasifRenderVacio(); return; }
-
-    document.getElementById('clasifContenido').innerHTML = '<div class="challonge-placeholder"><div class="spinner"></div></div>';
-    vistaTabs.style.display = 'none';
-
-    clasifFetchTorneo(id).then(data => {
-      if (clasifCategoriaActual !== idx) return; // ya se cambió de pestaña mientras cargaba
-      if (!data) { clasifRenderVacio('No se ha podido cargar este torneo de Challonge — revisa el ID en admin.html.'); return; }
-      const esEliminacionSimple = !!(data.tournament && data.tournament.tournamentType === 'single elimination');
-      vistaTabs.style.display = esEliminacionSimple ? 'flex' : 'none';
-      if (!esEliminacionSimple) clasifVistaActual = 'tabla';
-      clasifRenderVista(data, esEliminacionSimple);
-      prediccionesInit(id, data.participants || []);
-    });
-  }
-
   // Con 1 sola categoría no hace falta ninguna pestaña que elegir.
   const clasifCategoriaTabsEl = document.getElementById('clasifCategoriaTabs');
   if (clasifCategorias.length > 1) {
@@ -1910,12 +2270,8 @@
 
   document.getElementById('clasifVistaTabs').querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.getElementById('clasifVistaTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
       clasifVistaActual = btn.dataset.vista;
-      clasifFetchTorneo((clasifCategorias[clasifCategoriaActual] || {}).torneoId).then(data => {
-        if (data) clasifRenderVista(data, !!(data.tournament && data.tournament.tournamentType === 'single elimination'));
-      });
+      clasifRenderVista();
     });
   });
 

@@ -4,7 +4,8 @@ proxy/config.php
 # Token de acceso de Challonge cacheado por proxy/challonge.php - se regenera solo
 proxy/challonge-token-cache.json
 
-# Panel de edición interno - NUNCA publicarlo (contiene el flujo de publicación con token de GitHub)
-# Anclado a la raíz: los paneles de admin de subsistemas (enfrentamientos/admin.html,
-# historial/admin.html) no tienen ese token y sí se versionan normalmente.
+# Panel de edición interno - NUNCA publicarlo (contiene el flujo de publicación con token de GitHub,
+# además del panel de vinculación de equipos de Clasificaciones que escribe en Firebase).
+# Anclado a la raíz: el panel de admin de Enfrentamientos (enfrentamientos/admin.html)
+# no tiene ese token y sí se versiona normalmente.
 /admin.html
