@@ -1,5 +1,5 @@
 /*
-  MEGADRAFT — lógica compartida
+  ENFRENTAMIENTOS — lógica compartida
   ===============================
   Funciones reutilizadas por draft.html, screen.html y admin.html.
   Depende de firebase-config.js (variables globales `db` y `auth`) estando
@@ -9,7 +9,7 @@ const MD = (function () {
   const TEAMS_PER_DRAFT = 8;
   const PICKS_PER_TEAM = 12;
   const TOTAL_PICKS = TEAMS_PER_DRAFT * PICKS_PER_TEAM;
-  const STATE_PATH = 'megadraft';
+  const STATE_PATH = 'enfrentamientos';
 
   // Mismo proxy que usa la web principal para consultar la API de Brawl Stars
   // (ver proxy/brawlstars.php) — solo responde a peticiones desde orígenes
@@ -225,7 +225,7 @@ const MD = (function () {
     return Object.keys(state.teams).find(id => String(state.teams[id].pin) === String(pin)) || null;
   }
 
-  // IMPORTANTE: NO se puede hacer transaction() sobre todo "megadraft" (como
+  // IMPORTANTE: NO se puede hacer transaction() sobre todo "enfrentamientos" (como
   // antes) en cuanto hay más de un equipo reclamado por dispositivos
   // distintos: al reescribir el nodo entero, Firebase revalida las reglas de
   // CADA equipo (incluido su claimedBy), y como el uid del que hace el pick

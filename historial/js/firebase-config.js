@@ -1,7 +1,7 @@
 /*
   CONFIGURACIÓN DE FIREBASE
   ==========================
-  Mismo proyecto Firebase que ya usa Megadraft (megadraft/js/firebase-config.js)
+  Mismo proyecto Firebase que ya usa Enfrentamientos (enfrentamientos/js/firebase-config.js)
   — es la misma organización, mismo plan gratuito "Spark", y este subsistema
   solo añade un nodo nuevo (/historial) al mismo proyecto en vez de crear uno
   aparte. Si el proyecto de Firebase cambiara alguna vez, actualiza los dos

@@ -42,7 +42,7 @@ Challonge es el servicio que ya usan muchísimas comunidades de esports para pub
 
 Challonge ([challonge.com](https://challonge.com)) es una plataforma web para crear y publicar brackets de torneo. Lo que la mayoría de organizaciones usan es la propia web: creas el torneo a mano, metes los participantes, y Challonge dibuja el bracket y deja que la gente vea el avance en directo desde un enlace público. La **API** es la puerta trasera de todo eso: en vez de crear el torneo a golpe de clic, lo haces por código — útil si quieres generar el bracket automáticamente a partir de datos que ya tienes en otro sitio, o si quieres mostrar los resultados dentro de tu propia web en vez de mandar a la gente a challonge.com.
 
-Soporta cuatro formatos de torneo de forma nativa: **eliminación simple**, **eliminación doble**, **round robin** (todos contra todos) y **suizo**. Y, desde hace relativamente poco, **torneos de dos fases**: una fase de grupos (round robin o suizo) que alimenta una fase final de eliminación — justo la estructura de "fase de grupos suizo → fase final" que se mencionó como formato objetivo del torneo de Showcast fuera del alcance de Megadraft.
+Soporta cuatro formatos de torneo de forma nativa: **eliminación simple**, **eliminación doble**, **round robin** (todos contra todos) y **suizo**. Y, desde hace relativamente poco, **torneos de dos fases**: una fase de grupos (round robin o suizo) que alimenta una fase final de eliminación — justo la estructura de "fase de grupos suizo → fase final" que se mencionó como formato objetivo del torneo de Showcast fuera del alcance de Enfrentamientos.
 
 ## 2. v1 vs v2.1 — cuál usar
 
@@ -215,9 +215,9 @@ curl -X POST https://api.challonge.com/v2.1/tournaments.json \
 
 ## 7. Participantes
 
-Un "participante" en Challonge es, en el contexto de Showcast, **un equipo** (no un jugador individual) — igual que ya se modela en Megadraft. No hace falta que tenga cuenta de Challonge: `name` es el único campo obligatorio.
+Un "participante" en Challonge es, en el contexto de Showcast, **un equipo** (no un jugador individual) — igual que ya se modela en Enfrentamientos. No hace falta que tenga cuenta de Challonge: `name` es el único campo obligatorio.
 
-> ● **Aquí sí leeremos, pero no crearemos.** Los equipos se siguen dando de alta a mano en Challonge. Lo único que hará Showcast con este recurso es un `GET` de la lista una vez por torneo (§11), para poder traducir el `participant_id` numérico de cada partido a un nombre de equipo reconocible y, sobre todo, a los tags de Brawl Stars de sus miembros — que Showcast ya tiene guardados en Firebase desde Megadraft.
+> ● **Aquí sí leeremos, pero no crearemos.** Los equipos se siguen dando de alta a mano en Challonge. Lo único que hará Showcast con este recurso es un `GET` de la lista una vez por torneo (§11), para poder traducir el `participant_id` numérico de cada partido a un nombre de equipo reconocible y, sobre todo, a los tags de Brawl Stars de sus miembros — que Showcast ya tiene guardados en Firebase desde Enfrentamientos.
 
 `POST /v2.1/tournaments/{tournament_id}/participants.json`
 
@@ -237,7 +237,7 @@ curl -X POST https://api.challonge.com/v2.1/tournaments/torneo_3v3_showcast/part
   }'
 ```
 
-`misc` es un campo libre de texto que Challonge no usa para nada — perfecto para guardar el `teamId` interno de Showcast/Megadraft y poder cruzar los datos de vuelta después.
+`misc` es un campo libre de texto que Challonge no usa para nada — perfecto para guardar el `teamId` interno de Showcast/Enfrentamientos y poder cruzar los datos de vuelta después.
 
 `POST /v2.1/tournaments/{tournament_id}/participants/bulk_add.json` — para dar de alta los 8 equipos de golpe en vez de 8 peticiones sueltas — importante para no gastar cuota (§3) sin necesidad:
 
@@ -256,7 +256,7 @@ curl -X POST https://api.challonge.com/v2.1/tournaments/torneo_3v3_showcast/part
 }
 ```
 
-Otros endpoints del mismo recurso: listar (`GET .../participants.json`), actualizar/hacer check-in (`PUT`), y `POST .../participants/randomize.json` para barajar la seed inicial — útil si Showcast quiere que el orden del bracket sea aleatorio en vez de por puntuación (con Megadraft ya se calcula una puntuación real por equipo, así que probablemente interese **seedear a mano** con esa puntuación en vez de aleatorizar).
+Otros endpoints del mismo recurso: listar (`GET .../participants.json`), actualizar/hacer check-in (`PUT`), y `POST .../participants/randomize.json` para barajar la seed inicial — útil si Showcast quiere que el orden del bracket sea aleatorio en vez de por puntuación (con Enfrentamientos ya se calcula una puntuación real por equipo, así que probablemente interese **seedear a mano** con esa puntuación en vez de aleatorizar).
 
 ## 8. Partidos y resultados
 
@@ -339,7 +339,7 @@ Decisión tomada: Challonge se sigue gestionando **a mano**, desde su propia web
 | Leer los participantes (mapear id → equipo → tags) | ✅ `GET`, cacheado | traducir `participant_id` a algo útil |
 | Leer los partidos ya completados | ✅ `GET`, bajo demanda | es la entrada al cruce con Brawl Stars (§13) |
 
-> ● **El disparador es un botón, no un temporizador.** Nada de esto se consulta automáticamente en bucle. Se lee cuando alguien (el organizador, desde un panel de administración) pulsa un botón tipo **"Actualizar historial de partidas"**. Ese único gesto humano es lo que mantiene el consumo de cuota bajo control (§11) — el equivalente a "Recargar info de jugadores" que ya existe en `megadraft/admin.html`, pero para partidos de Challonge en vez de perfiles de jugador.
+> ● **El disparador es un botón, no un temporizador.** Nada de esto se consulta automáticamente en bucle. Se lee cuando alguien (el organizador, desde un panel de administración) pulsa un botón tipo **"Actualizar historial de partidas"**. Ese único gesto humano es lo que mantiene el consumo de cuota bajo control (§11) — el equivalente a "Recargar info de jugadores" que ya existe en `enfrentamientos/admin.html`, pero para partidos de Challonge en vez de perfiles de jugador.
 
 ## 11. Presupuesto de cuota (500 peticiones/mes)
 
@@ -362,7 +362,7 @@ Con el diseño de solo-lectura-bajo-demanda de §10, el coste real es minúsculo
 
 Incluso siendo generosos — pulsando cada 10-15 minutos durante un evento de 4 horas en vez de solo al final de cada ronda — son unas 16-20 pulsaciones × 2 ≈ **~40 peticiones por evento**. Eso deja margen de sobra para **más de 10 eventos completos en el mismo mes** sin acercarse al límite de 500.
 
-> ⚠️ **Lo que NO hay que hacer nunca**: poner un `setInterval` en una pantalla pública (tipo `screen.html` de Megadraft) que llame a Challonge cada 30 segundos "para que se vea en directo". Un evento de 3 horas a ese ritmo son `3×3600/30 ≈ 360` llamadas — **por sí solo, un único evento así agotaría casi toda la cuota mensual**. Si en algún momento se quiere una vista que se refresque sola, tiene que leer de la **copia cacheada en Firebase** (que sí admite todo el polling que haga falta, gratis, como ya hace Megadraft), nunca de la API de Challonge directamente desde el navegador de cada espectador.
+> ⚠️ **Lo que NO hay que hacer nunca**: poner un `setInterval` en una pantalla pública (tipo `screen.html` de Enfrentamientos) que llame a Challonge cada 30 segundos "para que se vea en directo". Un evento de 3 horas a ese ritmo son `3×3600/30 ≈ 360` llamadas — **por sí solo, un único evento así agotaría casi toda la cuota mensual**. Si en algún momento se quiere una vista que se refresque sola, tiene que leer de la **copia cacheada en Firebase** (que sí admite todo el polling que haga falta, gratis, como ya hace Enfrentamientos), nunca de la API de Challonge directamente desde el navegador de cada espectador.
 
 ---
 
@@ -416,7 +416,7 @@ Challonge sabe *quién jugó contra quién y quién ganó*. Brawl Stars sabe *qu
 
 1. **Disparo manual**: el organizador pulsa "Actualizar historial de partidas" en el panel de admin.
 2. **Leer Challonge**: `GET /tournament/{id}.json?include_matches=1` (§11) — de la respuesta se filtran los partidos con `state: "complete"` que todavía no estén guardados en el historial local (comparando por `match.id`).
-3. **Resolver equipos**: cada `player1_id`/`player2_id` del partido se traduce a un equipo real usando la lista de participantes cacheada (§11), y de ahí a los tags de Brawl Stars de sus miembros — ya guardados en Firebase desde Megadraft.
+3. **Resolver equipos**: cada `player1_id`/`player2_id` del partido se traduce a un equipo real usando la lista de participantes cacheada (§11), y de ahí a los tags de Brawl Stars de sus miembros — ya guardados en Firebase desde Enfrentamientos.
 4. **Pedir el battlelog**: por cada partido nuevo, se pide (vía el proxy, §15) el battlelog de un miembro de cada equipo — no cuenta contra la cuota de Challonge.
 5. **Filtrar por tiempo**: de ese battlelog se descartan todas las entradas cuyo `battleTime` no caiga dentro de una ventana razonable alrededor de cuándo se reportó el resultado en Challonge (p. ej. ±30 minutos — configurable, porque `updated_at` es cuándo se *reportó*, no necesariamente el segundo exacto en que terminó de jugarse).
 6. **Descartar bots**: antes de comparar nada, se eliminan de `teams` las entradas cuyo `name` empiece por `"Bot "` (§12) — si no, un bot relleno acabaría contando como si un jugador real hubiera elegido ese Brawler.
@@ -433,7 +433,7 @@ Challonge sabe *quién jugó contra quién y quién ganó*. Brawl Stars sabe *qu
 
 ## 14. Estructura del historial resultante
 
-Lo que queda guardado en Firebase tras el cruce, listo para que el sitio lo lea y lo pinte (igual que ya lee `screen.html` el estado de Megadraft):
+Lo que queda guardado en Firebase tras el cruce, listo para que el sitio lo lea y lo pinte (igual que ya lee `screen.html` el estado de Enfrentamientos):
 
 ```json
 {

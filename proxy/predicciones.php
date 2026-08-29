@@ -4,7 +4,7 @@
   ==================================================
   Recibe por POST la predicción de un visitante para la fase clasificatoria
   de un torneo (ranking de equipos del 1º al último) y la guarda en la misma
-  Realtime Database de Firebase que ya usan Megadraft e Historial, en un nodo
+  Realtime Database de Firebase que ya usan Enfrentamientos e Historial, en un nodo
   nuevo /predicciones — ver el plan en la conversación / ARQUITECTURA.md.
 
   Por qué existe este script en vez de escribir directamente a Firebase desde

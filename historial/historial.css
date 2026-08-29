@@ -3,7 +3,7 @@
   ---------------------------------------------
   Reutiliza la paleta y tipografías de la web principal de Showcast
   (index.html) para mantener coherencia visual. Autocontenido: no depende
-  del CSS del sitio principal ni del de Megadraft.
+  del CSS del sitio principal ni del de Enfrentamientos.
 */
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Rajdhani:wght@500;600;700&display=swap');
 

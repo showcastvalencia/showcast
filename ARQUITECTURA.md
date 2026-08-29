@@ -1,8 +1,8 @@
 # Arquitectura de Showcast
 
-> Documento vivo — si tocas la arquitectura (nuevos endpoints, nuevos secretos, cambios en el modelo de datos de Megadraft...), actualiza este archivo en el mismo PR.
+> Documento vivo — si tocas la arquitectura (nuevos endpoints, nuevos secretos, cambios en el modelo de datos de Enfrentamientos...), actualiza este archivo en el mismo PR.
 
-Showcast es una organización juvenil que organiza torneos de Brawl Stars en la Comunidad Valenciana. La web es **100% estática** (sin build, sin backend propio) más un subsistema en vivo, **Megadraft**, para hacer drafts de personajes con hasta 8 equipos conectados a la vez.
+Showcast es una organización juvenil que organiza torneos de Brawl Stars en la Comunidad Valenciana. La web es **100% estática** (sin build, sin backend propio) más un subsistema en vivo, **Enfrentamientos**, para hacer drafts de personajes con hasta 8 equipos conectados a la vez.
 
 Este documento explica cómo encajan las piezas, por qué se tomaron ciertas decisiones y qué ha fallado ya una vez, para que la próxima persona que toque esto no tenga que redescubrirlo.
 
@@ -20,9 +20,9 @@ Este documento explica cómo encajan las piezas, por qué se tomaron ciertas dec
 6. [admin.html — el editor visual](#6-adminhtml--el-editor-visual)
 7. [Inscripciones — Google Apps Script](#7-inscripciones--google-apps-script)
 8. [Proxy de la API de Brawl Stars](#8-proxy-de-la-api-de-brawl-stars)
-9. [Qué es Megadraft](#9-qué-es-megadraft)
-10. [Las 5 páginas de Megadraft](#10-las-5-páginas-de-megadraft)
-11. [Modelo de datos de Megadraft](#11-modelo-de-datos-de-megadraft)
+9. [Qué es Enfrentamientos](#9-qué-es-enfrentamientos)
+10. [Las 5 páginas de Enfrentamientos](#10-las-5-páginas-de-enfrentamientos)
+11. [Modelo de datos de Enfrentamientos](#11-modelo-de-datos-de-enfrentamientos)
 12. [Autenticación y reglas de seguridad](#12-autenticación-y-reglas-de-seguridad)
 13. [Cronómetros y el flujo automático de fases](#13-cronómetros-y-el-flujo-automático-de-fases)
 14. [Historial de partidas: cruce Challonge + Brawl Stars](#14-historial-de-partidas-cruce-challonge--brawl-stars)
@@ -40,11 +40,11 @@ La web tiene tres partes con propósitos muy distintos que conviven en el mismo 
 
 **El sitio principal** — una landing page informativa (`index.html`) con inscripciones, galería, clasificaciones y contacto. Pensada para que alguien sin conocimientos técnicos pueda actualizar el contenido desde un panel visual (`admin.html`) sin tocar código.
 
-**Megadraft** — una herramienta en vivo, tipo Kahoot, para hacer el draft de personajes de un torneo: hasta 8 equipos entran desde su móvil con un PIN, eligen 12 Brawlers cada uno por turnos, y una pantalla/proyector (o una salida OBS) muestra todo en tiempo real. Vive en `megadraft/` y es un subsistema autocontenido con su propio backend (Firebase).
+**Enfrentamientos** — una herramienta en vivo, tipo Kahoot, para hacer el draft de personajes de un torneo: hasta 8 equipos entran desde su móvil con un PIN, eligen 12 Brawlers cada uno por turnos, y una pantalla/proyector (o una salida OBS) muestra todo en tiempo real. Vive en `enfrentamientos/` y es un subsistema autocontenido con su propio backend (Firebase).
 
-**Historial de partidas** — cruza los resultados de Challonge (gestionado a mano, solo lectura por API) con el battlelog de Brawl Stars para mostrar qué Brawler usó cada equipo en cada partida real. Vive en `historial/`, comparte el proyecto Firebase de Megadraft pero es un subsistema independiente. Ver §14.
+**Historial de partidas** — cruza los resultados de Challonge (gestionado a mano, solo lectura por API) con el battlelog de Brawl Stars para mostrar qué Brawler usó cada equipo en cada partida real. Vive en `historial/`, comparte el proyecto Firebase de Enfrentamientos pero es un subsistema independiente. Ver §14.
 
-Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visual y la carpeta `assets/`, pero no comparten código ni base de datos entre sí (salvo Megadraft e Historial, que sí comparten el proyecto Firebase). Se pueden entender por separado.
+Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visual y la carpeta `assets/`, pero no comparten código ni base de datos entre sí (salvo Enfrentamientos e Historial, que sí comparten el proyecto Firebase). Se pueden entender por separado.
 
 ## 2. Mapa de archivos
 
@@ -55,7 +55,7 @@ Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visu
 ├── admin.html                # editor visual de content.js — NO está en git (ver §6)
 ├── assets/
 │   ├── logo.png
-│   ├── brawlers.json          # catálogo de 106 Brawlers para Megadraft
+│   ├── brawlers.json          # catálogo de 106 Brawlers para Enfrentamientos
 │   ├── brawlers/*.png          # iconos autoalojados de cada Brawler (ver §15)
 │   └── uploads/*.jpg            # fotos subidas desde admin.html
 ├── proxy/
@@ -66,14 +66,14 @@ Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visu
 │   └── .htaccess                     # bloquea el acceso directo a config.php
 ├── google-apps-script/
 │   └── Code.gs                      # recibe el formulario → fila en Google Sheets
-├── megadraft/                        # subsistema del draft en vivo — ver §9
+├── enfrentamientos/                        # subsistema del draft en vivo — ver §9
 │   ├── index.html                     # portada: "soy capitán" / pantalla principal
 │   ├── draft.html                      # vista del capitán (login por PIN + picks)
 │   ├── admin.html                       # panel del organizador — con PIN de acceso
 │   ├── screen.html                       # pantalla/proyector, solo lectura
 │   ├── stream.html                        # salida 16:9 pensada para OBS
-│   ├── megadraft.css                       # estilos propios del subsistema
-│   ├── README-FIREBASE.md                   # cómo montar el proyecto Firebase desde cero (reglas de AMBOS: megadraft e historial)
+│   ├── enfrentamientos.css                       # estilos propios del subsistema
+│   ├── README-FIREBASE.md                   # cómo montar el proyecto Firebase desde cero (reglas de AMBOS: enfrentamientos e historial)
 │   └── js/
 │       ├── firebase-config.js                 # claves públicas del SDK de Firebase
 │       └── draft-logic.js                      # TODA la lógica compartida entre páginas
@@ -82,7 +82,7 @@ Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visu
     ├── admin.html                        # panel: vincular participantes, disparar el cruce
     ├── historial.css                      # estilos propios del subsistema
     └── js/
-        ├── firebase-config.js               # mismo proyecto Firebase que Megadraft (showcast-md)
+        ├── firebase-config.js               # mismo proyecto Firebase que Enfrentamientos (showcast-md)
         └── historial-logic.js                # algoritmo de correlación Challonge ↔ Brawl Stars
 ```
 
@@ -92,9 +92,9 @@ No hay `package.json`, ni bundler, ni framework. Cada HTML carga sus `<script>` 
 
 | Pieza | Dónde vive | Cómo se despliega |
 |---|---|---|
-| Sitio + Megadraft + Historial | GitHub Pages | push/merge a `main` → publicado solo, sin build |
+| Sitio + Enfrentamientos + Historial | GitHub Pages | push/merge a `main` → publicado solo, sin build |
 | Proxy de Brawl Stars y de Challonge | VM propia de Google Cloud (`34.10.158.213.sslip.io`, instancia `e2-micro`) | manual — no forma parte de este repo git en producción |
-| Base de datos Megadraft e Historial | Firebase Realtime Database (plan gratuito Spark) | proyecto `showcast-md`, reglas se publican a mano en la consola (mismo proyecto para los dos nodos, `/megadraft` y `/historial`) |
+| Base de datos Enfrentamientos e Historial | Firebase Realtime Database (plan gratuito Spark) | proyecto `showcast-md`, reglas se publican a mano en la consola (mismo proyecto para los dos nodos, `/enfrentamientos` y `/historial`) |
 | Inscripciones | Google Apps Script + Sheets | se despliega a mano desde el editor de Apps Script |
 
 > ⚠️ **GitHub Pages no ejecuta PHP.** Cualquier código de cliente que necesite llamar al proxy (`brawlstars.php`, `challonge.php`) tiene que usar la URL absoluta de la VM (`brawlProxyEndpoint`/`challongeProxyEndpoint` en `content.js`), nunca una ruta relativa tipo `../proxy/algo.php` — esa ruta relativa "funciona" en local con `php -S` (por eso el bug pasó desapercibido en pruebas locales) pero en producción GitHub Pages sirve el `.php` como texto plano en vez de ejecutarlo. Ver §14 para el caso real en el que esto pasó.
@@ -122,7 +122,7 @@ Una única página de ~1700 líneas, sin router, dividida en secciones ancladas 
 
 **Nav** (`<ul id="navList">`, cabecera): `Inicio` · desplegable `Torneos` (Próximo evento, **Inscripción**, Clasificaciones) · desplegable `Comunidad` (Quiénes somos, Sobre nosotros, Únete, Galería, Patrocinadores, Contacto — ya no hay entrada "Mapa", fusionada con Galería). Ya no hay ningún enlace suelto fuera de los desplegables aparte de "Inicio" — "Inscripción" se movió dentro de "Torneos" (antes era un enlace siempre visible en el nav principal). Ambos desplegables comparten el mismo componente CSS/JS genérico `.nav-dropdown`/`.nav-dropdown-btn`/`.nav-dropdown-menu` (antes había un único desplegable "más secciones" sin agrupar, con icono de hamburguesa en vez de texto) — abrir uno cierra el otro, y un clic fuera cierra cualquiera que esté abierto (`navDropdowns` en el `<script>` inline al final del `<body>`). El footer tiene una lista de navegación secundaria (sitemap) que se mantiene sincronizada a mano con este mismo orden, no se genera dinámicamente.
 
-Los enlaces a "Historial de partidas" (`historial/index.html`) y "Megadraft" (`megadraft/index.html`) se quitaron del desplegable "Torneos" a petición del usuario — las páginas y subsistemas siguen existiendo tal cual en el repo, solo dejaron de ser accesibles desde el nav de la web pública. Si se quieren reactivar, basta con devolver esos dos `<li>` al `#torneosMenu`.
+Los enlaces a "Historial de partidas" (`historial/index.html`) y "Enfrentamientos" (`enfrentamientos/index.html`) se quitaron del desplegable "Torneos" a petición del usuario — las páginas y subsistemas siguen existiendo tal cual en el repo, solo dejaron de ser accesibles desde el nav de la web pública. Si se quieren reactivar, basta con devolver esos dos `<li>` al `#torneosMenu`.
 
 **Galería = ediciones del torneo, agrupadas por ciudad** (`#galeria`): acordeón de **dos niveles**. El nivel exterior agrupa por `ciudad` (dos categorías principales: Puçol y Sagunto) — se calcula en JS a partir del array plano `galeriaEdiciones` (primer orden de aparición decide el orden de las ciudades, sin campo de orden explícito). Dentro de cada ciudad, un sub-acordeón (`.gallery-accordion.nested`, mismas clases `.gallery-edicion`/`.gallery-edicion-toggle`/`.gallery-edicion-body` con el modificador `.sub`) lista sus años (`anio`): fecha (placeholder "📅 Próximamente" hasta rellenarla), ubicación en texto + su propio iframe de Google Maps (`https://www.google.com/maps?q=<ubicación>, Valencia&output=embed`, un mapa por año, no uno compartido por ciudad) y las fotos/vídeos de esa edición concreta (con el placeholder "Todavía no hay fotos en este apartado" ya existente cuando está vacía). El listener de apertura/cierre no distingue niveles — un único `wrap.querySelectorAll('.gallery-edicion-toggle')` sobre todo el árbol ya cubre los toggles anidados. Esto sustituye lo que antes eran tres cosas separadas (galería plana, sección `#mapa`, timeline "Torneos ya organizados"), fusionadas primero en una tarjeta por edición y ahora agrupadas por ciudad. Ediciones actuales: Puçol (2024 — con fotos reales, 2025, 2026) y Sagunto (2025), ubicación "Espai Jove Puçol" o "Casal Jove del Port de Sagunt" respectivamente.
 
@@ -180,7 +180,7 @@ El archivo `google-apps-script/Code.gs` de este repo es la **fuente de verdad ve
 
 ## 8. Proxy de la API de Brawl Stars
 
-La sección "Clasificaciones" del sitio, y el sistema de puntuación de Megadraft, necesitan datos reales de un jugador (trofeos, victorias, rango ranked...) a partir de su tag. Esa consulta no puede hacerse directamente desde el navegador.
+La sección "Clasificaciones" del sitio, y el sistema de puntuación de Enfrentamientos, necesitan datos reales de un jugador (trofeos, victorias, rango ranked...) a partir de su tag. Esa consulta no puede hacerse directamente desde el navegador.
 
 **Por qué**: la API oficial de Supercell exige una *API key* atada a una IP fija. Ponerla en JavaScript de cliente la dejaría visible para cualquiera que abra las herramientas de desarrollador — y esa clave, una vez filtrada, permitiría a cualquiera hacer peticiones en nombre de esta cuenta hasta que se revoque.
 
@@ -192,9 +192,11 @@ GET /proxy/brawlstars.php?tag=8CG8LUJ
 
 que valida el formato del tag, llama a la API oficial con la clave (guardada en `proxy/config.php`, fuera de git), y devuelve solo los campos que la web necesita — nunca la clave, nunca la respuesta cruda completa. También corrige el error de tecleo más común (una `O` en vez de un `0`) y limita el CORS a los orígenes de la propia web. Entre esos campos está `prestige` (mapeado desde `totalPrestigeLevel` de la respuesta real), usado por la insignia de prestigio del modal de verificación de tag — ver §15.
 
-Tanto `index.html` (sección Clasificaciones) como `megadraft/js/draft-logic.js` (`fetchPlayerStats`, para calcular la puntuación de cada jugador) llaman al mismo endpoint. Es el único punto de contacto de todo el proyecto con la API oficial de Supercell.
+Tanto `index.html` (sección Clasificaciones) como `enfrentamientos/js/draft-logic.js` (`fetchPlayerStats`, para calcular la puntuación de cada jugador) llaman al mismo endpoint. Es el único punto de contacto de todo el proyecto con la API oficial de Supercell.
 
-## 9. Qué es Megadraft
+## 9. Qué es Enfrentamientos
+
+> 🧊 **Archivado — sin desarrollo nuevo.** Este subsistema se llamaba "Megadraft"; se renombró y se congela a petición del equipo de Showcast, que rechazó seguir construyendo sobre este concepto. Sigue funcionando tal cual para quien lo use (código, Firebase y reglas intactos, solo renombrados), pero no se le añaden funciones nuevas ni se prioriza arreglar bugs suyos salvo que rompa algo grave.
 
 Un subsistema completo, separado del sitio principal, para hacer en vivo la fase de draft de personajes de un torneo: 8 equipos, cada uno elige 12 Brawlers por turnos, sincronizado en tiempo real entre hasta ~10 dispositivos distintos (8 capitanes + pantalla + stream) sin que nadie tenga que refrescar nada a mano.
 
@@ -206,9 +208,9 @@ screen.html (proyector) ──┤   (única fuente de verdad,
 stream.html (OBS)   ──┘     lectura pública, escritura con auth)
 ```
 
-No hay servidor propio para Megadraft — cada página HTML habla directamente con Firebase Realtime Database desde el navegador. Se descartó explícitamente usar Cloud Functions para mantenerse en el plan gratuito "Spark" de Firebase; todas las reglas de negocio (de quién es el turno, si un personaje ya está cogido...) están en JavaScript de cliente + [reglas de seguridad de la base de datos](#12-autenticación-y-reglas-de-seguridad).
+No hay servidor propio para Enfrentamientos — cada página HTML habla directamente con Firebase Realtime Database desde el navegador. Se descartó explícitamente usar Cloud Functions para mantenerse en el plan gratuito "Spark" de Firebase; todas las reglas de negocio (de quién es el turno, si un personaje ya está cogido...) están en JavaScript de cliente + [reglas de seguridad de la base de datos](#12-autenticación-y-reglas-de-seguridad).
 
-## 10. Las 5 páginas de Megadraft
+## 10. Las 5 páginas de Enfrentamientos
 
 | Página | Para quién | Qué hace |
 |---|---|---|
@@ -220,10 +222,10 @@ No hay servidor propio para Megadraft — cada página HTML habla directamente c
 
 Las cuatro páginas visibles al público (todas menos `admin.html`) cargan `js/draft-logic.js`, que concentra **toda** la lógica de negocio y de Firebase. Ninguna página reimplementa "de quién es el turno" o "cómo se calcula la puntuación" por su cuenta — todas llaman a las mismas funciones del objeto `MD` que expone ese archivo.
 
-## 11. Modelo de datos de Megadraft
+## 11. Modelo de datos de Enfrentamientos
 
 ```
-/megadraft/
+/enfrentamientos/
   status: "config" | "drafting" | "complete"
   draftPhase: "prep" | "picking"
   draftOrder: [teamId, teamId, ...]      // 8 ids, peor → mejor puntuación
@@ -252,7 +254,7 @@ El PIN de 4 dígitos no es autenticación real: es una capa de conveniencia. Al 
 
 ```json
 // Reglas de Realtime Database (se pegan a mano en la consola de Firebase)
-"megadraft": {
+"enfrentamientos": {
   ".read": true,
   "teams/$teamId/claimedBy": {
     ".write": "auth != null && (!data.exists() || data.val() == auth.uid || newData.val() == null)"
@@ -261,7 +263,7 @@ El PIN de 4 dígitos no es autenticación real: es una capa de conveniencia. Al 
 }
 ```
 
-El detalle completo de las reglas está en [`megadraft/README-FIREBASE.md`](megadraft/README-FIREBASE.md).
+El detalle completo de las reglas está en [`enfrentamientos/README-FIREBASE.md`](enfrentamientos/README-FIREBASE.md).
 
 **Qué NO protege esto (limitación asumida)**: un capitán con conocimientos técnicos podría, desde la consola del navegador, forzar un pick fuera de su turno saltándose la interfaz. La UI normal y la transacción de `submitPick` verifican correctamente el turno contra el estado del servidor, así que el uso normal del evento está cubierto — pero un participante decidido a hacer trampa manipulando la base de datos directamente podría lograrlo. Reglas más estrictas requerirían Cloud Functions (plan de pago). Para un torneo amistoso entre 8 equipos conocidos, se ha decidido que este nivel es suficiente.
 
@@ -275,7 +277,7 @@ El requisito era que el organizador solo tuviera que pulsar **un botón** ("Inic
 
 ## 14. Historial de partidas: cruce Challonge + Brawl Stars
 
-Un tercer subsistema, `historial/`, independiente de Megadraft aunque comparte su mismo proyecto Firebase. Diseño completo y contexto en [`CHALLONGE-API.md`](CHALLONGE-API.md) — este apartado es el resumen operativo.
+Un tercer subsistema, `historial/`, independiente de Enfrentamientos aunque comparte su mismo proyecto Firebase. Diseño completo y contexto en [`CHALLONGE-API.md`](CHALLONGE-API.md) — este apartado es el resumen operativo.
 
 **Qué hace**: Challonge sabe quién jugó contra quién y quién ganó; Brawl Stars sabe qué Brawler usó cada uno y en qué mapa. Ninguno de los dos sabe del otro. `historial/admin.html` cruza ambos por tiempo y por jugadores cuando el organizador pulsa **"Actualizar historial de partidas"** (nunca automático — ver el aviso de cuota en `CHALLONGE-API.md` §11), y guarda el resultado combinado en Firebase para que `historial/index.html` lo muestre al público.
 
@@ -291,7 +293,7 @@ Un tercer subsistema, `historial/`, independiente de Megadraft aunque comparte s
 - Falta la cabecera `Content-Type: application/vnd.api+json` en la petición `GET`, aunque no lleve cuerpo — sin ella, la API responde `415 Unsupported Media Type`.
 - Un partido de la API v2.1 **no** tiene `player1_id`/`player2_id`/`scores_csv` (nombres heredados de v1 que aparecían en ejemplos de documentación) — usa `points_by_participant` (array de `{participant_id, scores}`) y la fecha de actualización va anidada en `timestamps.updated_at`. `historial-logic.js` tiene `matchParticipantIds()`/`matchUpdatedAt()` para normalizar esto.
 
-**Modelo de datos** (nodo nuevo `/historial` en el mismo Firebase `showcast-md` de Megadraft, reglas en [`megadraft/README-FIREBASE.md`](megadraft/README-FIREBASE.md)):
+**Modelo de datos** (nodo nuevo `/historial` en el mismo Firebase `showcast-md` de Enfrentamientos, reglas en [`enfrentamientos/README-FIREBASE.md`](enfrentamientos/README-FIREBASE.md)):
 
 ```
 /historial/{torneoSlug}/
@@ -306,7 +308,7 @@ Un tercer subsistema, `historial/`, independiente de Megadraft aunque comparte s
 
 `juegos[].ganador` es `"equipoA"` / `"equipoB"` / `"empate"` / `null` — traducido de `battle.result` de Brawl Stars (`"victory"`/`"defeat"`/`"draw"`), que es la perspectiva del jugador cuyo battlelog se consultó, no dice directamente qué equipo ganó. Hay que mirar en qué lado estaba ese jugador para saberlo (`resultadoJuego()` en `historial-logic.js`).
 
-La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Stars" se hace a mano desde `historial/admin.html` (con pre-relleno automático si existe un equipo de Megadraft con el mismo nombre) — no se asume que el torneo tenga que venir de Megadraft.
+La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Stars" se hace a mano desde `historial/admin.html` (con pre-relleno automático si existe un equipo de Enfrentamientos con el mismo nombre) — no se asume que el torneo tenga que venir de Enfrentamientos.
 
 **Emparejamiento automático**: sala amistosa (`type: "friendly"`) + coinciden **todos** los tags vinculados de cada equipo en el mismo lado de la batalla. Sin ventana de tiempo — se probó primero con un límite de ±30 min, pero era un número mágico frágil que no evitaba los falsos positivos reales (entrenos, revanchas con los mismos jugadores) y sí podía descartar partidas legítimas reportadas tarde. Al no ser infalible (dos equipos pueden jugar más de una sala amistosa entre sí), existen dos herramientas para lo que el automático no resuelva:
 
@@ -330,7 +332,7 @@ El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar l
 ### 🔴 Alta — La transacción de `submitPick` fallaba con 2+ equipos activos
 
 - **Síntoma**: en cuanto dos capitanes con `uid` distintos habían reclamado equipos distintos, el segundo pick fallaba con `permission_denied`.
-- **Causa**: el código llamaba a `.transaction()` sobre el nodo *padre* (`megadraft` entero) para hacer el "leer-modificar-escribir" atómico de `currentPickIndex`. Firebase revalida las reglas de seguridad de **todo** el subárbol que la transacción toca — incluyendo campos hermanos sin cambios, como el `claimedBy` de equipos que ni siquiera estaban involucrados en ese pick, cuya regla condicional exige que coincida con el `uid` de quien escribe.
+- **Causa**: el código llamaba a `.transaction()` sobre el nodo *padre* (`enfrentamientos` entero) para hacer el "leer-modificar-escribir" atómico de `currentPickIndex`. Firebase revalida las reglas de seguridad de **todo** el subárbol que la transacción toca — incluyendo campos hermanos sin cambios, como el `claimedBy` de equipos que ni siquiera estaban involucrados en ese pick, cuya regla condicional exige que coincida con el `uid` de quien escribe.
 - **Arreglo**: se estrechó la transacción para que actúe **solo** sobre `currentPickIndex`, y todo lo demás (el pick en sí, el siguiente cronómetro) se escribe aparte con un `.update()` de rutas planas — el mismo patrón que ya usaba `admin.html` para guardar equipos. Regla general: nunca hacer `.transaction()` sobre un nodo más ancho de lo estrictamente necesario.
 
 ### 🟠 Media — Los iconos de Brawler no cargaban (brawlify.com bloqueaba las descargas)
@@ -391,9 +393,9 @@ El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar l
 
 ## 16. Limitaciones conocidas (asumidas, no bugs)
 
-- **El PIN de `megadraft/admin.html` es cosmético.** Es un código de 4 cifras fijo en el propio JavaScript del cliente, pensado solo para que no cualquiera con el enlace entre y toque el draft por error — no es seguridad real ante alguien que abra el código fuente.
+- **El PIN de `enfrentamientos/admin.html` es cosmético.** Es un código de 4 cifras fijo en el propio JavaScript del cliente, pensado solo para que no cualquiera con el enlace entre y toque el draft por error — no es seguridad real ante alguien que abra el código fuente.
 - **Cualquier participante puede liberar el equipo de otro** desde la consola del navegador (la regla de `claimedBy` permite poner `null` a cualquier usuario autenticado, sin distinguir "admin" de "capitán"). Se aceptó porque diferenciar roles exigiría Cloud Functions.
-- **Sin build ni tests automatizados.** Toda verificación de cambios es manual: abrir el navegador y probar. Los cambios grandes de Megadraft en este proyecto se han validado con drafts de prueba completos de 8 equipos / 96 picks antes de darlos por buenos.
+- **Sin build ni tests automatizados.** Toda verificación de cambios es manual: abrir el navegador y probar. Los cambios grandes de Enfrentamientos en este proyecto se han validado con drafts de prueba completos de 8 equipos / 96 picks antes de darlos por buenos.
 - **`admin.html` (del sitio principal) no se auto-actualiza.** Si la forma de `content.js` cambia, hay que editar a mano la copia local de `admin.html` de cada persona que lo use — no hay ningún mecanismo que las mantenga sincronizadas.
 
 ## 17. Dónde viven los secretos
@@ -406,8 +408,8 @@ Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que rege
 | Client ID / Client Secret de Challonge | `proxy/config.php` (mismo archivo, excluido por `.gitignore`) | pedir tokens OAuth2 (Client Credentials) para `proxy/challonge.php` — la app se llama "Showcast — Historial de partidas" en `connect.challonge.com` |
 | Token de acceso de Challonge (derivado, no una credencial "raíz") | `proxy/challonge-token-cache.json` (excluido por `.gitignore`) | cachear el token OAuth2 mientras no caduque (~7 días), regenerado solo si falta o caduca |
 | Personal Access Token de GitHub | `localStorage` del navegador, pegado en `admin.html` | que el editor de contenido pueda abrir PRs |
-| Config del SDK de Firebase | `megadraft/js/firebase-config.js` y `historial/js/firebase-config.js` (sí están en git, mismo proyecto `showcast-md`) | inicializar Firebase — **no es secreta**, es pública por diseño; la seguridad real la dan las reglas de la base de datos, no el secretismo de estas claves |
-| PIN de `megadraft/admin.html` | hardcodeado en el JS del propio archivo | disuasión visual, no seguridad (§16) |
+| Config del SDK de Firebase | `enfrentamientos/js/firebase-config.js` y `historial/js/firebase-config.js` (sí están en git, mismo proyecto `showcast-md`) | inicializar Firebase — **no es secreta**, es pública por diseño; la seguridad real la dan las reglas de la base de datos, no el secretismo de estas claves |
+| PIN de `enfrentamientos/admin.html` | hardcodeado en el JS del propio archivo | disuasión visual, no seguridad (§16) |
 | Database secret de Firebase + sal de hash de IP | `proxy/config.php` (mismo archivo, excluido por `.gitignore`) | que `proxy/predicciones.php` pueda escribir en `/predicciones` saltándose las reglas de la base de datos, y que la IP de cada votante nunca se guarde en claro (§19) |
 
 ## 18. Qué queda pendiente
@@ -416,7 +418,7 @@ Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que rege
 
 **Fase eliminatoria del sistema de predicciones** (§19): de momento solo existe la fase clasificatoria (ranking por puntos). La fase eliminatoria (elegir ganador de cada cruce del bracket, con reapertura de voto si el cruce real no coincide con lo predicho) queda para una segunda entrega — ver el plan completo en el historial de la conversación.
 
-**Reglas de Firebase del nodo `/predicciones` sin aplicar todavía en la consola real**: el bloque de reglas de §19/`megadraft/README-FIREBASE.md` está documentado pero alguien con acceso a la consola de Firebase (`showcast-md`) tiene que pegarlo a mano en Realtime Database → Reglas → Publicar, igual que se hizo la primera vez para Megadraft/Historial — hasta entonces, `GET .../predicciones/...json` devuelve `{"error":"Permission denied"}` (el código ya lo trata como "sin predicciones todavía", no rompe nada, pero tampoco se puede votar de verdad).
+**Reglas de Firebase del nodo `/predicciones` sin aplicar todavía en la consola real**: el bloque de reglas de §19/`enfrentamientos/README-FIREBASE.md` está documentado pero alguien con acceso a la consola de Firebase (`showcast-md`) tiene que pegarlo a mano en Realtime Database → Reglas → Publicar, igual que se hizo la primera vez para Enfrentamientos/Historial — hasta entonces, `GET .../predicciones/...json` devuelve `{"error":"Permission denied"}` (el código ya lo trata como "sin predicciones todavía", no rompe nada, pero tampoco se puede votar de verdad).
 
 ## 19. Sistema de predicciones propio (fase clasificatoria)
 
@@ -432,9 +434,9 @@ Challonge tiene su propia función de "predictions" (pronósticos de bracket), p
 - Usa ese hash como clave del voto en Firebase: `PUT /predicciones/{torneoId}/clasificatoria/votos/{ipHash}.json`. Si la misma IP vuelve a votar, **sobrescribe** su voto anterior en vez de duplicarlo — no bloquea revotar, solo evita contar dos veces a la misma persona.
 - La escritura usa el **database secret** heredado de Firebase (`FIREBASE_DB_SECRET` en `proxy/config.php`), que bypassa las reglas de seguridad por completo — por eso tiene que quedarse en el servidor, nunca en JavaScript de cliente.
 
-**Lectura**: a diferencia de la escritura, la lectura de los votos agregados la hace **directamente el navegador** contra la Realtime Database (`GET https://showcast-md-default-rtdb.../predicciones/{torneoId}/clasificatoria/votos.json`, pública por reglas — igual que ya hace `screen.html` de Megadraft con su propio nodo) — no hace falta pasar por ningún proxy para leer, solo para escribir. El cálculo de puntos/porcentajes se hace en el JS de `index.html` (`prediccionesRenderResultado`), mismo reparto de trabajo que ya usa Clasificaciones con los datos de Challonge.
+**Lectura**: a diferencia de la escritura, la lectura de los votos agregados la hace **directamente el navegador** contra la Realtime Database (`GET https://showcast-md-default-rtdb.../predicciones/{torneoId}/clasificatoria/votos.json`, pública por reglas — igual que ya hace `screen.html` de Enfrentamientos con su propio nodo) — no hace falta pasar por ningún proxy para leer, solo para escribir. El cálculo de puntos/porcentajes se hace en el JS de `index.html` (`prediccionesRenderResultado`), mismo reparto de trabajo que ya usa Clasificaciones con los datos de Challonge.
 
-**Dónde vive el dato**: mismo proyecto Firebase `showcast-md` que ya comparten Megadraft e Historial, nodo nuevo `/predicciones/{torneoId}/clasificatoria/votos/{ipHash}: {ranking: [...ids de participante], ts}`. Es la **primera vez que `index.html`** (el sitio principal) toca esta base de datos — hasta ahora solo la tocaban Megadraft e Historial. Reglas nuevas en `megadraft/README-FIREBASE.md`: `"predicciones": { ".read": true, ".write": false }` — nadie puede escribir por las reglas normales (ni con `auth != null`, porque el sitio principal no tiene ningún login de visitante), solo el proxy con el database secret salta esa restricción.
+**Dónde vive el dato**: mismo proyecto Firebase `showcast-md` que ya comparten Enfrentamientos e Historial, nodo nuevo `/predicciones/{torneoId}/clasificatoria/votos/{ipHash}: {ranking: [...ids de participante], ts}`. Es la **primera vez que `index.html`** (el sitio principal) toca esta base de datos — hasta ahora solo la tocaban Enfrentamientos e Historial. Reglas nuevas en `enfrentamientos/README-FIREBASE.md`: `"predicciones": { ".read": true, ".write": false }` — nadie puede escribir por las reglas normales (ni con `auth != null`, porque el sitio principal no tiene ningún login de visitante), solo el proxy con el database secret salta esa restricción.
 
 **Dónde vive la UI**: dentro de `#clasificaciones` en `index.html`, en una caja nueva `.predicciones-wrap` justo debajo de la tabla/bracket ya existentes. Reutiliza los participantes que ya trae `clasifFetchTorneo` (mismo torneo de Challonge que Tabla/Bracket) — no hace ninguna llamada nueva a Challonge. El reordenamiento de equipos se hace con botones ↑/↓ por fila (`pi-moves`) en vez de arrastrar — más simple de implementar en JS vainilla y funciona igual de bien en móvil. `localStorage` recuerda si el visitante ya votó en ese torneo concreto (`pred_{torneoId}`) para no mostrarle el formulario de nuevo — es solo una comodidad de UI, el deduplicado real (evitar contar dos votos como dos personas distintas) lo hace el hash de IP en el servidor, no esto.
 
