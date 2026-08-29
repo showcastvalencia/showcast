@@ -29,6 +29,10 @@ header('Content-Type: application/json; charset=utf-8');
 $allowedOrigins = [
     'https://showcastvalencia.github.io',
     // 'https://www.showcast.es',
+    // admin.html se abre normalmente como archivo local (file://), que el
+    // navegador manda como "Origin: null" — se permite porque este proxy es
+    // de solo lectura (datos públicos de la API de Brawl Stars).
+    'null',
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if ($origin && in_array($origin, $allowedOrigins, true)) {
