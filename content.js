@@ -131,7 +131,7 @@ window.SHOWCAST_CONTENT = {
   },
   "contacto": {
     "email": "showcastvalencia.com",
-    "telefono": "Pendiente de publicar",
+    "telefono": "633 75 05 23",
     "instagram": "https://www.instagram.com/showcast.es",
     "tiktok": "https://www.tiktok.com/@showcast.valencia",
     "youtube": "https://www.youtube.com/@ShowCastValencia",
