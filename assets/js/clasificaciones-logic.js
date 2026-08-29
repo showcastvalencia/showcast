@@ -114,10 +114,15 @@ const CD = (function () {
     return match.updated_at || (match.timestamps && match.timestamps.updated_at) || null;
   }
 
-  // Torneo de dos fases: los partidos de la fase de grupos llevan un
-  // group_id asociado (CHALLONGE-API.md §9); los de la fase final no.
-  function isGroupStageMatch(match) {
-    return match.group_id != null;
+  // Torneo de dos fases: comprobado contra un torneo real (CHALLONGE-API.md
+  // §9 asumía que el PARTIDO llevaría un group_id asociado — no es así, la
+  // API v2.1 real no expone ningún group_id en el objeto de partido). Lo que
+  // sí lleva group_id es el PARTICIPANTE, así que un partido se considera de
+  // fase de grupos si sus dos participantes tienen group_id asignado.
+  function isGroupStageMatch(match, participantsById) {
+    const [aId, bId] = matchParticipantIds(match);
+    const a = participantsById[aId], b = participantsById[bId];
+    return !!(a && a.group_id != null) || !!(b && b.group_id != null);
   }
 
   // battle.result ("victory"/"defeat"/"draw") es la perspectiva del jugador
@@ -202,7 +207,7 @@ const CD = (function () {
     return {
       challongeMatchId: match.id,
       ronda: match.round || null,
-      groupId: match.group_id || null,
+      esFaseDeGrupos: isGroupStageMatch(match, participantsById),
       equipoA,
       equipoB,
       resultadoChallonge: { scoresCsv: match.scores || match.scores_csv || '', ganador },
@@ -231,7 +236,7 @@ const CD = (function () {
     function blank(id) { return { id, pj: 0, v: 0, d: 0, e: 0, setsF: 0, setsC: 0 }; }
 
     (matches || []).forEach(m => {
-      if (!isGroupStageMatch(m) || m.state !== 'complete') return;
+      if (!isGroupStageMatch(m, participantsById) || m.state !== 'complete') return;
       const [aId, bId] = matchParticipantIds(m);
       if (aId == null || bId == null) return;
       stats[aId] = stats[aId] || blank(aId);

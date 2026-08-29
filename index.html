@@ -1934,8 +1934,8 @@
     if (!clasifDataActual) return;
     const { matches, participantsById } = clasifDataActual;
     const localById = clasifLocalActual.participantes || {};
-    const grupoMatches = matches.filter(CD.isGroupStageMatch);
-    const finalMatches = matches.filter(m => !CD.isGroupStageMatch(m) && (m.round || 0) > 0);
+    const grupoMatches = matches.filter(m => CD.isGroupStageMatch(m, participantsById));
+    const finalMatches = matches.filter(m => !CD.isGroupStageMatch(m, participantsById) && (m.round || 0) > 0);
 
     const vistaTabs = document.getElementById('clasifVistaTabs');
     if (grupoMatches.length && finalMatches.length) {
@@ -2029,7 +2029,7 @@
     const local = (clasifLocalActual.participantes && clasifLocalActual.participantes[teamId]) || {};
     document.getElementById('equipoModalNombre').textContent = local.nombreEquipo || p.name || '?';
 
-    const grupoMatches = clasifDataActual.matches.filter(CD.isGroupStageMatch);
+    const grupoMatches = clasifDataActual.matches.filter(m => CD.isGroupStageMatch(m, clasifDataActual.participantsById));
     const standings = CD.computeStandings(grupoMatches, clasifDataActual.participantsById);
     const rec = standings.find(s => String(s.id) === String(teamId));
     document.getElementById('equipoModalRecord').textContent = rec
@@ -2055,7 +2055,7 @@
     const nombreB = clasifDisplayName(bId, clasifDataActual.participantsById, localById);
 
     document.getElementById('partidoModalRonda').textContent =
-      (CD.isGroupStageMatch(m) ? 'Fase de grupos' : 'Fase final') + (m.round ? ` — Ronda ${m.round}` : '');
+      (CD.isGroupStageMatch(m, clasifDataActual.participantsById) ? 'Fase de grupos' : 'Fase final') + (m.round ? ` — Ronda ${m.round}` : '');
     document.getElementById('partidoModalTeams').innerHTML = `
       <span class="cmm-team" data-team-id="${aId}">${nombreA}</span>
       <span class="cmm-score">${m.scores || clasifEstadoLabel(m.state)}</span>

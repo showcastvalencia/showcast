@@ -301,13 +301,13 @@ El requisito era que el organizador solo tuviera que pulsar **un botón** ("Inic
   meta: { nombre, actualizadoEn }
   participantes/{challongeParticipantId}: { nombreEquipo, tags: ["#XXXX", ...] }
   matches/{challongeMatchId}: {
-    ronda, groupId, equipoA, equipoB, resultadoChallonge,
+    ronda, esFaseDeGrupos, equipoA, equipoB, resultadoChallonge,
     juegos: [ { orden, battleTime, modo, mapa, duracion, ganador, picksEquipoA, picksEquipoB } ]
   }
   procesados/{challongeMatchId}: true
 ```
 
-`groupId` (de `match.group_id`) distingue los partidos de la fase de grupos (no nulo) de los de la fase final (nulo) — es lo que decide qué pestaña ("Fase de grupos"/"Fase final") muestra cada partido y si se calcula tabla de posiciones o bracket. `nombreEquipo` permite que el nombre mostrado en el sitio difiera del nombre del participante en Challonge, sin tocar nada en Challonge — si no se rellena, se usa el nombre de Challonge tal cual.
+`esFaseDeGrupos` distingue los partidos de la fase de grupos de los de la fase final — es lo que decide qué pestaña ("Fase de grupos"/"Fase final") muestra cada partido y si se calcula tabla de posiciones o bracket. **Corrección tras probar contra un torneo real** (`w0qlsvze`, 29 agosto 2026): el diseño original (§9 de `CHALLONGE-API.md`) asumía que el propio **partido** llevaría un campo `group_id` — no es así, la API v2.1 real no expone ningún `group_id` en el objeto de partido. Lo que sí lleva `group_id` es el **participante** (confirmado: los 8 equipos de ese torneo de prueba comparten el mismo `group_id`, al estar todos en un único grupo suizo). `CD.isGroupStageMatch(match, participantsById)` ahora mira si alguno de los dos participantes del partido tiene `group_id` asignado, en vez de mirar el partido. Esto asume un solo grupo por fase (el caso real de Showcast — un grupo suizo de todos contra todos que corta a un top N); no distingue entre varios grupos si un torneo los tuviera. `nombreEquipo` permite que el nombre mostrado en el sitio difiera del nombre del participante en Challonge, sin tocar nada en Challonge — si no se rellena, se usa el nombre de Challonge tal cual.
 
 `juegos[].ganador` es `"equipoA"` / `"equipoB"` / `"empate"` / `null` — traducido de `battle.result` de Brawl Stars (`"victory"`/`"defeat"`/`"draw"`), que es la perspectiva del jugador cuyo battlelog se consultó, no dice directamente qué equipo ganó. Hay que mirar en qué lado estaba ese jugador para saberlo (`resultadoJuego()` en `clasificaciones-logic.js`).
 
