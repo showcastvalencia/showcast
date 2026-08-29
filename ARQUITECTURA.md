@@ -66,8 +66,7 @@ Las tres partes comparten el mismo dominio de GitHub Pages, la misma paleta visu
 │   ├── brawlstars.php            # intermediario hacia la API oficial de Brawl Stars
 │   ├── challonge.php              # intermediario hacia la API de Challonge (solo lectura)
 │   ├── config.php                  # claves/credenciales de ambas APIs — NO está en git
-│   ├── challonge-token-cache.json   # token OAuth2 de Challonge cacheado — NO está en git, se regenera solo
-│   └── .htaccess                     # bloquea el acceso directo a config.php
+│   └── .htaccess                     # bloquea el acceso directo a config.php/.json/.bak/.log/.ini/.sample
 ├── google-apps-script/
 │   └── Code.gs                      # recibe el formulario → fila en Google Sheets
 └── enfrentamientos/                        # subsistema del draft en vivo — ver §9
@@ -286,7 +285,7 @@ El requisito era que el organizador solo tuviera que pulsar **un botón** ("Inic
 
 **Autenticación de Challonge — OAuth2 Client Credentials, no una clave simple.** A diferencia de Brawl Stars (una sola clave JWT que se pega y ya está), Challonge migró su Developer Portal a `connect.challonge.com` y ya no permite generar una clave v1 suelta para aplicaciones nuevas. Hace falta:
 1. Crear una "Application" en `connect.challonge.com` (ya hecha: **"Showcast — Historial de partidas"**, id `58701`) → da un `Client ID` + `Client Secret`.
-2. `proxy/challonge.php` pide un token de acceso (`POST https://api.challonge.com/oauth/token`, `grant_type=client_credentials`) y lo cachea en `proxy/challonge-token-cache.json` hasta que caduca (~7 días), para no pedir uno nuevo en cada petición.
+2. `proxy/challonge.php` pide un token de acceso (`POST https://api.challonge.com/oauth/token`, `grant_type=client_credentials`) y lo cachea hasta que caduca (~7 días), para no pedir uno nuevo en cada petición. El caché vive **fuera del docroot** (`sys_get_temp_dir()`, permisos `0600`) — no dentro de `proxy/`, que sirve Apache — desde el fix de seguridad de §15 ("Token OAuth2 de Challonge descargable por HTTP").
 3. El scope por defecto del token ya es de solo lectura (`tournaments:read`, `matches:read`, `participants:read`...) — ni siquiera hace falta pedirlo explícitamente.
 
 **Tres bugs reales encontrados al desplegar contra un torneo real** (no en desarrollo local, donde todo parecía funcionar):
@@ -328,7 +327,9 @@ La vinculación "qué participante de Challonge es qué equipo/tags de Brawl Sta
 
 **El `tag` de cada jugador se guarda en cada pick**: `battleToJuego()` guarda el `tag` de cada jugador dentro de `picksEquipoA`/`picksEquipoB` (no solo `jugador`/`brawler`) — sin él, el modal de partido no puede abrir el perfil de ese jugador al pulsarlo.
 
-**Un 4º tag (suplente) por participante**: el panel de `admin.html` muestra normalmente 3 campos de tag por participante (equipo 3v3), con un botón "+" para añadir un 4º opcional. Si un participante ya tenía 4 tags guardados de antes, se renderiza directamente con los 4 campos y sin el botón. No hace falta ningún cambio en la lógica de cruce — `battleMatchesTeams()` ya soporta cualquier número de tags vinculados por equipo.
+**Un 4º tag (suplente) por participante**: el panel de `admin.html` muestra normalmente 3 campos de tag por participante (equipo 3v3), con un botón "+" para añadir un 4º opcional y, una vez añadido, un botón "−" junto a él para quitarlo de nuevo (por si se pulsó "+" sin querer). Si un participante ya tenía 4 tags guardados de antes, se renderiza directamente con los 4 campos y el botón "−" (sin el "+"). No hace falta ningún cambio en la lógica de cruce — `battleMatchesTeams()` ya soporta cualquier número de tags vinculados por equipo.
+
+**Selector de categoría con 1 sola categoría**: el desplegable "Categoría" del panel de vinculación (`#cv_categoria`) es independiente de los campos de nombre/torneo de arriba — `setClasifNumCategorias()` no lo tocaba, así que con "1 categoría" seleccionada seguía mostrando "Categoría 1"/"Categoría 2" sin sentido. Se oculta ahora junto con el resto de campos de la categoría 2 cuando `n === 1`, fijando su valor a `"0"`.
 
 ## 15. Problemas encontrados (y cómo se resolvieron)
 
@@ -396,6 +397,24 @@ El historial real de bugs de este proyecto. Vale la pena leerlo antes de tocar l
 - **Complicación al verificarlo resuelto**: tras corregir `admin.html`, el campo **volvió a desaparecer una vez más** — no por un fallo del código, sino porque la pestaña del navegador donde se publicó ya estaba abierta desde antes de guardar el archivo corregido. Editar `admin.html` en disco no afecta a una pestaña que ya cargó el JS viejo; hace falta recargarla (Ctrl+F5) después de cualquier cambio en este archivo.
 - **Lección**: `admin.html` (§6) está fuera de git y **cualquier campo nuevo en `content.js` tiene que añadirse también a `admin.html`** (formulario + `fillForm` + `collectForm` + bloque semilla) en el mismo cambio, nunca por separado — si no, la próxima publicación lo borra sin avisar. Y tras editar `admin.html`, recordar recargar la pestaña donde se vaya a usar antes de publicar.
 
+### 🔴 Alta — Auditoría de seguridad: token de Challonge descargable, XSS almacenado e inyección de fórmulas
+
+Tras una revisión exhaustiva de todo el repositorio (29 agosto 2026), se encontraron y corrigieron tres problemas reales, ninguno teórico:
+
+- **Token OAuth2 de Challonge descargable por HTTP**: `challonge-token-cache.json` vivía dentro de `proxy/`, que sirve Apache — cualquiera que visitara su URL directamente podía descargar un token válido ~7 días y hacer peticiones a la API de Challonge en nombre de Showcast. **Arreglo**: el caché se mueve fuera del docroot (`sys_get_temp_dir()`, con `umask(0077)` **antes** de escribir — no un `chmod` después, que deja una ventana breve con permisos por defecto legibles por cualquiera — ver el comentario en `proxy/challonge.php`), y el `.htaccess` bloquea además cualquier `*.json/.bak/.log/.ini/.sample` en `proxy/`, no solo `config.php`, para no depender de una sola capa.
+- **XSS almacenado**: los nombres de jugador de Brawl Stars (los elige cualquiera en su cuenta de Supercell) y los nombres de equipo de Challonge/`admin.html` llegaban sin escapar a `innerHTML`. El caso más grave era `admin.html`: el battlelog incluye también a los rivales, así que un nombre malicioso en el bando contrario se ejecutaba en la sesión del organizador, que tiene el token de GitHub en `localStorage` y permiso de escritura en Firebase. **Arreglo**: `CD.escapeHtml()` (en `assets/js/clasificaciones-logic.js`), aplicado en los 9 puntos de `index.html` y los 4 de `admin.html` donde se interpola texto no controlado.
+- **Inyección de fórmulas en Google Sheets**: el endpoint de `google-apps-script/Code.gs` es público (`doPost` con "Cualquier usuario"), y cualquier campo del formulario (nombre, equipo, comentarios...) podía empezar por `=`, `+`, `-` o `@`, que Sheets interpreta como fórmula — por ejemplo `=HYPERLINK(...)`, peligroso sobre todo al descargar la hoja como Excel. **Arreglo**: `sanitizeCell()` antepone un apóstrofo a cualquier valor que empiece por esos caracteres (o tabulador/salto de línea) y trunca a 500 caracteres.
+
+**Verificación**: cada fix se probó con el payload real (petición directa al token cacheado, `<img src=x onerror=...>` como nombre de equipo, `=HYPERLINK(...)` como comentario) antes y después del cambio, no solo revisando que el código "tuviera buena pinta".
+
+### 🟠 Media — "Cargar participantes de Challonge" fallaba con "Failed to fetch" desde `admin.html`
+
+- **Síntoma**: tras desplegar el fix de seguridad de arriba, el panel de vinculación de equipos daba `Failed to fetch` al pulsar "Cargar participantes de Challonge", aunque el torneo (`w0qlsvze`) existía y la API respondía bien.
+- **Primera causa (descartada como única)**: `admin.html` nunca cargaba `content.js` (a diferencia de `index.html`), así que `window.SHOWCAST_CONTENT` no existía cuando arrancaba `clasificaciones-logic.js` — `CD` caía a la ruta relativa por defecto (`proxy/challonge.php`) en vez de la URL real de la VM. Se corrigió añadiendo `<script src="content.js">` antes de `clasificaciones-logic.js`, igual que ya hace `index.html` — pero el error persistió.
+- **Causa real**: CORS. `admin.html` se abre normalmente como archivo local (`file://`), y el navegador manda `Origin: null` en el `fetch()`. Los proxies solo tenían `https://showcastvalencia.github.io` en su lista blanca — sin `null` en la lista, el servidor no manda `Access-Control-Allow-Origin` y el navegador bloquea la respuesta aunque el `curl` directo (que no aplica CORS) funcione perfectamente. Se diagnosticó comparando `fetch()` normal (bloqueado) contra `fetch(..., {mode:'no-cors'})` (sí llega al servidor, respuesta opaca) desde la propia consola del navegador.
+- **Arreglo**: se añade `'null'` a la lista blanca de `proxy/challonge.php` y `proxy/brawlstars.php` (ambos de solo lectura). `proxy/predicciones.php` se deja sin cambios por ser de escritura — riesgo aceptado: cualquier página con un iframe sandboxed en cualquier sitio también podría llamar a estos dos endpoints de solo lectura y consumir cuota (500 peticiones/mes de Challonge), pero no puede escribir nada.
+- **Complicación al desplegarlo**: la consola SSH de Google Cloud, al subir un archivo con el mismo nombre que uno ya existente en el home, no sobrescribe — lo renombra en silencio (`challonge_(1).php`, `challonge_(2).php`...) sin ningún aviso visible. Varios intentos de `cp ~/challonge.php ...` seguían copiando la versión vieja porque `~/challonge.php` nunca se actualizaba; el archivo bueno estaba en `~/challonge_(N).php`. Comprobar con `ls -la ~/*.php` (o el nombre base) antes de asumir que la subida sobrescribió algo.
+
 ## 16. Limitaciones conocidas (asumidas, no bugs)
 
 - **El PIN de `enfrentamientos/admin.html` es cosmético.** Es un código de 4 cifras fijo en el propio JavaScript del cliente, pensado solo para que no cualquiera con el enlace entre y toque el draft por error — no es seguridad real ante alguien que abra el código fuente.
@@ -411,7 +430,7 @@ Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que rege
 |---|---|---|
 | Clave de API de Brawl Stars | `proxy/config.php` (excluido por `.gitignore`) | autorizar al proxy PHP frente a la API oficial |
 | Client ID / Client Secret de Challonge | `proxy/config.php` (mismo archivo, excluido por `.gitignore`) | pedir tokens OAuth2 (Client Credentials) para `proxy/challonge.php` — la app se llama "Showcast — Historial de partidas" en `connect.challonge.com` |
-| Token de acceso de Challonge (derivado, no una credencial "raíz") | `proxy/challonge-token-cache.json` (excluido por `.gitignore`) | cachear el token OAuth2 mientras no caduque (~7 días), regenerado solo si falta o caduca |
+| Token de acceso de Challonge (derivado, no una credencial "raíz") | archivo temporal fuera del docroot (`sys_get_temp_dir()`, no vive en el repo ni en `proxy/`) | cachear el token OAuth2 mientras no caduque (~7 días), regenerado solo si falta o caduca |
 | Personal Access Token de GitHub | `localStorage` del navegador, pegado en `admin.html` | que el editor de contenido pueda abrir PRs |
 | Config del SDK de Firebase | `enfrentamientos/js/firebase-config.js` y `historial/js/firebase-config.js` (sí están en git, mismo proyecto `showcast-md`) | inicializar Firebase — **no es secreta**, es pública por diseño; la seguridad real la dan las reglas de la base de datos, no el secretismo de estas claves |
 | PIN de `enfrentamientos/admin.html` | hardcodeado en el JS del propio archivo | disuasión visual, no seguridad (§16) |
@@ -425,7 +444,7 @@ Nada de esto está en git. Si se pierde el ordenador que los tiene, hay que rege
 
 **Migración de datos del viejo nodo `/historial`**: ✅ hecho (29 agosto 2026) — el nodo `historial` solo tenía una prueba sin datos relevantes, así que se borró directamente sin migrar nada, y las reglas nuevas (`clasificaciones` en vez de `historial`) ya están publicadas en la consola de Firebase.
 
-**Probar el cruce con el battlelog real de Brawl Stars (Nivel 2) — pendiente.** La tabla de posiciones y el bracket de §14 ya están probados contra un torneo real de dos fases (`w0qlsvze`, "prueba 8 equipos suizo top 4 cut") y funcionan correctamente (fue justo esta prueba la que sacó a la luz el bug de `group_id` corregido más arriba). Lo que **todavía no** se ha probado de punta a punta es la parte que cruza con Brawl Stars: vincular tags reales a un equipo desde `admin.html`, jugar una batalla real en sala amistosa, pulsar "Actualizar historial de partidos" y comprobar que el modal de partido muestra bien el mapa/modo/Brawlers. Para retomarlo: jugar una batalla con 2 tags reales conocidos, vincularlos a dos equipos del torneo `w0qlsvze` (o del que esté activo entonces) desde el panel de `admin.html`, activar "Modo de prueba" y pulsar "Actualizar historial de partidos".
+**Probar el cruce con el battlelog real de Brawl Stars (Nivel 2) — pendiente.** La tabla de posiciones y el bracket de §14 ya están probados contra un torneo real de dos fases (`w0qlsvze`, "prueba 8 equipos suizo top 4 cut") y funcionan correctamente (fue justo esta prueba la que sacó a la luz el bug de `group_id` corregido más arriba). Lo que **todavía no** se ha probado de punta a punta es la parte que cruza con Brawl Stars: vincular tags reales a un equipo desde `admin.html`, jugar una batalla real en sala amistosa, pulsar "Actualizar historial de partidos" y comprobar que el modal de partido muestra bien el mapa/modo/Brawlers. Para retomarlo: jugar una batalla con 2 tags reales conocidos, vincularlos a dos equipos del torneo `w0qlsvze` (o del que esté activo entonces) desde el panel de `admin.html`, activar "Modo de prueba" y pulsar "Actualizar historial de partidos". El bloqueo de CORS que impedía usar "Cargar participantes de Challonge" desde `admin.html` local ya está resuelto (§15), así que este paso ya no tiene ningún impedimento técnico pendiente.
 
 ## 19. Sistema de predicciones propio (fase clasificatoria)
 

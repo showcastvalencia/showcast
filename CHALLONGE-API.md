@@ -485,7 +485,7 @@ Ya construido — código real, no un boceto. Dos detalles que solo se descubrie
 - El endpoint correcto es `/v2.1/tournaments/{id}.json` (**plural**), no `/tournament/{id}.json` (singular) — un error fácil de cometer porque parte de la documentación de Challonge todavía usa el singular en ejemplos heredados de v1.
 - Hace falta la cabecera `Content-Type: application/vnd.api+json` incluso en peticiones `GET` sin cuerpo — si falta, la API responde `415 Unsupported Media Type`.
 
-Usa el token OAuth2 de §4C (`Authorization-Type: v2`, `Authorization: Bearer ...`), pedido a `https://api.challonge.com/oauth/token` con `grant_type=client_credentials` y cacheado en disco (`proxy/challonge-token-cache.json`, fuera de git) hasta que caduca a los 7 días, para no pedir uno nuevo en cada petición.
+Usa el token OAuth2 de §4C (`Authorization-Type: v2`, `Authorization: Bearer ...`), pedido a `https://api.challonge.com/oauth/token` con `grant_type=client_credentials` y cacheado en disco (fuera del docroot, en `sys_get_temp_dir()` — nunca dentro de `proxy/`, ver ARQUITECTURA.md §15) hasta que caduca a los 7 días, para no pedir uno nuevo en cada petición.
 
 Este proxy nunca implementa acciones de escritura a propósito (crear torneo, dar de alta participante, reportar resultado) — no porque el token no lo permita (de hecho el scope por defecto del Client Credentials ya es de solo lectura, ver §4C), sino porque es una decisión de diseño consciente para que sea físicamente imposible gastar cuota de escritura por accidente desde el sitio.
 
