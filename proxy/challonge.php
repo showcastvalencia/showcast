@@ -100,13 +100,17 @@ function getChallongeAccessToken(): string {
     }
 
     // LOCK_EX evita que dos peticiones que caduquen a la vez se pisen y dejen
-    // el JSON a medias. Y 0600 deja el archivo legible solo por el usuario que
-    // ejecuta PHP, no por cualquier otro usuario del sistema.
+    // el JSON a medias. El umask se estrecha ANTES de escribir (no con un
+    // chmod después) para que el archivo nazca ya en 0600 — con chmod
+    // posterior quedaría un instante con los permisos por defecto (644,
+    // legible por cualquier otro usuario del sistema) entre que se crea y se
+    // restringe.
+    $oldUmask = umask(0077);
     file_put_contents($cacheFile, json_encode([
         'access_token' => $token['access_token'],
         'expires_at' => time() + (int) ($token['expires_in'] ?? 3600) - 300,
     ]), LOCK_EX);
-    @chmod($cacheFile, 0600);
+    umask($oldUmask);
 
     return $token['access_token'];
 }
