@@ -47,13 +47,30 @@ if (!defined('CHALLONGE_CLIENT_ID') || CHALLONGE_CLIENT_ID === '' || !defined('C
     fail(500, 'El proxy no tiene configuradas todavía las credenciales de la API de Challonge (proxy/config.php).');
 }
 
+// Dónde se cachea el token de acceso. NUNCA dentro de esta carpeta: este
+// directorio lo sirve Apache, así que un archivo aquí es descargable con solo
+// visitar su URL — y este archivo contiene un token válido durante ~7 días que
+// permite llamar a la API de Challonge en nombre de Showcast. El .htaccess de
+// al lado también lo bloquea, pero guardarlo fuera del docroot no depende de
+// que AllowOverride esté activo ni de que el .htaccess llegue al servidor.
+function challongeTokenCachePath(): string {
+    $dir = sys_get_temp_dir();
+    return rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . 'showcast-challonge-token.json';
+}
+
 // Token de acceso OAuth2 (Client Credentials), cacheado en disco hasta que
 // caduque (válido ~7 días) para no pedir uno nuevo en cada petición.
 function getChallongeAccessToken(): string {
-    $cacheFile = __DIR__ . '/challonge-token-cache.json';
+    $cacheFile = challongeTokenCachePath();
     if (is_file($cacheFile)) {
         $cache = json_decode((string) file_get_contents($cacheFile), true);
-        if (is_array($cache) && ($cache['expires_at'] ?? 0) > time() + 300) {
+        // Se comprueba también que el token exista y no esté vacío: si el
+        // archivo se corrompiera (escrituras concurrentes), sin esto se
+        // mandaría una cabecera "Bearer " vacía y la API respondería 401.
+        if (is_array($cache)
+            && !empty($cache['access_token'])
+            && is_string($cache['access_token'])
+            && ($cache['expires_at'] ?? 0) > time() + 300) {
             return $cache['access_token'];
         }
     }
@@ -82,10 +99,18 @@ function getChallongeAccessToken(): string {
         fail(502, 'Respuesta inválida al pedir el token de acceso de Challonge.');
     }
 
+    // LOCK_EX evita que dos peticiones que caduquen a la vez se pisen y dejen
+    // el JSON a medias. El umask se estrecha ANTES de escribir (no con un
+    // chmod después) para que el archivo nazca ya en 0600 — con chmod
+    // posterior quedaría un instante con los permisos por defecto (644,
+    // legible por cualquier otro usuario del sistema) entre que se crea y se
+    // restringe.
+    $oldUmask = umask(0077);
     file_put_contents($cacheFile, json_encode([
         'access_token' => $token['access_token'],
         'expires_at' => time() + (int) ($token['expires_in'] ?? 3600) - 300,
-    ]));
+    ]), LOCK_EX);
+    umask($oldUmask);
 
     return $token['access_token'];
 }

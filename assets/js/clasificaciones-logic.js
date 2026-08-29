@@ -27,6 +27,33 @@ const CD = (function () {
     return String(tag || '').toUpperCase().replace('#', '').trim();
   }
 
+  /*
+    Escapa texto antes de meterlo en una plantilla que se asigna con
+    .innerHTML. OBLIGATORIO para cualquier dato que no controlemos nosotros:
+
+    - Nombres de jugador de Brawl Stars: los elige libremente cualquier
+      persona del mundo en su cuenta de Supercell, y llegan aquí tal cual
+      desde el battlelog (proxy/brawlstars.php no los sanea).
+    - Nombres de equipo/participante de Challonge.
+    - Nombres y tags escritos a mano en admin.html y guardados en Firebase.
+
+    Sin esto, un nombre como <img src=x onerror=...> se ejecuta en el
+    navegador de cualquier visitante de #clasificaciones — y, peor, en la
+    sesión de admin.html, que tiene el token de GitHub en localStorage y
+    permiso de escritura en Firebase.
+
+    Escapa también " y ' para poder usarse dentro de atributos (data-tag,
+    value...), no solo entre etiquetas.
+  */
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function fetchTournament(tournamentId) {
     return fetch(CHALLONGE_PROXY + '?tournament=' + encodeURIComponent(tournamentId))
       .then(r => r.json())
@@ -122,7 +149,7 @@ const CD = (function () {
   function isGroupStageMatch(match, participantsById) {
     const [aId, bId] = matchParticipantIds(match);
     const a = participantsById[aId], b = participantsById[bId];
-    return !!(a && a.group_id != null) || !!(b && b.group_id != null);
+    return !!(a && a.group_id != null) && !!(b && b.group_id != null);
   }
 
   // battle.result ("victory"/"defeat"/"draw") es la perspectiva del jugador
@@ -312,7 +339,7 @@ const CD = (function () {
   }
 
   return {
-    fetchTournament, fetchBattlelog, fetchPlayer, actualizarHistorial, normalizeTag,
+    fetchTournament, fetchBattlelog, fetchPlayer, actualizarHistorial, normalizeTag, escapeHtml,
     matchParticipantIds, matchUpdatedAt, isGroupStageMatch, computeStandings,
     // Expuestas para la pantalla de reajudicación manual (admin.html):
     filterRealPlayers, isBot, parseBattleTime, battleToJuego,

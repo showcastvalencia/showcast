@@ -31,6 +31,32 @@
 
 const HEADERS = ['Fecha', 'Tag Brawl Stars', 'Nombre', 'Año de nacimiento', 'Equipo', 'Categoría', 'Email', 'Teléfono', 'Comentarios'];
 
+// Longitud máxima por campo. El endpoint /exec es público ("Cualquier
+// usuario"), así que cualquiera puede hacer un POST directo sin pasar por el
+// formulario de la web — esto evita que una sola fila pueda tener megas.
+const MAX_LEN = 500;
+
+/*
+  Neutraliza la inyección de fórmulas ("CSV injection").
+
+  Google Sheets interpreta como FÓRMULA cualquier celda cuyo texto empiece por
+  =, +, - o @. Como el endpoint es público, alguien podía enviar un nombre como
+    =HYPERLINK("http://sitio-malo.example","Pincha aquí")
+  y esa celda se convertía en un enlace real en la hoja — peligroso sobre todo
+  al descargarla como Excel, que es justo el flujo que describe la cabecera de
+  este archivo.
+
+  Anteponer un apóstrofo hace que Sheets trate el valor como texto literal. El
+  apóstrofo no se ve al leer la celda, solo al editarla.
+*/
+function sanitizeCell(value) {
+  let text = String(value == null ? '' : value);
+  if (text.length > MAX_LEN) text = text.slice(0, MAX_LEN);
+  // \t, \r y \n al principio también pueden servir para colar una fórmula.
+  if (/^[=+\-@\t\r\n]/.test(text)) return "'" + text;
+  return text;
+}
+
 function doPost(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
@@ -41,14 +67,14 @@ function doPost(e) {
   const p = e.parameter || {};
   sheet.appendRow([
     new Date(),
-    p.playerTag || '',
-    p.nombre || '',
-    p.anioNacimiento || '',
-    p.equipo || '',
-    p.categoria || '',
-    p.email || '',
-    p.telefono || '',
-    p.mensaje || ''
+    sanitizeCell(p.playerTag),
+    sanitizeCell(p.nombre),
+    sanitizeCell(p.anioNacimiento),
+    sanitizeCell(p.equipo),
+    sanitizeCell(p.categoria),
+    sanitizeCell(p.email),
+    sanitizeCell(p.telefono),
+    sanitizeCell(p.mensaje)
   ]);
 
   return ContentService

@@ -1,4 +1,17 @@
-# Evita que nadie pueda abrir config.php directamente en el navegador y ver la API key.
+# Nada de lo que hay en esta carpeta aparte de los .php debe poder abrirse
+# directamente desde el navegador.
+#
+# - config.php: contiene las claves reales de las APIs (Brawl Stars, Challonge)
+#   y el database secret de Firebase.
+# - *.json: challonge-token-cache.json guarda el access_token OAuth2 de
+#   Challonge en texto plano. Sin esta regla, cualquiera podía descargarlo con
+#   solo visitar /proxy/challonge-token-cache.json y llamar a la API de
+#   Challonge en nombre de Showcast durante los ~7 días que dura el token —
+#   justo lo que el proxy existe para impedir.
 <Files "config.php">
   Require all denied
 </Files>
+
+<FilesMatch "\.(json|bak|log|ini|sample)$">
+  Require all denied
+</FilesMatch>
