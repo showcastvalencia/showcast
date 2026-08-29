@@ -48,11 +48,17 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
   "historial": {
     ".read": true,
     "$torneoSlug": { ".write": "auth != null" }
+  },
+  "predicciones": {
+    ".read": true,
+    ".write": false
   }
 }
 ```
 
 **Nodo `historial`** (usado por el subsistema `historial/` — cruce de resultados de Challonge con el battlelog de Brawl Stars, ver [`CHALLONGE-API.md`](../CHALLONGE-API.md)): mismo patrón que Megadraft, lectura pública y escritura solo autenticada. `historial/admin.html` hace `signInAnonymously()` igual que `megadraft/admin.html`, sin necesidad de un sistema de roles nuevo — es el mismo proyecto Firebase, solo un nodo raíz distinto.
+
+**Nodo `predicciones`** (usado por el sitio principal, `index.html` → sección Clasificaciones — sistema de predicciones propio, no de Challonge): a diferencia de los otros dos nodos, aquí **nadie** puede escribir por las reglas normales (`.write: false`) — ni siquiera con `auth != null`, porque no hay ningún login de visitante en el sitio principal. La única forma de escribir es `proxy/predicciones.php`, que usa el "database secret" heredado de la cuenta (bypassa las reglas por completo) para guardar cada voto bajo un hash de la IP del votante — así se evita que la misma persona vote varias veces sin necesitar cuentas ni login. La lectura sigue siendo pública para que la web pueda pintar el ranking agregado sin pasar por el proxy.
 
 **Qué protege esto:**
 - Lectura pública (para que `screen.html` funcione sin que nadie tenga que loguearse).
