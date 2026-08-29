@@ -5,6 +5,6 @@ proxy/config.php
 proxy/challonge-token-cache.json
 
 # Panel de edición interno - NUNCA publicarlo (contiene el flujo de publicación con token de GitHub)
-# Anclado a la raíz: los paneles de admin de subsistemas (megadraft/admin.html,
+# Anclado a la raíz: los paneles de admin de subsistemas (enfrentamientos/admin.html,
 # historial/admin.html) no tienen ese token y sí se versionan normalmente.
 /admin.html

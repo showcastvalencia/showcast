@@ -5,7 +5,7 @@
      (plan "Spark").
   2. Dentro del proyecto: Compilación → Realtime Database → Crear base de
      datos (elige "modo de prueba" para empezar; las reglas reales se
-     configuran después, ver megadraft/README-FIREBASE.md).
+     configuran después, ver enfrentamientos/README-FIREBASE.md).
   3. En Configuración del proyecto (⚙️) → General → baja hasta "Tus apps" →
      pulsa el icono "</>" para añadir una app web. No hace falta Hosting.
   4. Copia el objeto "firebaseConfig" que te da Firebase y pégalo aquí abajo,

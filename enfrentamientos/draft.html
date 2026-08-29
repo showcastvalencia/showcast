@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Draft — Megadraft Showcast</title>
-<link rel="stylesheet" href="megadraft.css">
+<title>Draft — Enfrentamientos Showcast</title>
+<link rel="stylesheet" href="enfrentamientos.css">
 </head>
 <body>
 
 <header class="md-header">
   <a href="index.html" class="logo">
     <img src="../assets/logo.png" alt="Logo Showcast">
-    <span>SHOWCAST <span class="tag">Megadraft</span></span>
+    <span>SHOWCAST <span class="tag">Enfrentamientos</span></span>
   </a>
   <nav>
     <a href="screen.html">Pantalla principal</a>
@@ -148,7 +148,7 @@
   // sessionStorage (no localStorage): así cada pestaña recuerda su propio equipo aunque
   // el login anónimo de Firebase se comparta entre pestañas del mismo navegador — útil para
   // simular varios equipos a la vez desde un solo ordenador sin que se pisen entre sí.
-  let myTeamId = sessionStorage.getItem('megadraft_teamId') || null;
+  let myTeamId = sessionStorage.getItem('enfrentamientos_teamId') || null;
   let myUid = null;
   let brawlers = [];
   let brawlersById = {};
@@ -214,7 +214,7 @@
     MD.claimTeam(latestState, teamId, pin, myUid)
       .then(() => {
         myTeamId = teamId;
-        sessionStorage.setItem('megadraft_teamId', teamId);
+        sessionStorage.setItem('enfrentamientos_teamId', teamId);
         pinError.textContent = '';
         showDraft(latestState);
       })

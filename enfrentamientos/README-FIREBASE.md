@@ -1,18 +1,20 @@
-# Megadraft — configuración de Firebase
+# Enfrentamientos — configuración de Firebase
+
+> 🧊 **Archivado — sin desarrollo nuevo.** Este subsistema (antes llamado "Megadraft") se congela: sigue funcionando tal cual para quien lo use, pero no se le añaden funciones nuevas ni se prioriza arreglar bugs suyos salvo que rompa algo grave. Ver `ARQUITECTURA.md` §9.
 
 La Sala de Draft usa **Firebase Realtime Database** (plan gratuito "Spark") para sincronizar en vivo los picks entre los móviles de los 8 capitanes y la pantalla principal. Pasos para dejarlo funcionando:
 
 ## 1. Crear el proyecto (lo tienes que hacer tú — requiere tu cuenta Google)
 
 1. Ve a https://console.firebase.google.com y pulsa "Crear un proyecto".
-2. Ponle un nombre (ej. "showcast-megadraft"). No hace falta Google Analytics, puedes desactivarlo.
+2. Ponle un nombre (ej. "showcast-enfrentamientos"). No hace falta Google Analytics, puedes desactivarlo.
 3. Dentro del proyecto: menú lateral → **Categorías de producto → Bases de datos y almacenamiento → Realtime Database → Crear base de datos**.
    - Ubicación: la más cercana (Europa).
    - Modo de inicio: "Modo de prueba" está bien de momento — las reglas reales se pegan en el paso 2 de este documento.
-4. Menú lateral → **Categorías de producto → Seguridad → Authentication** → pestaña **"Sign-in method"** → habilita **"Anónimo"**. Es el único método de login que usa Megadraft (sin cuentas reales, cada capitán solo introduce el PIN de su equipo).
+4. Menú lateral → **Categorías de producto → Seguridad → Authentication** → pestaña **"Sign-in method"** → habilita **"Anónimo"**. Es el único método de login que usa Enfrentamientos (sin cuentas reales, cada capitán solo introduce el PIN de su equipo).
    - Nota: la consola de Firebase reorganiza este menú de vez en cuando. Si no ves "Categorías de producto", busca "Authentication" con la lupa de arriba a la izquierda ("Buscar productos").
 5. Icono de engranaje (⚙️) → **Configuración del proyecto → General** → baja hasta "Tus apps" → pulsa el icono `</>` (Web) → dale un apodo → **Registrar app** (no hace falta Firebase Hosting).
-6. Copia el objeto `firebaseConfig` que te muestra y pégalo en [`megadraft/js/firebase-config.js`](js/firebase-config.js), sustituyendo los valores de ejemplo.
+6. Copia el objeto `firebaseConfig` que te muestra y pégalo en [`enfrentamientos/js/firebase-config.js`](js/firebase-config.js), sustituyendo los valores de ejemplo.
 
 Estas claves son públicas por diseño — las usa el navegador de cualquier visitante. La seguridad real la dan las **reglas** del siguiente paso, no el secretismo de estas claves.
 
@@ -23,7 +25,7 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
 ```json
 {
   "rules": {
-    "megadraft": {
+    "enfrentamientos": {
       ".read": true,
       "teams": {
         "$teamId": {
@@ -56,7 +58,7 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
 }
 ```
 
-**Nodo `historial`** (usado por el subsistema `historial/` — cruce de resultados de Challonge con el battlelog de Brawl Stars, ver [`CHALLONGE-API.md`](../CHALLONGE-API.md)): mismo patrón que Megadraft, lectura pública y escritura solo autenticada. `historial/admin.html` hace `signInAnonymously()` igual que `megadraft/admin.html`, sin necesidad de un sistema de roles nuevo — es el mismo proyecto Firebase, solo un nodo raíz distinto.
+**Nodo `historial`** (usado por el subsistema `historial/` — cruce de resultados de Challonge con el battlelog de Brawl Stars, ver [`CHALLONGE-API.md`](../CHALLONGE-API.md)): mismo patrón que Enfrentamientos, lectura pública y escritura solo autenticada. `historial/admin.html` hace `signInAnonymously()` igual que `enfrentamientos/admin.html`, sin necesidad de un sistema de roles nuevo — es el mismo proyecto Firebase, solo un nodo raíz distinto.
 
 **Nodo `predicciones`** (usado por el sitio principal, `index.html` → sección Clasificaciones — sistema de predicciones propio, no de Challonge): a diferencia de los otros dos nodos, aquí **nadie** puede escribir por las reglas normales (`.write: false`) — ni siquiera con `auth != null`, porque no hay ningún login de visitante en el sitio principal. La única forma de escribir es `proxy/predicciones.php`, que usa el "database secret" heredado de la cuenta (bypassa las reglas por completo) para guardar cada voto bajo un hash de la IP del votante — así se evita que la misma persona vote varias veces sin necesitar cuentas ni login. La lectura sigue siendo pública para que la web pueda pintar el ranking agregado sin pasar por el proxy.
 

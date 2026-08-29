@@ -43,7 +43,7 @@
     <h2 style="font-size:1rem;margin-bottom:6px;">2. Vincular participantes con Brawl Stars</h2>
     <p class="hint" style="margin-bottom:16px;">
       Escribe 1-3 tags de Brawl Stars por participante (los de sus miembros). Si hay un equipo de
-      Megadraft con el mismo nombre, se rellena solo — pero siempre puedes editarlo a mano.
+      Enfrentamientos con el mismo nombre, se rellena solo — pero siempre puedes editarlo a mano.
     </p>
     <div id="participantesList"></div>
     <button type="button" class="btn btn-outline" id="btnGuardarTags" style="margin-top:10px;">Guardar vinculación</button>
@@ -176,8 +176,8 @@
     return result;
   }
 
-  function prefillFromMegadraft() {
-    return db.ref('megadraft/teams').once('value').then(snap => {
+  function prefillFromEnfrentamientos() {
+    return db.ref('enfrentamientos/teams').once('value').then(snap => {
       const teams = snap.val() || {};
       const teamsByName = {};
       Object.values(teams).forEach(t => {
@@ -206,7 +206,7 @@
     ]).then(([body, tagsSnap]) => {
       participants = body.participants || [];
       tagsByParticipant = tagsSnap.val() || {};
-      return prefillFromMegadraft();
+      return prefillFromEnfrentamientos();
     }).then(() => {
       renderParticipantes();
       document.getElementById('participantesCard').style.display = '';

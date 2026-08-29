@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Megadraft Showcast</title>
-<link rel="stylesheet" href="megadraft.css">
+<title>Admin — Enfrentamientos Showcast</title>
+<link rel="stylesheet" href="enfrentamientos.css">
 <style>
   .order-btns{display:flex;flex-direction:column;gap:2px;}
   .order-btns button{
@@ -55,7 +55,7 @@
 <script>
   (function(){
     const CORRECT_PIN = '73921';
-    const STORAGE_KEY = 'megadraft_admin_unlocked';
+    const STORAGE_KEY = 'enfrentamientos_admin_unlocked';
     const overlay = document.getElementById('pinGateOverlay');
     const input = document.getElementById('pinGateInput');
     const btn = document.getElementById('pinGateBtn');
@@ -84,7 +84,7 @@
 <header class="md-header">
   <a href="index.html" class="logo">
     <img src="../assets/logo.png" alt="Logo Showcast">
-    <span>SHOWCAST <span class="tag">Megadraft — Admin</span></span>
+    <span>SHOWCAST <span class="tag">Enfrentamientos — Admin</span></span>
   </a>
   <nav>
     <a href="screen.html">Pantalla principal</a>
@@ -411,7 +411,7 @@
       if(!team.claimedBy) return;
       if(!confirm(`¿Liberar "${team.name || team.id}"? El capitán actual perderá el acceso y cualquiera podrá volver a unirse con el PIN (por ejemplo, desde otro dispositivo).`)) return;
       saveError.textContent = '';
-      db_ready.then(() => db.ref(`megadraft/teams/${team.id}/claimedBy`).set(null))
+      db_ready.then(() => db.ref(`enfrentamientos/teams/${team.id}/claimedBy`).set(null))
         .then(() => {
           team.claimedBy = null;
           render();
@@ -482,7 +482,7 @@
   // En cuanto responde Firebase, si ya había equipos guardados los cargamos
   // (nombre, miembros, puntuación, PIN reales) en vez de dejar los campos en
   // blanco con PINs nuevos — evita borrar sin querer una sala ya configurada.
-  db_ready.then(() => db.ref('megadraft').once('value')).then(snap => {
+  db_ready.then(() => db.ref('enfrentamientos').once('value')).then(snap => {
     const state = snap.val();
     if(!state || !state.teams) return;
     const order = Array.isArray(state.draftOrder) && state.draftOrder.length === TEAM_SLOTS
@@ -580,7 +580,7 @@
         }));
     });
 
-    db_ready.then(() => db.ref('megadraft').update(updates))
+    db_ready.then(() => db.ref('enfrentamientos').update(updates))
       .then(() => { saveMsg.textContent = 'Equipos guardados. Ya pueden entrar en draft.html con su PIN.'; setTimeout(() => saveMsg.textContent = '', 4000); })
       .catch(err => { saveError.textContent = 'Error al guardar: ' + err.message; });
   });
@@ -599,7 +599,7 @@
     // lo reanuda tal cual estaba en vez de borrar los picks ya hechos. Solo arma un
     // draftOrder nuevo y desde cero cuando de verdad no había nada empezado.
     if(hasInProgressDraft(latestState) && latestState.status !== 'drafting'){
-      db_ready.then(() => db.ref('megadraft/status').set('drafting'))
+      db_ready.then(() => db.ref('enfrentamientos/status').set('drafting'))
         .then(() => { saveMsg.textContent = '¡Sala reanudada! Sigue por donde se quedó.'; setTimeout(() => saveMsg.textContent = '', 4000); })
         .catch(err => { saveError.textContent = 'Error al reanudar la sala: ' + err.message; });
       return;
@@ -614,7 +614,7 @@
     // cuanto el cronómetro de preparación llega a 0, cualquier pantalla
     // conectada dispara sola el paso a la fase de elección con el primer
     // equipo (ver MD.maybeAdvancePrepPhase) — no hace falta que pulses nada más.
-    db_ready.then(() => db.ref('megadraft').update({
+    db_ready.then(() => db.ref('enfrentamientos').update({
         draftOrder: order,
         currentPickIndex: 0,
         pickedBrawlers: null,
@@ -630,14 +630,14 @@
   document.getElementById('abortBtn').addEventListener('click', () => {
     if(!confirm('Esto para el draft y devuelve a todos los equipos a la pantalla de espera. Los picks ya hechos NO se pierden — podrás reanudarlo después con "Iniciar sala". ¿Continuar?')) return;
     saveError.textContent = '';
-    db_ready.then(() => db.ref('megadraft/status').set('config'))
+    db_ready.then(() => db.ref('enfrentamientos/status').set('config'))
       .then(() => { saveMsg.textContent = 'Draft abortado. Los equipos ven la pantalla de espera; nada se ha borrado.'; setTimeout(() => saveMsg.textContent = '', 5000); })
       .catch(err => { saveError.textContent = 'Error al abortar: ' + err.message; });
   });
 
   document.getElementById('resetBtn').addEventListener('click', () => {
     if(!confirm('Esto borra todos los picks realizados (los equipos y PINs se mantienen). ¿Continuar?')) return;
-    db_ready.then(() => db.ref('megadraft').update({
+    db_ready.then(() => db.ref('enfrentamientos').update({
         pickedBrawlers: null,
         currentPickIndex: 0,
         status: 'config',
@@ -682,7 +682,7 @@
     pickDurationGrid.querySelectorAll('[data-pick-duration]').forEach(input => {
       input.addEventListener('change', () => {
         const val = Math.max(1, Number(input.value) || MD.DEFAULT_PICK_SECONDS);
-        db_ready.then(() => db.ref(`megadraft/timers/pick/perTeam/${input.dataset.pickDuration}`).set(val))
+        db_ready.then(() => db.ref(`enfrentamientos/timers/pick/perTeam/${input.dataset.pickDuration}`).set(val))
           .catch(err => { saveError.textContent = 'Error al guardar la duración: ' + err.message; });
       });
     });
@@ -691,29 +691,29 @@
 
   document.getElementById('prepStartBtn').addEventListener('click', () => {
     saveError.textContent = '';
-    db_ready.then(() => MD.startTimer('megadraft/timers/prep', latestState && latestState.timers && latestState.timers.prep))
+    db_ready.then(() => MD.startTimer('enfrentamientos/timers/prep', latestState && latestState.timers && latestState.timers.prep))
       .catch(err => { saveError.textContent = 'Error al iniciar: ' + err.message; });
   });
   document.getElementById('prepPauseBtn').addEventListener('click', () => {
     saveError.textContent = '';
-    db_ready.then(() => MD.pauseTimer('megadraft/timers/prep', latestState && latestState.timers && latestState.timers.prep))
+    db_ready.then(() => MD.pauseTimer('enfrentamientos/timers/prep', latestState && latestState.timers && latestState.timers.prep))
       .catch(err => { saveError.textContent = 'Error al pausar: ' + err.message; });
   });
   document.getElementById('prepResetBtn').addEventListener('click', () => {
     saveError.textContent = '';
     const duration = Math.max(1, Number(prepDurationInput.value) || MD.DEFAULT_PREP_SECONDS);
-    db_ready.then(() => MD.resetTimer('megadraft/timers/prep', duration))
+    db_ready.then(() => MD.resetTimer('enfrentamientos/timers/prep', duration))
       .catch(err => { saveError.textContent = 'Error al reiniciar: ' + err.message; });
   });
 
   document.getElementById('pickStartBtn').addEventListener('click', () => {
     saveError.textContent = '';
-    db_ready.then(() => MD.startTimer('megadraft/timers/pick', latestState && latestState.timers && latestState.timers.pick))
+    db_ready.then(() => MD.startTimer('enfrentamientos/timers/pick', latestState && latestState.timers && latestState.timers.pick))
       .catch(err => { saveError.textContent = 'Error al iniciar: ' + err.message; });
   });
   document.getElementById('pickPauseBtn').addEventListener('click', () => {
     saveError.textContent = '';
-    db_ready.then(() => MD.pauseTimer('megadraft/timers/pick', latestState && latestState.timers && latestState.timers.pick))
+    db_ready.then(() => MD.pauseTimer('enfrentamientos/timers/pick', latestState && latestState.timers && latestState.timers.pick))
       .catch(err => { saveError.textContent = 'Error al pausar: ' + err.message; });
   });
   document.getElementById('pickResetBtn').addEventListener('click', () => {
@@ -721,7 +721,7 @@
     const pick = latestState && latestState.timers && latestState.timers.pick;
     if(!pick || !pick.currentTeamId){ saveError.textContent = 'Todavía no hay ningún turno activo para reiniciar su cronómetro.'; return; }
     const duration = (pick.perTeam && pick.perTeam[pick.currentTeamId]) || MD.DEFAULT_PICK_SECONDS;
-    db_ready.then(() => MD.resetTimer('megadraft/timers/pick', duration))
+    db_ready.then(() => MD.resetTimer('enfrentamientos/timers/pick', duration))
       .catch(err => { saveError.textContent = 'Error al reiniciar: ' + err.message; });
   });
 
