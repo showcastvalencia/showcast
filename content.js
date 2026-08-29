@@ -113,7 +113,15 @@ window.SHOWCAST_CONTENT = {
       ]
     }
   ],
-  "equipo": [],
+  "equipo": [
+    { "nombre": "AleXxDiiaaz", "rol": "Administrador y AudioVisuales", "foto": "" },
+    { "nombre": "Frumos", "rol": "Organizador y Showman", "foto": "" },
+    { "nombre": "Kol.Beat", "rol": "Visuales y Sonido", "foto": "" },
+    { "nombre": "Mandy", "rol": "Ilustraciones y Mesa Técnica", "foto": "" },
+    { "nombre": "Ple", "rol": "Apoyo Informático y Mesa Técnica", "foto": "" },
+    { "nombre": "Caty0m", "rol": "Fotografía y Apoyo", "foto": "" },
+    { "nombre": "Ari", "rol": "Mesa Técnica y Apoyo", "foto": "" }
+  ],
   "patrocinadores": [],
   "clasificaciones": {
     "categorias": [
