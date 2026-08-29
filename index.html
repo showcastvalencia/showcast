@@ -1844,16 +1844,21 @@
     return (participantsById[id] || {}).name || '?';
   }
 
+  // Todo lo que venga de Challonge, de Brawl Stars o de Firebase pasa por
+  // esc() antes de entrar en una plantilla de innerHTML — son nombres que
+  // eligen terceros, no nosotros. Ver el comentario de CD.escapeHtml.
+  const esc = CD.escapeHtml;
+
   function clasifMatchRowHtml(m, participantsById, localById) {
     const [aId, bId] = CD.matchParticipantIds(m);
     const nombreA = clasifDisplayName(aId, participantsById, localById);
     const nombreB = clasifDisplayName(bId, participantsById, localById);
     const ganador = m.winner_id;
     return `
-      <div class="clasif-match clickable" data-match-id="${m.id}">
-        <span class="cm-team${ganador === aId ? ' winner' : ''}">${nombreA}</span>
-        <span class="cm-score">${m.scores || '—'}</span>
-        <span class="cm-team${ganador === bId ? ' winner' : ''}">${nombreB}</span>
+      <div class="clasif-match clickable" data-match-id="${esc(m.id)}">
+        <span class="cm-team${ganador === aId ? ' winner' : ''}">${esc(nombreA)}</span>
+        <span class="cm-score">${esc(m.scores || '—')}</span>
+        <span class="cm-team${ganador === bId ? ' winner' : ''}">${esc(nombreB)}</span>
         <span class="cm-state${m.state === 'complete' ? ' complete' : ''}">${clasifEstadoLabel(m.state)}</span>
       </div>`;
   }
@@ -1880,9 +1885,9 @@
     return `<div class="standings-wrap"><table class="standings-table">
       <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>V</th><th>D</th><th>E</th><th>Sets</th></tr></thead>
       <tbody>${standings.map((s, i) => `
-        <tr class="standings-row" data-team-id="${s.id}">
+        <tr class="standings-row" data-team-id="${esc(s.id)}">
           <td><span class="sr-pos">${i + 1}</span></td>
-          <td>${(localById[s.id] && localById[s.id].nombreEquipo) || s.nombre}</td>
+          <td>${esc((localById[s.id] && localById[s.id].nombreEquipo) || s.nombre)}</td>
           <td>${s.pj}</td><td>${s.v}</td><td>${s.d}</td><td>${s.e}</td>
           <td>${s.setsDiff > 0 ? '+' : ''}${s.setsDiff}</td>
         </tr>`).join('')}</tbody>
@@ -1896,9 +1901,9 @@
     const ganador = m.winner_id;
     const scores = (m.score_in_sets && m.score_in_sets[0]) || [];
     return `
-      <div class="bracket-match clickable" data-match-id="${m.id}">
-        <div class="bm-team${ganador === aId ? ' winner' : ''}"><span>${nombreA}</span><span>${scores[0] ?? ''}</span></div>
-        <div class="bm-team${ganador === bId ? ' winner' : ''}"><span>${nombreB}</span><span>${scores[1] ?? ''}</span></div>
+      <div class="bracket-match clickable" data-match-id="${esc(m.id)}">
+        <div class="bm-team${ganador === aId ? ' winner' : ''}"><span>${esc(nombreA)}</span><span>${esc(scores[0] ?? '')}</span></div>
+        <div class="bm-team${ganador === bId ? ' winner' : ''}"><span>${esc(nombreB)}</span><span>${esc(scores[1] ?? '')}</span></div>
       </div>`;
   }
 
@@ -1993,16 +1998,18 @@
   function clasifJugadorCardHtml(p) {
     const primerBrawler = (p.brawler || '').split('/')[0];
     const icon = clasifBrawlerIcons[clasifNormBrawler(primerBrawler)];
+    // El nombre de jugador (p.jugador) es el que esa persona haya puesto en su
+    // cuenta de Supercell — dato de un tercero, hay que escaparlo siempre.
     const iconHtml = icon
-      ? `<img src="${icon}" alt="" class="cj-icon">`
-      : `<div class="cj-icon-fallback">${p.brawler || '?'}</div>`;
+      ? `<img src="${esc(icon)}" alt="" class="cj-icon">`
+      : `<div class="cj-icon-fallback">${esc(p.brawler || '?')}</div>`;
     const clickable = p.tag ? ' clickable' : '';
-    const dataTag = p.tag ? ` data-tag="${p.tag}"` : '';
+    const dataTag = p.tag ? ` data-tag="${esc(p.tag)}"` : '';
     return `
       <div class="cmm-jugador${clickable}"${dataTag}>
         ${iconHtml}
-        <span class="cj-nombre">${p.jugador}</span>
-        <span class="cj-brawler">${p.brawler || '?'}</span>
+        <span class="cj-nombre">${esc(p.jugador)}</span>
+        <span class="cj-brawler">${esc(p.brawler || '?')}</span>
       </div>`;
   }
 
@@ -2012,7 +2019,7 @@
     return `
       <div class="cmm-juego">
         <div class="cmm-juego-meta">
-          Juego ${j.orden} — ${j.mapa || ''}${j.mapa && j.modo ? ' · ' : ''}${j.modo || ''}${j.duracion ? ` · ${j.duracion}s` : ''}${j.ganador === 'empate' ? ' · Empate' : ''}
+          Juego ${esc(j.orden)} — ${esc(j.mapa || '')}${j.mapa && j.modo ? ' · ' : ''}${esc(j.modo || '')}${j.duracion ? ` · ${esc(j.duracion)}s` : ''}${j.ganador === 'empate' ? ' · Empate' : ''}
         </div>
         <div class="cmm-juego-row">
           <div class="cmm-lado${claseA}">${(j.picksEquipoA || []).map(clasifJugadorCardHtml).join('')}</div>
@@ -2039,7 +2046,7 @@
     const tags = local.tags || [];
     const rosterEl = document.getElementById('equipoModalRoster');
     rosterEl.innerHTML = tags.length
-      ? tags.map(t => `<li data-tag="${t}"><span>${t}</span><span class="ctr-tag">Ver perfil →</span></li>`).join('')
+      ? tags.map(t => `<li data-tag="${esc(t)}"><span>${esc(t)}</span><span class="ctr-tag">Ver perfil →</span></li>`).join('')
       : '<li style="cursor:default;">Todavía no hay jugadores vinculados a este equipo (admin.html → Clasificaciones).</li>';
     document.getElementById('equipoModalOverlay').classList.add('open');
   }
@@ -2057,9 +2064,9 @@
     document.getElementById('partidoModalRonda').textContent =
       (CD.isGroupStageMatch(m, clasifDataActual.participantsById) ? 'Fase de grupos' : 'Fase final') + (m.round ? ` — Ronda ${m.round}` : '');
     document.getElementById('partidoModalTeams').innerHTML = `
-      <span class="cmm-team" data-team-id="${aId}">${nombreA}</span>
-      <span class="cmm-score">${m.scores || clasifEstadoLabel(m.state)}</span>
-      <span class="cmm-team" data-team-id="${bId}">${nombreB}</span>`;
+      <span class="cmm-team" data-team-id="${esc(aId)}">${esc(nombreA)}</span>
+      <span class="cmm-score">${esc(m.scores || clasifEstadoLabel(m.state))}</span>
+      <span class="cmm-team" data-team-id="${esc(bId)}">${esc(nombreB)}</span>`;
 
     const localMatch = clasifLocalActual.matches && clasifLocalActual.matches[matchId];
     const juegos = localMatch && localMatch.juegos;
@@ -2144,10 +2151,10 @@
     const lista = prediccionesOrder.map((id, i) => `
       <li class="pred-item">
         <span class="pi-rank">${i + 1}</span>
-        <span class="pi-name">${(prediccionesParticipantsById[id] || {}).name || '?'}</span>
+        <span class="pi-name">${esc((prediccionesParticipantsById[id] || {}).name || '?')}</span>
         <span class="pi-moves">
-          <button type="button" data-move="up" data-id="${id}" ${i === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" data-move="down" data-id="${id}" ${i === prediccionesOrder.length - 1 ? 'disabled' : ''}>↓</button>
+          <button type="button" data-move="up" data-id="${esc(id)}" ${i === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" data-move="down" data-id="${esc(id)}" ${i === prediccionesOrder.length - 1 ? 'disabled' : ''}>↓</button>
         </span>
       </li>`).join('');
     el.innerHTML = `
@@ -2216,7 +2223,7 @@
             const nombre = (prediccionesParticipantsById[id] || {}).name || '?';
             return `
               <div class="pred-resultado-item">
-                <span class="pr-name">${nombre}</span>
+                <span class="pr-name">${esc(nombre)}</span>
                 <span class="pr-bar-wrap"><span class="pr-bar" style="width:${pct}%;"></span></span>
                 <span class="pr-pct">${pct}%</span>
               </div>`;
