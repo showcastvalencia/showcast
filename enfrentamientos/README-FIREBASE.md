@@ -47,9 +47,9 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
       "timers": { ".write": "auth != null" }
     }
   },
-  "historial": {
+  "clasificaciones": {
     ".read": true,
-    "$torneoSlug": { ".write": "auth != null" }
+    "$torneoId": { ".write": "auth != null" }
   },
   "predicciones": {
     ".read": true,
@@ -58,7 +58,7 @@ En la consola de Firebase: **Realtime Database → pestaña "Reglas"** → susti
 }
 ```
 
-**Nodo `historial`** (usado por el subsistema `historial/` — cruce de resultados de Challonge con el battlelog de Brawl Stars, ver [`CHALLONGE-API.md`](../CHALLONGE-API.md)): mismo patrón que Enfrentamientos, lectura pública y escritura solo autenticada. `historial/admin.html` hace `signInAnonymously()` igual que `enfrentamientos/admin.html`, sin necesidad de un sistema de roles nuevo — es el mismo proyecto Firebase, solo un nodo raíz distinto.
+**Nodo `clasificaciones`** (usado por la sección Clasificaciones de `index.html` — cruce de resultados de Challonge con el battlelog de Brawl Stars, ver [`CHALLONGE-API.md`](../CHALLONGE-API.md) y `ARQUITECTURA.md` §14): mismo patrón que Enfrentamientos, lectura pública y escritura solo autenticada. Se indexa directamente por el id/slug del torneo de Challonge (`$torneoId`), no por un identificador local aparte. El panel de vinculación de equipos/tags vive dentro de `admin.html` (el editor de contenido del sitio principal, fuera de git) y hace `signInAnonymously()` igual que `enfrentamientos/admin.html` — sin necesidad de un sistema de roles nuevo, es el mismo proyecto Firebase, solo un nodo raíz distinto. Sustituye al antiguo nodo `historial` (subsistema `historial/`, retirado — fusionado en el sitio principal).
 
 **Nodo `predicciones`** (usado por el sitio principal, `index.html` → sección Clasificaciones — sistema de predicciones propio, no de Challonge): a diferencia de los otros dos nodos, aquí **nadie** puede escribir por las reglas normales (`.write: false`) — ni siquiera con `auth != null`, porque no hay ningún login de visitante en el sitio principal. La única forma de escribir es `proxy/predicciones.php`, que usa el "database secret" heredado de la cuenta (bypassa las reglas por completo) para guardar cada voto bajo un hash de la IP del votante — así se evita que la misma persona vote varias veces sin necesitar cuentas ni login. La lectura sigue siendo pública para que la web pueda pintar el ranking agregado sin pasar por el proxy.
 

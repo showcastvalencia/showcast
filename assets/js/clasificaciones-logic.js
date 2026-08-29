@@ -1,27 +1,27 @@
 /*
-  HISTORIAL DE PARTIDAS — lógica de cruce Challonge + Brawl Stars
-  ==================================================================
-  Implementación del algoritmo descrito en CHALLONGE-API.md sección 13.
-  Se usa desde admin.html al pulsar "Actualizar historial de partidas"
-  (nunca automático/polling, ver sección 11 del mismo documento).
+  CLASIFICACIONES — lógica de cruce Challonge + Brawl Stars
+  ==========================================================
+  Fusión de lo que antes eran dos sistemas separados (tabla/bracket de
+  #clasificaciones en index.html, alimentada solo por Challonge, y el
+  subsistema historial/ que cruzaba Challonge con el battlelog de Brawl
+  Stars). Ver ARQUITECTURA.md §14 y CHALLONGE-API.md.
 
-  El emparejamiento automático es una heurística, no puede ser perfecto:
-  no hay ningún campo en la API de Brawl Stars que diga "esta batalla es
-  el partido X de Challonge". Se empareja por sala amistosa + que
-  coincidan TODOS los tags vinculados de cada equipo — sin ventana de
-  tiempo, porque acotar por minutos era un número mágico frágil que no
-  evitaba los falsos positivos reales (entrenos, revanchas con los
-  mismos jugadores). Para esos casos existe la pantalla "Reajudicar
-  partidos" del admin, pensada para corregir a mano lo que el automático
-  no pueda distinguir.
+  Se usa desde:
+  - index.html (solo las funciones de lectura: fetchTournament, fetchPlayer,
+    computeStandings, agrupación por fase — nunca escribe nada).
+  - admin.html (todo lo anterior más actualizarHistorial, para el panel de
+    vinculación de equipos/tags y el botón "Actualizar historial de
+    partidos" — necesita `db`/`auth` de Firebase ya inicializados).
+
+  El torneo es SIEMPRE uno de Challonge con "two-stage" activado (fase de
+  grupos + fase final) — el nodo de Firebase se indexa directamente por el
+  id/slug del torneo de Challonge (torneoId), sin ningún identificador local
+  aparte (a diferencia del viejo historial/, que usaba un "slug" propio).
 */
-const HD = (function () {
-  // El proxy PHP no vive en GitHub Pages (que no ejecuta PHP) sino en la VM
-  // aparte que ya usa el resto de la web — las URLs vienen de content.js,
-  // igual que brawlProxyEndpoint en index.html (ver ARQUITECTURA.md §8).
+const CD = (function () {
   const content = window.SHOWCAST_CONTENT || {};
-  const BRAWL_PROXY = content.brawlProxyEndpoint || '../proxy/brawlstars.php';
-  const CHALLONGE_PROXY = content.challongeProxyEndpoint || '../proxy/challonge.php';
+  const BRAWL_PROXY = content.brawlProxyEndpoint || 'proxy/brawlstars.php';
+  const CHALLONGE_PROXY = content.challongeProxyEndpoint || 'proxy/challonge.php';
 
   function normalizeTag(tag) {
     return String(tag || '').toUpperCase().replace('#', '').trim();
@@ -45,7 +45,7 @@ const HD = (function () {
   }
 
   // Perfil de un jugador (icono, trofeos, prestigio...) — usado por el
-  // visor de perfil al pulsar un jugador en la pantalla pública.
+  // visor de perfil al pulsar un jugador en la tabla/bracket público.
   function fetchPlayer(tag) {
     const cleanTag = normalizeTag(tag);
     if (!cleanTag) return Promise.reject(new Error('Tag vacío.'));
@@ -80,12 +80,8 @@ const HD = (function () {
   }
 
   // Deben coincidir TODOS los tags vinculados de cada equipo (no solo
-  // algunos) en el lado correspondiente. Un equipo sin ningún tag vinculado
-  // nunca puede dar positivo — no hay nada que comprobar.
-  // En "modo de prueba" (laxo=true) basta con que aparezca 1 tag conocido
-  // por lado — para poder probar el cruce sin depender de un modo de juego
-  // concreto (Duelo, sala 3v3 con bots...) ni de tener todos los miembros
-  // vinculados.
+  // algunos) en el lado correspondiente, salvo en "modo de prueba" (laxo),
+  // donde basta con que aparezca 1 tag conocido por lado.
   function battleMatchesTeams(battle, tagsA, tagsB, laxo) {
     if (!tagsA.length || !tagsB.length) return null;
     const teams = filterRealPlayers(battle.teams);
@@ -102,10 +98,10 @@ const HD = (function () {
     return null;
   }
 
-  // La API v2.1 real no expone player1_id/player2_id/scores_csv (esos son
-  // nombres heredados de v1 que aparecían en la documentación) — los partidos
-  // llevan un array points_by_participant: [{participant_id, scores}, ...],
-  // y la fecha de actualización va anidada en timestamps.updated_at.
+  // La API v2.1 real no expone player1_id/player2_id/scores_csv — los
+  // partidos llevan un array points_by_participant: [{participant_id,
+  // scores}, ...], y la fecha de actualización va anidada en
+  // timestamps.updated_at.
   function matchParticipantIds(match) {
     if (match.player1_id != null && match.player2_id != null) {
       return [match.player1_id, match.player2_id];
@@ -118,10 +114,16 @@ const HD = (function () {
     return match.updated_at || (match.timestamps && match.timestamps.updated_at) || null;
   }
 
+  // Torneo de dos fases: los partidos de la fase de grupos llevan un
+  // group_id asociado (CHALLONGE-API.md §9); los de la fase final no.
+  function isGroupStageMatch(match) {
+    return match.group_id != null;
+  }
+
   // battle.result ("victory"/"defeat"/"draw") es la perspectiva del jugador
-  // cuyo battlelog se consultó (battle.perspectivaTag, añadido al recoger
-  // las candidatas) — no dice directamente si ganó "equipoA" o "equipoB".
-  // Hay que traducirlo mirando en qué lado estaba ese tag.
+  // cuyo battlelog se consultó (battle.perspectivaTag) — no dice
+  // directamente si ganó "equipoA" o "equipoB". Hay que traducirlo mirando
+  // en qué lado estaba ese tag.
   function resultadoJuego(battle, sides) {
     const perspectiva = normalizeTag(battle.perspectivaTag);
     if (!battle.result || !perspectiva) return null;
@@ -135,7 +137,7 @@ const HD = (function () {
   }
 
   // Convierte una batalla del battlelog + a qué lado pertenece cada equipo
-  // en un "juego" tal como se guarda en Firebase (§14 de CHALLONGE-API.md).
+  // en un "juego" tal como se guarda en Firebase.
   function battleToJuego(battle, sides, orden) {
     return {
       orden,
@@ -163,8 +165,6 @@ const HD = (function () {
         const key = b.battleTime + '|' + JSON.stringify(b.teams);
         if (vistas.has(key)) return;
         vistas.add(key);
-        // Qué tag trajo esta entrada — hace falta para traducir battle.result
-        // (perspectiva de ESE jugador) a "ganó equipoA/equipoB" en battleToJuego.
         candidatas.push(Object.assign({}, b, { perspectivaTag: tag }));
       });
     });
@@ -202,6 +202,7 @@ const HD = (function () {
     return {
       challongeMatchId: match.id,
       ronda: match.round || null,
+      groupId: match.group_id || null,
       equipoA,
       equipoB,
       resultadoChallonge: { scoresCsv: match.scores || match.scores_csv || '', ganador },
@@ -209,24 +210,65 @@ const HD = (function () {
     };
   }
 
-  // Orquesta todo el flujo de un clic en "Actualizar historial de partidas".
-  // participantesTags: { [participantId]: ["#TAG1","#TAG2","#TAG3"] }
-  // opciones: { ignorarProcesados, debug, laxo } — "Modo de prueba" en el
-  // admin activa las tres: reprocesa partidos ya guardados, muestra por qué
-  // cada batalla encajó o no, y (laxo) ignora el tipo de sala y exige solo 1
-  // tag conocido por lado en vez de todos — para poder probar el cruce con
-  // cualquier modo de juego (ranked, Duelo...) sin depender de montar una
-  // sala amistosa con la composición exacta del torneo.
-  function actualizarHistorial(torneoSlug, challongeTournamentId, participantesTags, opciones) {
+  // ---------- Tabla de posiciones de la fase de grupos ----------
+  // No replica el algoritmo exacto de Challonge (con sus desempates propios,
+  // p.ej. Buchholz) — es un cálculo propio y suficiente para mostrar una
+  // clasificación real: victorias, derrotas, empates y diferencia de sets,
+  // ordenado por victorias y luego por diferencia de sets.
+  function parseSetsDiff(scoresCsv) {
+    let a = 0, b = 0;
+    String(scoresCsv || '').split(',').forEach(s => {
+      const parts = s.trim().split('-').map(Number);
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        if (parts[0] > parts[1]) a++; else if (parts[1] > parts[0]) b++;
+      }
+    });
+    return [a, b];
+  }
+
+  function computeStandings(matches, participantsById) {
+    const stats = {};
+    function blank(id) { return { id, pj: 0, v: 0, d: 0, e: 0, setsF: 0, setsC: 0 }; }
+
+    (matches || []).forEach(m => {
+      if (!isGroupStageMatch(m) || m.state !== 'complete') return;
+      const [aId, bId] = matchParticipantIds(m);
+      if (aId == null || bId == null) return;
+      stats[aId] = stats[aId] || blank(aId);
+      stats[bId] = stats[bId] || blank(bId);
+      stats[aId].pj++; stats[bId].pj++;
+
+      const [setsA, setsB] = parseSetsDiff(m.scores || m.scores_csv);
+      stats[aId].setsF += setsA; stats[aId].setsC += setsB;
+      stats[bId].setsF += setsB; stats[bId].setsC += setsA;
+
+      if (m.winner_id === aId) { stats[aId].v++; stats[bId].d++; }
+      else if (m.winner_id === bId) { stats[bId].v++; stats[aId].d++; }
+      else { stats[aId].e++; stats[bId].e++; }
+    });
+
+    return Object.values(stats)
+      .map(s => Object.assign({}, s, {
+        nombre: (participantsById[s.id] || {}).name || ('Participante ' + s.id),
+        setsDiff: s.setsF - s.setsC,
+      }))
+      .sort((a, b) => b.v - a.v || b.setsDiff - a.setsDiff || a.nombre.localeCompare(b.nombre));
+  }
+
+  // Orquesta todo el flujo de un clic en "Actualizar historial de
+  // partidos" (admin.html). participantesTags: { [participantId]:
+  // ["#TAG1","#TAG2","#TAG3"] }. opciones: { ignorarProcesados, debug, laxo }
+  // — "Modo de prueba" en el admin activa las tres.
+  function actualizarHistorial(torneoId, participantesTags, opciones) {
     opciones = opciones || {};
     const debugLines = opciones.debug ? [] : null;
     const laxo = !!opciones.laxo;
 
-    return fetchTournament(challongeTournamentId).then(body => {
+    return fetchTournament(torneoId).then(body => {
       const participantsById = {};
       (body.participants || []).forEach(p => { participantsById[p.id] = p; });
 
-      return db.ref('historial/' + torneoSlug + '/procesados').once('value').then(snap => {
+      return db.ref('clasificaciones/' + torneoId + '/procesados').once('value').then(snap => {
         const procesados = opciones.ignorarProcesados ? {} : (snap.val() || {});
         const nuevos = (body.matches || []).filter(m => m.state === 'complete' && !procesados[m.id]);
 
@@ -242,7 +284,7 @@ const HD = (function () {
         });
 
         // Peticiones al proxy de Brawl Stars EN SERIE (no en paralelo), para
-        // no acercarse al límite por segundo de la clave — ver CHALLONGE-API.md §16b.
+        // no acercarse al límite por segundo de la clave — CHALLONGE-API.md §16b.
         const tagList = Array.from(tagsNeeded).filter(Boolean);
         const battlelogs = {};
         return tagList
@@ -251,11 +293,10 @@ const HD = (function () {
             const updates = {};
             nuevos.forEach(m => {
               const resultado = correlateMatch(m, participantsById, participantesTags, battlelogs, debugLines, laxo);
-              updates['historial/' + torneoSlug + '/matches/' + m.id] = resultado;
-              updates['historial/' + torneoSlug + '/procesados/' + m.id] = true;
+              updates['clasificaciones/' + torneoId + '/matches/' + m.id] = resultado;
+              updates['clasificaciones/' + torneoId + '/procesados/' + m.id] = true;
             });
-            updates['historial/' + torneoSlug + '/meta'] = {
-              challongeTournamentId,
+            updates['clasificaciones/' + torneoId + '/meta'] = {
               nombre: body.tournament.name || '',
               actualizadoEn: new Date().toISOString(),
             };
@@ -267,6 +308,7 @@ const HD = (function () {
 
   return {
     fetchTournament, fetchBattlelog, fetchPlayer, actualizarHistorial, normalizeTag,
+    matchParticipantIds, matchUpdatedAt, isGroupStageMatch, computeStandings,
     // Expuestas para la pantalla de reajudicación manual (admin.html):
     filterRealPlayers, isBot, parseBattleTime, battleToJuego,
   };
