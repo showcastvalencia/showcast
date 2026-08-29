@@ -1245,12 +1245,14 @@
           <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
         </div>
         <div class="form-field">
-          <label for="edad">Edad</label>
-          <input type="number" id="edad" name="edad" min="6" max="99" required placeholder="Ej. 14">
+          <label for="anioNacimiento">Año de nacimiento</label>
+          <select id="anioNacimiento" name="anioNacimiento" required>
+            <option value="">Selecciona...</option>
+          </select>
         </div>
         <div class="form-field">
           <label for="equipo">Nombre del equipo</label>
-          <input type="text" id="equipo" name="equipo" placeholder="Opcional si vienes en solitario">
+          <input type="text" id="equipo" name="equipo" placeholder="Debe ser el mismo nombre que tus compañeros de equipo">
         </div>
         <div class="form-field">
           <label for="categoria">Categoría</label>
@@ -2099,6 +2101,17 @@
       tagInput.value = '';
       tagInput.focus();
     });
+  })();
+
+  // ---------- INSCRIPCIÓN: rellenar el desplegable de año de nacimiento ----------
+  (function(){
+    const sel = document.getElementById('anioNacimiento');
+    for (let y = 2019; y >= 2004; y--) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      sel.appendChild(opt);
+    }
   })();
 
   // ---------- INSCRIPCIÓN: envío a Google Sheets vía Apps Script ----------

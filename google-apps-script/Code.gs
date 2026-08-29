@@ -29,7 +29,7 @@
   actualiza también la lista HEADERS de abajo para que coincidan.
 */
 
-const HEADERS = ['Fecha', 'Tag Brawl Stars', 'Nombre', 'Edad', 'Equipo', 'Categoría', 'Email', 'Teléfono', 'Comentarios'];
+const HEADERS = ['Fecha', 'Tag Brawl Stars', 'Nombre', 'Año de nacimiento', 'Equipo', 'Categoría', 'Email', 'Teléfono', 'Comentarios'];
 
 function doPost(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -43,7 +43,7 @@ function doPost(e) {
     new Date(),
     p.playerTag || '',
     p.nombre || '',
-    p.edad || '',
+    p.anioNacimiento || '',
     p.equipo || '',
     p.categoria || '',
     p.email || '',
