@@ -1960,13 +1960,15 @@
     const pages = Array.from(document.querySelectorAll('body > section, body > footer'));
     function showCurrentPage(scrollToTop){
       const hashId = decodeURIComponent(window.location.hash.slice(1));
+      const isHome = !hashId || hashId === 'top';
       const hashTarget = hashId ? document.getElementById(hashId) : null;
       const activePage = (hashTarget && hashTarget.closest('section, footer')) || document.getElementById('top');
       pages.forEach(page => {
         const isActive = page === activePage;
-        page.classList.toggle('page-view-hidden', !isActive);
-        page.classList.toggle('page-view-active', isActive);
-        page.setAttribute('aria-hidden', String(!isActive));
+        const isVisible = isHome || isActive;
+        page.classList.toggle('page-view-hidden', !isVisible);
+        page.classList.toggle('page-view-active', !isHome && isActive);
+        page.setAttribute('aria-hidden', String(!isVisible));
       });
       if (scrollToTop) window.scrollTo({top:0,behavior:'auto'});
     }
