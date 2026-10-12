@@ -620,6 +620,9 @@
     column-gap:22px;
     row-gap:30px;
   }
+  .registration-entry + .registration-entry{margin-top:30px;padding-top:30px;border-top:2px solid rgba(12,12,12,.18);}
+  .registration-entry-remove{margin-top:18px;}
+  .add-registration{margin-top:28px;}
   .form-field{
     display:flex;
     flex-direction:column;
@@ -1531,14 +1534,16 @@
 
     <h2 class="section-title form-section-title">Formulario de <span class="accent">inscripción</span></h2>
     <form class="form-wrap" id="inscripcionForm">
+      <div id="inscripcionEntradas">
+      <div class="registration-entry" data-registration-entry data-entry-number="1">
       <div class="form-grid">
         <div class="form-field full">
           <label for="playerTag">Código de jugador de Brawl Stars</label>
           <div class="tag-check-row">
             <input type="text" id="playerTag" name="playerTag" placeholder="Ej. #8CG8LUJ" autocomplete="off">
-            <button type="button" class="btn btn-outline-dark" id="checkTagBtn">Comprobar cuenta</button>
+            <button type="button" class="btn btn-outline-dark check-tag-btn">Comprobar cuenta</button>
           </div>
-          <span class="tag-status" id="tagStatus"></span>
+          <span class="tag-status"></span>
         </div>
         <div class="form-field">
           <label for="nombre">Nombre y apellidos</label>
@@ -1573,8 +1578,8 @@
         <fieldset class="form-field full" style="border:0;padding:0;margin:0;min-width:0;">
           <legend class="allergy-question">¿Tienes alergias, alérgenos o intolerancias alimentarias?</legend>
           <div class="allergy-options">
-            <label class="allergy-option"><input type="radio" name="tieneAlergias" value="Sí" required> Sí</label>
-            <label class="allergy-option"><input type="radio" name="tieneAlergias" value="No" required> No</label>
+            <label class="allergy-option"><input type="radio" name="tieneAlergias-1" value="Sí" required> Sí</label>
+            <label class="allergy-option"><input type="radio" name="tieneAlergias-1" value="No" required> No</label>
           </div>
         </fieldset>
         <div class="form-field full allergy-detail" id="alergiasDetalleWrap" hidden>
@@ -1586,8 +1591,11 @@
           <textarea id="mensaje" name="mensaje" rows="3" placeholder="Cualquier duda o petición especial"></textarea>
         </div>
       </div>
+      </div>
+      </div>
+      <button type="button" class="btn btn-outline-dark add-registration" id="addRegistrationBtn">＋ Añadir formulario</button>
       <div class="form-submit">
-        <button type="submit" class="btn btn-primary">Enviar inscripción</button>
+        <button type="submit" class="btn btn-primary">Enviar todas las inscripciones</button>
       </div>
       <p class="form-note">Los datos enviados, incluidas alergias o intolerancias si las indicas, se registrarán en la hoja de inscripción de ShowCast para organizar el torneo.</p>
     </form>
@@ -2624,6 +2632,18 @@
       poster:'Kol.Beat.png',
       bio:'Encargado de Mezclas y Sonido en Directo y Ayudante en Audiovisuales y Diseño Gráfico desde 2024 hasta el día de hoy.',
       socials:[['TikTok','@Kol.beat'],['Instagram','@Kol.flac']]
+    },
+    {
+      key:'mandy', name:'Mandy', lead:'Man', accent:'dy',
+      poster:'Mandy.jpg',
+      bio:'Principal encargada de ilustraciones, Mesa Técnica y ayudante creativo. Desde 2024 hasta el día de hoy.',
+      socials:[['TikTok','@yudine'],['Instagram','@mand_arina']]
+    },
+    {
+      key:'ple', name:'Ple', lead:'Pl', accent:'e',
+      poster:'Ple.jpg',
+      bio:'Ayudante informático, Mesa Técnica y ayudante creativo. Desde 2025 hasta el día de hoy.',
+      socials:[['TikTok','@yudine'],['Instagram','@mand_arina']]
     }
   ];
   const teamProfileOverlay = document.getElementById('teamProfileOverlay');
@@ -2895,9 +2915,8 @@
 
   // ---------- COMPROBAR CUENTA DE BRAWL STARS ----------
   (function brawlStarsCheck(){
-    const checkBtn = document.getElementById('checkTagBtn');
-    const tagInput = document.getElementById('playerTag');
-    const tagStatus = document.getElementById('tagStatus');
+    let activeTagInput = null;
+    let activeTagStatus = null;
     const overlay = document.getElementById('tagModalOverlay');
     const closeBtn = document.getElementById('tagModalClose');
     const retryBtn = document.getElementById('tagModalRetry');
@@ -2926,8 +2945,10 @@
       overlay.classList.remove('open');
     }
 
-    function fetchAndShow(){
-      const tag = tagInput.value.trim();
+    function fetchAndShow(entry){
+      activeTagInput = entry.querySelector('[name="playerTag"]');
+      activeTagStatus = entry.querySelector('.tag-status');
+      const tag = activeTagInput.value.trim();
       if(!tag){
         tagInput.focus();
         return;
@@ -2966,7 +2987,10 @@
         });
     }
 
-    checkBtn.addEventListener('click', fetchAndShow);
+    document.addEventListener('click', e => {
+      const checkBtn = e.target.closest('.check-tag-btn');
+      if(checkBtn) fetchAndShow(checkBtn.closest('[data-registration-entry]'));
+    });
     retryBtn.addEventListener('click', fetchAndShow);
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(); });
@@ -2974,18 +2998,20 @@
     confirmYes.addEventListener('click', () => {
       const tag = stateResult.dataset.tag;
       const name = stateResult.dataset.name;
-      tagInput.value = tag;
-      tagStatus.textContent = '✓ Cuenta verificada: ' + name;
-      tagStatus.className = 'tag-status ok';
+      if(!activeTagInput || !activeTagStatus) return;
+      activeTagInput.value = tag;
+      activeTagStatus.textContent = '✓ Cuenta verificada: ' + name;
+      activeTagStatus.className = 'tag-status ok';
       closeModal();
     });
 
     confirmNo.addEventListener('click', () => {
       closeModal();
-      tagStatus.textContent = '';
-      tagStatus.className = 'tag-status';
-      tagInput.value = '';
-      tagInput.focus();
+      if(!activeTagInput || !activeTagStatus) return;
+      activeTagStatus.textContent = '';
+      activeTagStatus.className = 'tag-status';
+      activeTagInput.value = '';
+      activeTagInput.focus();
     });
   })();
 
@@ -3002,20 +3028,73 @@
 
   // ---------- INSCRIPCIÓN: envío a Google Sheets vía Apps Script ----------
   const inscriptionForm = document.getElementById('inscripcionForm');
-  const allergyDetail = document.getElementById('alergiasDetalleWrap');
-  const allergyTextarea = document.getElementById('alergias');
-  function updateAllergyDetails(){
-    const choice = inscriptionForm.querySelector('input[name="tieneAlergias"]:checked')?.value;
+  const inscriptionEntries = document.getElementById('inscripcionEntradas');
+  const addRegistrationBtn = document.getElementById('addRegistrationBtn');
+  let nextRegistrationNumber = 1;
+
+  function updateAllergyDetails(entry){
+    const choice = entry.querySelector('input[name^="tieneAlergias-"]:checked')?.value;
     const hasAllergies = choice === 'Sí';
+    const allergyDetail = entry.querySelector('.allergy-detail');
+    const allergyTextarea = entry.querySelector('[name="alergias"]');
     allergyDetail.hidden = !hasAllergies;
     allergyTextarea.disabled = !hasAllergies;
     allergyTextarea.required = hasAllergies;
     if (!hasAllergies) allergyTextarea.value = '';
   }
-  inscriptionForm.querySelectorAll('input[name="tieneAlergias"]').forEach(option => {
-    option.addEventListener('change', updateAllergyDetails);
+  function clearRegistrationEntry(entry, number){
+    entry.querySelectorAll('input,select,textarea').forEach(field => {
+      if(field.type === 'radio') field.checked = false;
+      else if(field.tagName === 'SELECT') field.selectedIndex = 0;
+      else field.value = '';
+    });
+    entry.querySelector('.tag-status').textContent = '';
+    entry.querySelector('.tag-status').className = 'tag-status';
+    entry.dataset.entryNumber = number;
+    const detail = entry.querySelector('.allergy-detail');
+    const allergyTextarea = entry.querySelector('[name="alergias"]');
+    detail.hidden = true;
+    allergyTextarea.disabled = true;
+    allergyTextarea.required = false;
+  }
+  function addRegistrationEntry(){
+    const number = ++nextRegistrationNumber;
+    const entry = inscriptionEntries.querySelector('[data-registration-entry]').cloneNode(true);
+    entry.dataset.entryNumber = number;
+    const idMap = new Map();
+    entry.querySelectorAll('[id]').forEach(element => {
+      const oldId = element.id;
+      const newId = `${oldId}-${number}`;
+      idMap.set(oldId,newId);
+      element.id = newId;
+    });
+    entry.querySelectorAll('label[for]').forEach(label => {
+      const newId = idMap.get(label.htmlFor);
+      if(newId) label.htmlFor = newId;
+    });
+    entry.querySelectorAll('input[name^="tieneAlergias-"]').forEach(radio => {
+      radio.name = `tieneAlergias-${number}`;
+    });
+    clearRegistrationEntry(entry,number);
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn btn-outline-dark registration-entry-remove';
+    removeButton.textContent = '− Eliminar formulario';
+    removeButton.setAttribute('aria-label',`Eliminar formulario ${number}`);
+    entry.appendChild(removeButton);
+    inscriptionEntries.appendChild(entry);
+    entry.querySelector('[name="nombre"]').focus();
+  }
+  inscriptionForm.addEventListener('change', e => {
+    if(e.target.matches('input[type="radio"][name^="tieneAlergias-"]')){
+      updateAllergyDetails(e.target.closest('[data-registration-entry]'));
+    }
   });
-  inscriptionForm.addEventListener('reset', () => setTimeout(updateAllergyDetails, 0));
+  inscriptionForm.addEventListener('click', e => {
+    if(e.target.closest('#addRegistrationBtn')) addRegistrationEntry();
+    const removeButton = e.target.closest('.registration-entry-remove');
+    if(removeButton) removeButton.closest('[data-registration-entry]').remove();
+  });
   inscriptionForm.addEventListener('input', e => {
     const field = e.target;
     if(!field.matches('input[type="text"],input[type="email"],input[type="tel"],input[type="search"],input[type="url"],input[type="password"],textarea')) return;
@@ -3027,35 +3106,49 @@
     if(e.animationName === 'typed-character-pop') e.target.classList.remove('typing-pop');
   });
 
-  document.getElementById('inscripcionForm').addEventListener('submit', function(e){
+  inscriptionForm.addEventListener('submit', async function(e){
     e.preventDefault();
-    const form = e.target;
     const endpoint = (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.formEndpoint) || '';
-    const submitBtn = form.querySelector('button[type="submit"]');
+    const submitBtn = inscriptionForm.querySelector('button[type="submit"]');
 
     if(!endpoint){
       alert('El formulario todavía no está conectado a Google Sheets.\n\nPide a quien mantenga la web que despliegue el Apps Script (ver google-apps-script/Code.gs) y añada la URL en content.js → "formEndpoint".');
       return;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Enviando...';
-
-    const formData = new FormData(form);
-    const allergyChoice = form.querySelector('input[name="tieneAlergias"]:checked')?.value;
-    formData.set('alergias', allergyChoice === 'No' ? 'No' : allergyTextarea.value.trim());
-    fetch(endpoint, { method: 'POST', mode: 'no-cors', body: formData })
-      .then(() => {
-        alert('¡Gracias por tu inscripción! Hemos recibido tus datos.');
-        form.reset();
-      })
-      .catch(() => {
-        alert('No se ha podido enviar la inscripción. Inténtalo de nuevo o escríbenos por redes sociales.');
-      })
-      .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar inscripción';
+    const entries = [...inscriptionEntries.querySelectorAll('[data-registration-entry]')];
+    const requests = entries.map(entry => {
+      const formData = new FormData();
+      entry.querySelectorAll('input,select,textarea').forEach(field => {
+        if(!field.name || field.disabled || field.type === 'radio') return;
+        formData.append(field.name,field.value);
       });
+      const allergyChoice = entry.querySelector('input[name^="tieneAlergias-"]:checked')?.value;
+      formData.set('alergias',allergyChoice === 'No' ? 'No' : (entry.querySelector('[name="alergias"]').value.trim()));
+      return {entry,formData};
+    });
+    let sent = 0;
+    submitBtn.disabled = true;
+    addRegistrationBtn.disabled = true;
+    submitBtn.textContent = 'Enviando inscripciones...';
+    try{
+      for(const request of requests){
+        await fetch(endpoint,{method:'POST',mode:'no-cors',body:request.formData});
+        sent++;
+      }
+      const firstEntry = inscriptionEntries.querySelector('[data-registration-entry]');
+      entries.forEach(entry => { if(entry !== firstEntry) entry.remove(); });
+      clearRegistrationEntry(firstEntry,1);
+      nextRegistrationNumber = 1;
+      alert(`¡Listo! Se han enviado ${sent} inscripciones. Cada participante aparecerá en una fila individual de la hoja.`);
+    }catch(error){
+      requests.slice(0,sent).forEach(({entry}) => entry.remove());
+      alert(`Se enviaron ${sent} de ${requests.length} inscripciones. Las restantes siguen en el formulario para que puedas reintentarlo.`);
+    }finally{
+      submitBtn.disabled = false;
+      addRegistrationBtn.disabled = false;
+      submitBtn.textContent = 'Enviar todas las inscripciones';
+    }
   });
 </script>
 
