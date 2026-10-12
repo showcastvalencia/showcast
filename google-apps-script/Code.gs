@@ -29,7 +29,7 @@
   actualiza también la lista HEADERS de abajo para que coincidan.
 */
 
-const HEADERS = ['Fecha', 'Tag Brawl Stars', 'Nombre', 'Año de nacimiento', 'Equipo', 'Categoría', 'Email', 'Teléfono', 'Comentarios'];
+const HEADERS = ['Fecha', 'Tag Brawl Stars', 'Nombre', 'Año de nacimiento', 'Equipo', 'Categoría', 'Email', 'Teléfono', 'Alergias, alérgenos o intolerancias alimentarias', 'Comentarios'];
 
 // Longitud máxima por campo. El endpoint /exec es público ("Cualquier
 // usuario"), así que cualquiera puede hacer un POST directo sin pasar por el
@@ -64,7 +64,7 @@ function doPost(e) {
     sheet.appendRow(HEADERS);
   }
 
-  const p = e.parameter || {};
+  const existingHeaders = sheet.getLastRow() > 0 ? sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0] : []; const allergyHeader = 'Alergias, alérgenos o intolerancias alimentarias'; if (existingHeaders.length && existingHeaders.indexOf(allergyHeader) === -1) { const commentsIndex = existingHeaders.indexOf('Comentarios'); const allergyColumn = commentsIndex >= 0 ? commentsIndex + 1 : sheet.getLastColumn() + 1; if (commentsIndex >= 0) sheet.insertColumnBefore(allergyColumn); sheet.getRange(1, allergyColumn).setValue(allergyHeader); } const p = e.parameter || {};
   sheet.appendRow([
     new Date(),
     sanitizeCell(p.playerTag),
@@ -73,7 +73,7 @@ function doPost(e) {
     sanitizeCell(p.equipo),
     sanitizeCell(p.categoria),
     sanitizeCell(p.email),
-    sanitizeCell(p.telefono),
+    sanitizeCell(p.telefono), sanitizeCell(p.alergias),
     sanitizeCell(p.mensaje)
   ]);
 
