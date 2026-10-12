@@ -1230,7 +1230,8 @@
   .team-profile-close:hover{background:var(--naranja);color:var(--negro);}
   .team-profile-next-wrap{position:fixed;right:0;bottom:0;width:min(31vw,540px);height:clamp(100px,20vh,210px);z-index:2;}
   .team-profile-next-wrap::before{content:"";position:absolute;inset:0;background:var(--naranja);clip-path:polygon(100% 0,100% 100%,0 100%);}
-  .team-profile-next{position:absolute;inset:15% 0 0 13%;border:0;background:#fff;clip-path:polygon(100% 0,100% 100%,0 100%);color:var(--negro);font-family:'Permanent Marker',cursive;font-size:clamp(1.4rem,2.8vw,2.5rem);text-align:right;padding:42px 28px 12px 100px;cursor:pointer;}
+  .team-profile-next{position:absolute;inset:15% 0 0 13%;display:grid;place-items:center;border:0;background:#fff;clip-path:polygon(100% 0,100% 100%,0 100%);color:var(--negro);font-family:'Permanent Marker',cursive;font-size:clamp(1.4rem,2.8vw,2.5rem);text-align:center;padding:0;cursor:pointer;}
+  .team-profile-next span{transform:translate(16.7%,16.7%);}
   .team-profile-next:hover{color:var(--naranja-dark);}
   .team-profile-next:focus-visible,.team-profile-close:focus-visible{outline:4px solid #fff;outline-offset:4px;}
   @media(max-width:700px){
@@ -1245,12 +1246,22 @@
     .team-profile-social-icon svg{width:21px;height:21px;}
     .team-profile-close{right:14px;top:12px;width:40px;height:40px;}
     .team-profile-next-wrap{width:210px;height:86px;}
-    .team-profile-next{font-size:1.25rem;padding:34px 14px 8px 70px;}
+    .team-profile-next{font-size:1.25rem;}
   }
 
   /* Aparición suave del texto que se va escribiendo en el formulario. */
   .form-field .typing-pop{animation:typed-character-pop .18s ease-out;}
-  @keyframes typed-character-pop{from{font-size:.9rem;}to{font-size:1rem;}}
+  @keyframes typed-character-pop{from{font-size:.95rem;}to{font-size:1.05rem;}}
+  .form-field label,.allergy-question{font-size:.88rem;}
+  .form-field input:not([type="radio"]),.form-field select{height:52px;font-size:1.05rem;padding:13px 15px;}
+  .form-field textarea{height:108px;font-size:1.05rem;padding:14px 15px;}
+  #sobre-nosotros{background:#050505 !important;padding-top:64px;}
+  #sobre-nosotros > .section-inner > .section-kicker{font-size:1.4rem;margin-bottom:4px;}
+  #galeria{background:#050505 !important;padding-top:64px;}
+  #galeria > .section-inner > .section-kicker{font-size:1.45rem;margin-bottom:4px;}
+  #unete .section-title .accent{color:#c95500;}
+  footer#contacto{background:#050505;color:var(--crema);}
+  footer#contacto .contact-card{background:#111;border-color:var(--naranja);}
   @media(prefers-reduced-motion:reduce){
     .nav-dropdown-menu.open,.nav-dropdown-menu a,.team-profile-slide{animation:none;transition:none;}
   }
@@ -1350,9 +1361,9 @@
   .footer-inner{
     max-width:1100px;
     margin:0 auto;
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:space-between;
+    display:grid;
+    grid-template-columns:minmax(0,1.2fr) minmax(220px,1fr) minmax(0,1fr);
+    align-items:start;
     gap:30px;
   }
   .footer-brand .logo{margin-bottom:10px;}
@@ -1365,6 +1376,10 @@
     text-transform:uppercase;
   }
   .footer-col ul{list-style:none;}
+  .footer-col:nth-child(2){text-align:center;}
+  .footer-col:nth-child(2) ul{padding:0;}
+  .footer-col:nth-child(2) h4{font-size:1.2rem;}
+  .footer-col:nth-child(2) li{font-size:1.05rem;}
   .footer-col li{margin-bottom:10px;}
   .footer-col a{opacity:.8;font-weight:600;}
   .footer-col a:hover{opacity:1;color:var(--naranja);}
@@ -1390,6 +1405,10 @@
   }
 
   @media(max-width:640px){
+    .footer-inner{grid-template-columns:1fr 1fr;gap:28px 18px;}
+    .footer-brand{grid-column:1/-1;}
+    .footer-col:nth-child(2){text-align:left;}
+    .footer-col:nth-child(2) ul{padding:0;}
     nav ul{gap:12px;}
     nav a, .nav-dropdown-btn{font-size:.9rem;}
     .logo img{height:36px;width:36px;}
@@ -1649,7 +1668,7 @@
       </div>
       <button type="button" class="team-profile-close" id="teamProfileClose" aria-label="Cerrar presentación">×</button>
       <div class="team-profile-next-wrap">
-        <button type="button" class="team-profile-next" id="teamProfileNext">Siguiente</button>
+        <button type="button" class="team-profile-next" id="teamProfileNext"><span>Siguiente</span></button>
       </div>
     </div>
   </section>
