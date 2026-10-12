@@ -561,7 +561,7 @@
   }
   .gallery-edicion.open > .gallery-edicion-toggle .chev{transform:rotate(-135deg);}
   .gallery-edicion-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;}
-  .gallery-edicion.open > .gallery-edicion-body{grid-template-rows:1fr;}
+  .gallery-edicion.open > .gallery-edicion-body{grid-template-rows:1fr;animation:nav-window-in .2s ease-out both;transform-origin:top center;}.gallery-edicion.open > .gallery-edicion-body > div > *{animation:gallery-content-in .2s ease-out both;}.gallery-edicion.open > .gallery-edicion-body > div > *:nth-child(2){animation-delay:35ms;}.gallery-edicion.open > .gallery-edicion-body > div > *:nth-child(3){animation-delay:70ms;}.gallery-edicion.open > .gallery-edicion-body > div > *:nth-child(4){animation-delay:105ms;}@keyframes gallery-content-in{from{opacity:0;transform:scale(.86);transform-origin:top center;}to{opacity:1;transform:scale(1);transform-origin:top center;}}
   .gallery-edicion-body[hidden]{display:none !important;}
   .gallery-edicion-body > div{overflow:hidden;}
   .gallery-edicion-empty{padding:0 22px 22px;font-style:italic;opacity:.6;font-size:.9rem;}
@@ -1278,7 +1278,7 @@
   footer#contacto{background:#050505;color:var(--crema);}
   footer#contacto .contact-card{background:#111;border-color:var(--naranja);}
   @media(prefers-reduced-motion:reduce){
-    .nav-dropdown-menu.open,.nav-dropdown-menu a,.team-profile-slide{animation:none;transition:none;}
+    .nav-dropdown-menu.open,.nav-dropdown-menu a,.gallery-edicion.open > .gallery-edicion-body,.gallery-edicion.open > .gallery-edicion-body > div > *, .team-profile-slide{animation:none;transition:none;}
   }
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
@@ -1328,7 +1328,7 @@
   a.contact-card:hover .c-value{
     color:var(--negro);
   }
-  .contact-card .c-label{
+  a.contact-card:hover .c-label,a.contact-card:hover .c-value{color:var(--blanco);}.contact-card .c-label{
     font-family:'Permanent Marker',cursive;
     color:var(--naranja);
     font-size:1rem;
