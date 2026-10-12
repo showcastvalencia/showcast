@@ -2373,12 +2373,12 @@
           descargar: () => descargarBlob(origBlob, nombreDescarga(src, '', extensionOriginal))
         },
         {
-          etiqueta: 'Mediana (−20%)',
+          etiqueta: 'Mediana',
           w: mediana.w, h: mediana.h, bytes: mediana.blob.size,
           descargar: () => descargarBlob(mediana.blob, nombreDescarga(src, '-mediana', 'jpg'))
         },
         {
-          etiqueta: 'Pequeña (−40%)',
+          etiqueta: 'Pequeña',
           w: pequena.w, h: pequena.h, bytes: pequena.blob.size,
           descargar: () => descargarBlob(pequena.blob, nombreDescarga(src, '-pequena', 'jpg'))
         }
