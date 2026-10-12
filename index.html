@@ -1111,6 +1111,8 @@
     padding:26px 18px;
     transition:transform .2s;
   }
+  .team-card[role="button"]{cursor:pointer;}
+  .team-card[role="button"]:focus-visible{outline:4px solid var(--naranja);outline-offset:4px;}
   .team-card:hover{transform:translateY(-6px);}
   .avatar-placeholder{
     width:96px;height:96px;
@@ -1132,6 +1134,46 @@
     font-size:.95rem;
     margin-top:4px;
   }
+
+  /* ---------- PRESENTACIONES DEL EQUIPO ---------- */
+  .team-profile-overlay{position:fixed;inset:0;z-index:2000;display:none;overflow:auto;background:#090909;color:#fff;}
+  .team-profile-overlay.open{display:block;}
+  .team-profile{position:relative;min-height:100%;max-width:1680px;margin:0 auto;padding:clamp(70px,8vh,110px) clamp(24px,7.8vw,150px) 150px;display:grid;grid-template-columns:minmax(230px,455px) minmax(0,1fr);align-items:center;gap:clamp(28px,2.3vw,46px);}
+  .team-profile-kicker{position:absolute;top:clamp(28px,5vh,56px);left:clamp(24px,7.8vw,150px);font-family:'Anton',sans-serif;font-size:clamp(1.1rem,2.5vw,2rem);text-transform:uppercase;}
+  .team-profile-kicker .accent{color:var(--naranja);}
+  .team-profile-poster{width:100%;aspect-ratio:455/569;object-fit:cover;border:0;display:block;}
+  .team-profile-copy{align-self:stretch;display:flex;flex-direction:column;padding-top:20px;min-width:0;}
+  .team-profile-copy h2{font-family:'Anton',sans-serif;font-size:clamp(2.5rem,5vw,5.8rem);line-height:1.05;text-transform:uppercase;margin:0 0 20px;overflow-wrap:anywhere;}
+  .team-profile-copy h2 span{color:var(--naranja);}
+  .team-profile-bio{font-family:'Permanent Marker',cursive;font-size:clamp(1.25rem,2.5vw,2.5rem);line-height:1.35;margin:0;max-width:850px;}
+  .team-profile-socials{display:grid;gap:12px;margin-top:auto;padding-top:36px;font-family:'Permanent Marker',cursive;font-size:clamp(1.05rem,1.6vw,1.5rem);}
+  .team-profile-social{display:flex;align-items:center;gap:14px;}
+  .team-profile-social-icon{width:46px;height:46px;border-radius:12px;background:#211c22;display:grid;place-items:center;font-family:Arial,sans-serif;font-weight:700;font-size:1.6rem;}
+  .team-profile-close{position:fixed;right:24px;top:20px;z-index:2;width:48px;height:48px;border:2px solid #fff;background:transparent;color:#fff;font-size:1.8rem;cursor:pointer;}
+  .team-profile-close:hover{background:var(--naranja);color:var(--negro);}
+  .team-profile-next-wrap{position:fixed;right:0;bottom:0;width:min(31vw,540px);height:clamp(100px,20vh,210px);z-index:2;}
+  .team-profile-next-wrap::before{content:"";position:absolute;inset:0;background:var(--naranja);clip-path:polygon(100% 0,100% 100%,0 100%);}
+  .team-profile-next{position:absolute;inset:15% 0 0 13%;border:0;background:#fff;clip-path:polygon(100% 0,100% 100%,0 100%);color:var(--negro);font-family:'Permanent Marker',cursive;font-size:clamp(1.4rem,2.8vw,2.5rem);text-align:right;padding:42px 28px 12px 100px;cursor:pointer;}
+  .team-profile-next:hover{color:var(--naranja-dark);}
+  .team-profile-next:focus-visible,.team-profile-close:focus-visible{outline:4px solid #fff;outline-offset:4px;}
+  @media(max-width:700px){
+    .team-profile{min-height:100%;grid-template-columns:1fr;align-items:start;gap:22px;padding:84px 22px 120px;}
+    .team-profile-kicker{top:24px;left:22px;font-size:1.1rem;}
+    .team-profile-poster{width:min(68vw,300px);margin:0 auto;}
+    .team-profile-copy{padding:0;}
+    .team-profile-copy h2{font-size:clamp(2.4rem,11vw,4rem);margin-bottom:10px;}
+    .team-profile-bio{font-size:clamp(1.1rem,5vw,1.55rem);}
+    .team-profile-socials{padding-top:22px;gap:8px;font-size:1rem;}
+    .team-profile-social-icon{width:36px;height:36px;font-size:1.3rem;}
+    .team-profile-close{right:14px;top:12px;width:40px;height:40px;}
+    .team-profile-next-wrap{width:210px;height:86px;}
+    .team-profile-next{font-size:1.25rem;padding:34px 14px 8px 70px;}
+  }
+
+  /* Aparición suave del texto que se va escribiendo en el formulario. */
+  .form-field .typing-pop{animation:typed-character-pop .18s ease-out;}
+  @keyframes typed-character-pop{from{font-size:.9rem;}to{font-size:1rem;}}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
   /* ---------- REGISTRO CTA STRIPE ---------- */
   .cta-stripe{
@@ -1413,7 +1455,11 @@
         </div>
         <div class="form-field">
           <label for="telefono">Teléfono de contacto</label>
-          <input type="tel" id="telefono" name="telefono" required placeholder="000 000 000"></div><div class="form-field full"><label for="alergias">Alergias, alérgenos o intolerancias alimentarias (opcional)</label><textarea id="alergias" name="alergias" rows="3" placeholder="Si no tienes ninguna, deja este campo en blanco"></textarea>
+          <input type="tel" id="telefono" name="telefono" required placeholder="000 000 000">
+        </div>
+        <div class="form-field full">
+          <label for="alergias">Alergias, alérgenos o intolerancias alimentarias (opcional)</label>
+          <textarea id="alergias" name="alergias" rows="3" placeholder="En caso de no tener, no rellenar este campo"></textarea>
         </div>
         <div class="form-field full">
           <label for="mensaje">Comentarios (opcional)</label>
@@ -1499,6 +1545,23 @@
     <p class="modal-hint" id="equipoModalRecord" style="margin-bottom:0;"></p>
     <ul class="clasif-team-roster" id="equipoModalRoster"></ul>
   </div>
+</div>
+
+<!-- PRESENTACIÓN: EQUIPO DETRÁS DEL SHOW -->
+<div class="team-profile-overlay" id="teamProfileOverlay" aria-hidden="true">
+  <section class="team-profile" role="dialog" aria-modal="true" aria-labelledby="teamProfileName" aria-describedby="teamProfileBio">
+    <div class="team-profile-kicker">El equipo <span class="accent">detrás</span> del show</div>
+    <img class="team-profile-poster" id="teamProfilePoster" src="" alt="">
+    <div class="team-profile-copy">
+      <h2 id="teamProfileName"></h2>
+      <p class="team-profile-bio" id="teamProfileBio"></p>
+      <div class="team-profile-socials" id="teamProfileSocials"></div>
+    </div>
+    <button type="button" class="team-profile-close" id="teamProfileClose" aria-label="Cerrar presentación">×</button>
+    <div class="team-profile-next-wrap">
+      <button type="button" class="team-profile-next" id="teamProfileNext">Siguiente</button>
+    </div>
+  </section>
 </div>
 
 <!-- MODAL: PARTIDO (CLASIFICACIONES) -->
@@ -2290,7 +2353,7 @@
     return m ? 'https://www.youtube.com/embed/' + m[1] : '';
   }
 
-  // ---------- GALERÍA: menú de descarga (original / mediana −20% / pequeña −40%) ----------
+  // ---------- GALERÍA: menú de descarga (original / mediana / pequeña) ----------
   // "Reducir la calidad" se interpreta como reducir la resolución (y de paso el
   // peso) en ese porcentaje — por eso cada versión tiene menos píxeles, no solo
   // más compresión JPEG.
@@ -2397,6 +2460,86 @@
   });
   document.getElementById('descargaModalOverlay').addEventListener('click', e => {
     if (e.target.id === 'descargaModalOverlay') e.currentTarget.classList.remove('open');
+  });
+
+  const teamPresentations = [
+    {
+      key:'alexxdiiaaz', name:'AleXxDiiaaz', lead:'AleXx', accent:'Diiaaz',
+      poster:'assets/team/alexxdiiaaz.png',
+      bio:'Fundador, ShowMan y Ayudante en Audiovisuales y Diseño Gráfico. Desde el inicio hasta el día de hoy.',
+      socials:[['TikTok','@SC | AleXxDiiaaz','♪'],['Instagram','@AleXxDiiaaz','◎']]
+    },
+    {
+      key:'frumos', name:'Frumos', lead:'Fru', accent:'mos',
+      poster:'assets/team/frumos.png',
+      bio:'Organizador, ShowMan, Ayudante de Sonido en Directo. Desde 2024 hasta el día de hoy.',
+      socials:[['TikTok','@SC | Frumos','♪'],['Instagram','@Frumos_Guitar','◎']]
+    },
+    {
+      key:'kolbeat', name:'Kol.Beat', lead:'Kol.', accent:'Beat',
+      poster:'assets/team/kol-beat.png',
+      bio:'Encargado de Mezclas y Sonido en Directo y Ayudante en Audiovisuales y Diseño Gráfico desde 2024 hasta el día de hoy.',
+      socials:[['TikTok','@Kol.beat','♪'],['Instagram','@Kol.flac','◎']]
+    }
+  ];
+  const teamProfileOverlay = document.getElementById('teamProfileOverlay');
+  let activeTeamProfile = 0;
+  let teamProfileTrigger = null;
+  let previousBodyOverflow = '';
+
+  function showTeamProfile(index){
+    activeTeamProfile = (index + teamPresentations.length) % teamPresentations.length;
+    const person = teamPresentations[activeTeamProfile];
+    document.getElementById('teamProfilePoster').src = person.poster;
+    document.getElementById('teamProfilePoster').alt = `Presentación de ${person.name}`;
+    const name = document.getElementById('teamProfileName');
+    name.replaceChildren(document.createTextNode(person.lead), Object.assign(document.createElement('span'), {textContent:person.accent}));
+    document.getElementById('teamProfileBio').textContent = person.bio;
+    document.getElementById('teamProfileSocials').innerHTML = person.socials.map(([network,handle,icon]) =>
+      `<div class="team-profile-social"><span class="team-profile-social-icon" aria-hidden="true">${icon}</span><span class="sr-only">${network}: </span><span>${handle}</span></div>`
+    ).join('');
+    teamProfileOverlay.classList.add('open');
+    teamProfileOverlay.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('teamProfileClose').focus();
+  }
+
+  function closeTeamProfile(){
+    teamProfileOverlay.classList.remove('open');
+    teamProfileOverlay.setAttribute('aria-hidden','true');
+    document.body.style.overflow = previousBodyOverflow;
+    if(teamProfileTrigger) teamProfileTrigger.focus();
+  }
+
+  document.getElementById('teamGrid').addEventListener('click', e => {
+    const card = e.target.closest('[data-team-profile]');
+    if(!card) return;
+    teamProfileTrigger = card;
+    previousBodyOverflow = document.body.style.overflow;
+    const index = teamPresentations.findIndex(person => person.key === card.dataset.teamProfile);
+    if(index >= 0) showTeamProfile(index);
+  });
+  document.getElementById('teamGrid').addEventListener('keydown', e => {
+    const card = e.target.closest('[data-team-profile]');
+    if(card && (e.key === 'Enter' || e.key === ' ')){
+      e.preventDefault();
+      card.click();
+    }
+  });
+  document.getElementById('teamProfileClose').addEventListener('click', closeTeamProfile);
+  document.getElementById('teamProfileNext').addEventListener('click', () => showTeamProfile(activeTeamProfile + 1));
+  teamProfileOverlay.addEventListener('click', e => { if(e.target === teamProfileOverlay) closeTeamProfile(); });
+  document.addEventListener('keydown', e => {
+    if(!teamProfileOverlay.classList.contains('open')) return;
+    if(e.key === 'Escape'){ closeTeamProfile(); return; }
+    if(e.key === 'ArrowRight'){ e.preventDefault(); showTeamProfile(activeTeamProfile + 1); }
+    if(e.key === 'ArrowLeft'){ e.preventDefault(); showTeamProfile(activeTeamProfile - 1); }
+    if(e.key === 'Tab'){
+      const buttons = [document.getElementById('teamProfileClose'),document.getElementById('teamProfileNext')];
+      const first = buttons[0], last = buttons[1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
   });
 
   // ---------- RENDERIZADO DINÁMICO DESDE content.js ----------
@@ -2528,12 +2671,20 @@
 
     if(Array.isArray(data.equipo) && data.equipo.length){
       const grid = document.getElementById('teamGrid');
-      grid.innerHTML = data.equipo.map(m => `
-        <div class="team-card">
+      const presentationKeys = new Set(teamPresentations.map(person => person.key));
+      grid.innerHTML = data.equipo.map(m => {
+        const key = (m.nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+        const isPresentation = presentationKeys.has(key);
+        const tag = 'div';
+        return `
+        <${tag} class="team-card"${isPresentation ? ` role="button" tabindex="0" data-team-profile="${key}" aria-haspopup="dialog" aria-label="Ver presentación de ${m.nombre || 'miembro del equipo'}"` : ''}>
           <div class="avatar-placeholder">${m.foto ? `<img src="${m.foto}" alt="${m.nombre || ''}">` : (m.nombre ? m.nombre.charAt(0).toUpperCase() : '?')}</div>
           <h4>${m.nombre || 'Miembro del equipo'}</h4>
           <div class="role">${m.rol || 'Cargo pendiente'}</div>
-        </div>`).join('');
+        </${tag}>`;
+      }).join('');
+      const teamNote = grid.parentElement.querySelector('.gallery-note');
+      if(teamNote) teamNote.style.display = 'none';
     }
 
     if(data.contacto){
@@ -2670,6 +2821,18 @@
   })();
 
   // ---------- INSCRIPCIÓN: envío a Google Sheets vía Apps Script ----------
+  const inscriptionForm = document.getElementById('inscripcionForm');
+  inscriptionForm.addEventListener('input', e => {
+    const field = e.target;
+    if(!field.matches('input[type="text"],input[type="email"],input[type="tel"],input[type="search"],input[type="url"],input[type="password"],textarea')) return;
+    field.classList.remove('typing-pop');
+    void field.offsetWidth;
+    field.classList.add('typing-pop');
+  });
+  inscriptionForm.addEventListener('animationend', e => {
+    if(e.animationName === 'typed-character-pop') e.target.classList.remove('typing-pop');
+  });
+
   document.getElementById('inscripcionForm').addEventListener('submit', function(e){
     e.preventDefault();
     const form = e.target;
