@@ -112,152 +112,152 @@ window.SHOWCAST_CONTENT = {
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-01.jpg",
+          "src": "pucol-2026-01.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-02.jpg",
+          "src": "pucol-2026-02.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-03.jpg",
+          "src": "pucol-2026-03.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-04.jpg",
+          "src": "pucol-2026-04.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-05.jpg",
+          "src": "pucol-2026-05.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-06.jpg",
+          "src": "pucol-2026-06.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-07.jpg",
+          "src": "pucol-2026-07.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-08.jpg",
+          "src": "pucol-2026-08.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-09.jpg",
+          "src": "pucol-2026-09.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-10.jpg",
+          "src": "pucol-2026-10.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-11.jpg",
+          "src": "pucol-2026-11.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-12.jpg",
+          "src": "pucol-2026-12.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-13.jpg",
+          "src": "pucol-2026-13.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-14.jpg",
+          "src": "pucol-2026-14.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-15.jpg",
+          "src": "pucol-2026-15.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-16.jpg",
+          "src": "pucol-2026-16.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-17.jpg",
+          "src": "pucol-2026-17.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-18.jpg",
+          "src": "pucol-2026-18.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-19.jpg",
+          "src": "pucol-2026-19.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-20.jpg",
+          "src": "pucol-2026-20.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-21.jpg",
+          "src": "pucol-2026-21.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-22.jpg",
+          "src": "pucol-2026-22.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-23.jpg",
+          "src": "pucol-2026-23.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-24.jpg",
+          "src": "pucol-2026-24.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-25.jpg",
+          "src": "pucol-2026-25.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-26.jpg",
+          "src": "pucol-2026-26.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-27.jpg",
+          "src": "pucol-2026-27.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-28.jpg",
+          "src": "pucol-2026-28.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-29.jpg",
+          "src": "pucol-2026-29.jpg",
           "tipo": "foto",
           "caption": ""
         },
         {
-          "src": "assets/galeria/pucol-2026/pucol-2026-30.jpg",
+          "src": "pucol-2026-30.jpg",
           "tipo": "foto",
           "caption": ""
         }
