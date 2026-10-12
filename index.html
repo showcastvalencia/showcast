@@ -306,6 +306,8 @@
     padding:90px 24px;
     position:relative;
   }
+  .page-view-hidden{display:none !important;}
+  .page-view-active{min-height:calc(100vh - 70px);min-height:calc(100svh - 70px);}
   .section-inner{
     max-width:1100px;
     margin:0 auto;
@@ -578,19 +580,9 @@
     border:4px solid var(--negro);
     box-shadow:10px 10px 0 var(--naranja);
     padding:40px;
-    margin-top:36px;
+    margin-top:0;
   }
-  .form-title-banner{
-    margin:0 0 26px;
-    padding:14px 18px;
-    border:2px solid var(--negro);
-    background:var(--naranja);
-    color:var(--negro);
-    font-family:'Anton',sans-serif;
-    font-size:clamp(1.2rem,2.2vw,1.65rem);
-    letter-spacing:.5px;
-    text-transform:uppercase;
-  }
+  .form-section-title{margin-top:34px;margin-bottom:14px;color:var(--blanco);}
   .form-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -1481,8 +1473,8 @@
     <h2 class="section-title" style="color:var(--blanco);">Apúntate al <span class="accent">torneo</span></h2>
     <p class="section-lead" style="color:var(--crema);opacity:.85;">Rellena el formulario y resérvate tu plaza junto a tu equipo. Te contactaremos para confirmar tu inscripción.</p>
 
+    <h2 class="section-title form-section-title">Formulario de <span class="accent">inscripción</span></h2>
     <form class="form-wrap" id="inscripcionForm">
-      <div class="form-title-banner">Formulario de inscripción</div>
       <div class="form-grid">
         <div class="form-field full">
           <label for="playerTag">Código de jugador de Brawl Stars</label>
@@ -1915,6 +1907,26 @@
     const insideAny = navDropdowns.some(d => d.menu.contains(e.target) || e.target === d.btn);
     if (!insideAny) closeAllDropdowns();
   });
+
+  // La navegación muestra una sección principal a la vez y conserva el hash
+  // para que los enlaces directos, atrás y adelante sigan funcionando.
+  (function initSingleSectionNavigation(){
+    const pages = Array.from(document.querySelectorAll('body > section, body > footer'));
+    function showCurrentPage(scrollToTop){
+      const hashId = decodeURIComponent(window.location.hash.slice(1));
+      const hashTarget = hashId ? document.getElementById(hashId) : null;
+      const activePage = (hashTarget && hashTarget.closest('section, footer')) || document.getElementById('top');
+      pages.forEach(page => {
+        const isActive = page === activePage;
+        page.classList.toggle('page-view-hidden', !isActive);
+        page.classList.toggle('page-view-active', isActive);
+        page.setAttribute('aria-hidden', String(!isActive));
+      });
+      if (scrollToTop) window.scrollTo({top:0,behavior:'auto'});
+    }
+    window.addEventListener('hashchange', () => showCurrentPage(true));
+    showCurrentPage(false);
+  })();
 
   // ---------- CLASIFICACIONES: tabla de posiciones + bracket + Battle Log ----------
   // Fusión del viejo #clasificaciones (tabla/bracket propios, solo Challonge)
