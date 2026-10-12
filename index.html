@@ -600,7 +600,7 @@
     background:var(--blanco);
     border:4px solid var(--negro);
     box-shadow:10px 10px 0 var(--naranja);
-    padding:40px 40px 96px;
+    padding:40px 40px 160px;
     margin-top:0;
   }
   .form-section-title{margin-top:34px;margin-bottom:14px;color:var(--blanco);}
@@ -1231,8 +1231,8 @@
   .team-profile-close:hover{background:var(--naranja);color:var(--negro);}
   .team-profile-next-wrap{position:fixed;right:0;bottom:0;width:min(31vw,540px);height:clamp(100px,20vh,210px);z-index:2;}
   .team-profile-next-wrap::before{content:"";position:absolute;inset:0;background:var(--naranja);clip-path:polygon(100% 0,100% 100%,0 100%);}
-  .team-profile-next{position:absolute;inset:15% 0 0 13%;display:grid;place-items:center;border:0;background:#fff;clip-path:polygon(100% 0,100% 100%,0 100%);color:var(--negro);font-family:'Permanent Marker',cursive;font-size:clamp(1.4rem,2.8vw,2.5rem);text-align:center;padding:0;cursor:pointer;}
-  .team-profile-next span{transform:translate(16.7%,16.7%);}
+  .team-profile-next{position:absolute;inset:15% 0 0 13%;border:0;background:#fff;clip-path:polygon(100% 0,100% 100%,0 100%);color:var(--negro);font-family:'Permanent Marker',cursive;font-size:clamp(1.4rem,2.8vw,2.5rem);text-align:center;padding:0;cursor:pointer;}
+  .team-profile-next span{position:absolute;left:66.67%;top:66.67%;transform:translate(-50%,-50%);white-space:nowrap;}
   .team-profile-next:hover{color:var(--naranja-dark);}
   .team-profile-next:focus-visible,.team-profile-close:focus-visible{outline:4px solid #fff;outline-offset:4px;}
   @media(max-width:700px){
@@ -1251,8 +1251,8 @@
   }
 
   /* Aparición suave del texto que se va escribiendo en el formulario. */
-  .form-field .typing-pop{animation:typed-character-pop .18s ease-out;}
-  @keyframes typed-character-pop{from{font-size:.95rem;}to{font-size:1.05rem;}}
+  .form-field .typing-pop{animation:typed-character-pop .12s ease-out;}
+  @keyframes typed-character-pop{from{color:#777;}to{color:var(--negro);}}
   .form-field label,.allergy-question{font-size:.88rem;}
   .form-field input:not([type="radio"]),.form-field select{height:52px;font-size:1.05rem;padding:13px 15px;}
   .form-field textarea{height:108px;font-size:1.05rem;padding:14px 15px;}
