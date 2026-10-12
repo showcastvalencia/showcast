@@ -91,6 +91,20 @@ window.SHOWCAST_CONTENT = {
       ]
     },
     {
+      "ciudad": "Sagunto",
+      "anio": "2026 Manguetsu",
+      "fecha": "",
+      "ubicacion": "Casal Jove del Port de Sagunt",
+      "items": []
+    },
+    {
+      "ciudad": "Sagunto",
+      "anio": "2026 Torneo",
+      "fecha": "",
+      "ubicacion": "Casal Jove del Port de Sagunt",
+      "items": []
+    },
+    {
       "ciudad": "Puçol",
       "anio": "2026",
       "fecha": "",
