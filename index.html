@@ -580,6 +580,17 @@
     padding:40px;
     margin-top:36px;
   }
+  .form-title-banner{
+    margin:0 0 26px;
+    padding:14px 18px;
+    border:2px solid var(--negro);
+    background:var(--naranja);
+    color:var(--negro);
+    font-family:'Anton',sans-serif;
+    font-size:clamp(1.2rem,2.2vw,1.65rem);
+    letter-spacing:.5px;
+    text-transform:uppercase;
+  }
   .form-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -1197,7 +1208,10 @@
   .team-profile-bio{font-family:'Permanent Marker',cursive;font-size:clamp(1.25rem,2.5vw,2.5rem);line-height:1.35;margin:0;max-width:850px;}
   .team-profile-socials{display:grid;gap:12px;margin-top:auto;padding-top:36px;font-family:'Permanent Marker',cursive;font-size:clamp(1.05rem,1.6vw,1.5rem);}
   .team-profile-social{display:flex;align-items:center;gap:14px;}
-  .team-profile-social-icon{width:46px;height:46px;border-radius:12px;background:#211c22;display:grid;place-items:center;font-family:Arial,sans-serif;font-weight:700;font-size:1.6rem;}
+  .team-profile-social-icon{width:46px;height:46px;border-radius:12px;background:#211c22;display:grid;place-items:center;}
+  .team-profile-social-icon svg{display:block;width:26px;height:26px;}
+  .team-profile-social-icon--tiktok svg{filter:drop-shadow(-1.5px 0 #25f4ee) drop-shadow(1.5px 0 #fe2c55);}
+  .team-profile-social-icon--instagram svg{color:#fff;}
   .team-profile-close{position:fixed;right:24px;top:20px;z-index:2;width:48px;height:48px;border:2px solid #fff;background:transparent;color:#fff;font-size:1.8rem;cursor:pointer;}
   .team-profile-close:hover{background:var(--naranja);color:var(--negro);}
   .team-profile-next-wrap{position:fixed;right:0;bottom:0;width:min(31vw,540px);height:clamp(100px,20vh,210px);z-index:2;}
@@ -1213,7 +1227,8 @@
     .team-profile-copy h2{font-size:clamp(2.4rem,11vw,4rem);margin-bottom:10px;}
     .team-profile-bio{font-size:clamp(1.1rem,5vw,1.55rem);}
     .team-profile-socials{padding-top:22px;gap:8px;font-size:1rem;}
-    .team-profile-social-icon{width:36px;height:36px;font-size:1.3rem;}
+    .team-profile-social-icon{width:36px;height:36px;}
+    .team-profile-social-icon svg{width:21px;height:21px;}
     .team-profile-close{right:14px;top:12px;width:40px;height:40px;}
     .team-profile-next-wrap{width:210px;height:86px;}
     .team-profile-next{font-size:1.25rem;padding:34px 14px 8px 70px;}
@@ -1467,6 +1482,7 @@
     <p class="section-lead" style="color:var(--crema);opacity:.85;">Rellena el formulario y resérvate tu plaza junto a tu equipo. Te contactaremos para confirmar tu inscripción.</p>
 
     <form class="form-wrap" id="inscripcionForm">
+      <div class="form-title-banner">Formulario de inscripción</div>
       <div class="form-grid">
         <div class="form-field full">
           <label for="playerTag">Código de jugador de Brawl Stars</label>
@@ -2523,19 +2539,19 @@
       key:'alexxdiiaaz', name:'AleXxDiiaaz', lead:'AleXx', accent:'Diiaaz',
       poster:'AleXxDiiaaz.jpg',
       bio:'Fundador, ShowMan y Ayudante en Audiovisuales y Diseño Gráfico. Desde el inicio hasta el día de hoy.',
-      socials:[['TikTok','@SC | AleXxDiiaaz','♪'],['Instagram','@AleXxDiiaaz','◎']]
+      socials:[['TikTok','@SC | AleXxDiiaaz'],['Instagram','@AleXxDiiaaz']]
     },
     {
       key:'frumos', name:'Frumos', lead:'Fru', accent:'mos',
       poster:'Frumos.jpg',
       bio:'Organizador, ShowMan, Ayudante de Sonido en Directo. Desde 2024 hasta el día de hoy.',
-      socials:[['TikTok','@SC | Frumos','♪'],['Instagram','@Frumos_Guitar','◎']]
+      socials:[['TikTok','@SC | Frumos'],['Instagram','@Frumos_Guitar']]
     },
     {
       key:'kolbeat', name:'Kol.Beat', lead:'Kol.', accent:'Beat',
       poster:'Kol.Beat.png',
       bio:'Encargado de Mezclas y Sonido en Directo y Ayudante en Audiovisuales y Diseño Gráfico desde 2024 hasta el día de hoy.',
-      socials:[['TikTok','@Kol.beat','♪'],['Instagram','@Kol.flac','◎']]
+      socials:[['TikTok','@Kol.beat'],['Instagram','@Kol.flac']]
     }
   ];
   const teamProfileOverlay = document.getElementById('teamProfileOverlay');
@@ -2551,8 +2567,12 @@
     const name = document.getElementById('teamProfileName');
     name.replaceChildren(document.createTextNode(person.lead), Object.assign(document.createElement('span'), {textContent:person.accent}));
     document.getElementById('teamProfileBio').textContent = person.bio;
-    document.getElementById('teamProfileSocials').innerHTML = person.socials.map(([network,handle,icon]) =>
-      `<div class="team-profile-social"><span class="team-profile-social-icon" aria-hidden="true">${icon}</span><span class="sr-only">${network}: </span><span>${handle}</span></div>`
+    const socialIcons = {
+      TikTok:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M19.59 6.69a4.79 4.79 0 0 1-4.6-5.08h-3.37v14.2a2.81 2.81 0 1 1-2.81-2.81c.34 0 .67.06.98.18V9.74a6.16 6.16 0 1 0 5.2 6.07V8.66a8.12 8.12 0 0 0 4.6 1.43V6.69Z"/></svg>',
+      Instagram:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4.1" stroke="currentColor" stroke-width="2.2"/><circle cx="17.7" cy="6.5" r="1.25" fill="currentColor"/></svg>'
+    };
+    document.getElementById('teamProfileSocials').innerHTML = person.socials.map(([network,handle]) =>
+      `<div class="team-profile-social"><span class="team-profile-social-icon team-profile-social-icon--${network.toLowerCase()}" aria-hidden="true">${socialIcons[network]}</span><span class="sr-only">${network}: </span><span>${handle}</span></div>`
     ).join('');
     teamProfileOverlay.classList.add('open');
     teamProfileOverlay.setAttribute('aria-hidden','false');
