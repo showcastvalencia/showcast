@@ -2,12 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SHOWCAST — Organización de eventos Gaming</title>
 <link rel="icon" type="image/png" href="assets/logo.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Rajdhani:wght@500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
 <style>
   :root{
     --naranja:#fb9d45;
@@ -1439,17 +1436,21 @@
     nav a, .nav-dropdown-btn{font-size:.82rem;}
   }
 </style>
+<link rel="stylesheet" href="showcast-public.css">
 </head>
 <body>
 
 <header>
   <div class="nav-wrap">
     <a href="#top" class="logo"><img src="assets/logo.png" alt="Logo Showcast"></a>
-    <nav>
+    <button class="burger" id="navToggle" type="button" aria-expanded="false" aria-controls="siteNav">
+      <span class="burger-icon" aria-hidden="true"></span> Menú
+    </button>
+    <nav id="siteNav" aria-label="Navegación principal">
       <ul id="navList">
         <li><a href="#top">Inicio</a></li>
         <li class="nav-dropdown">
-          <button class="nav-dropdown-btn" id="torneosBtn" aria-expanded="false">Torneos<span class="nav-caret"></span></button>
+          <button class="nav-dropdown-btn" type="button" id="torneosBtn" aria-controls="torneosMenu" aria-expanded="false">Torneos<span class="nav-caret"></span></button>
           <ul class="nav-dropdown-menu" id="torneosMenu">
             <li><a href="#evento">Próximo evento</a></li>
             <li><a href="#inscripcion">Inscripción</a></li>
@@ -1457,14 +1458,23 @@
           </ul>
         </li>
         <li class="nav-dropdown">
-          <button class="nav-dropdown-btn" id="comunidadBtn" aria-expanded="false">Comunidad<span class="nav-caret"></span></button>
+          <button class="nav-dropdown-btn" type="button" id="comunidadBtn" aria-controls="comunidadMenu" aria-expanded="false">Comunidad<span class="nav-caret"></span></button>
           <ul class="nav-dropdown-menu" id="comunidadMenu">
             <li><a href="#quienes-somos">Quiénes somos</a></li>
             <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
             <li><a href="#unete">Únete</a></li>
             <li><a href="#galeria">Galería</a></li>
-            <li><a href="#patrocinadores">Patrocinadores</a></li>
             <li><a href="#contacto">Contacto</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown nav-language">
+          <button class="nav-dropdown-btn" id="siteLanguage" type="button" aria-label="Idioma" aria-expanded="false" aria-controls="languageMenu">
+            <span class="language-flag" data-flag="es" aria-hidden="true"></span>
+          </button>
+          <ul class="nav-dropdown-menu" id="languageMenu" aria-label="Idioma">
+            <li><button type="button" data-language="es" lang="es" aria-pressed="true"><span class="language-flag" data-flag="es" aria-hidden="true"></span> Castellano</button></li>
+            <li><button type="button" data-language="ca-valencia" lang="ca-valencia" aria-pressed="false"><span class="language-flag" data-flag="ca-valencia" aria-hidden="true"></span> Valencià</button></li>
+            <li><button type="button" data-language="en" lang="en" aria-pressed="false"><span class="language-flag" data-flag="en" aria-hidden="true"></span> English</button></li>
           </ul>
         </li>
       </ul>
@@ -1501,11 +1511,11 @@
     <div class="event-card">
       <div>
         <div class="label">Juego</div>
-        <div class="value" id="eventoJuego">Brawl Stars</div>
+        <div class="value" id="eventoJuego" data-i18n-skip>Brawl Stars</div>
       </div>
       <div>
         <div class="label">Lugar</div>
-        <div class="value" id="eventoLugar">Espai Jove Puçol</div>
+        <div class="value" id="eventoLugar" data-i18n-skip>Espai Jove Puçol</div>
       </div>
       <div>
         <div class="label">Fecha</div>
@@ -1531,6 +1541,7 @@
     <span class="section-kicker">📝 Inscripción</span>
     <h2 class="section-title" style="color:var(--blanco);">Apúntate al <span class="accent">torneo</span></h2>
     <p class="section-lead" style="color:var(--crema);opacity:.85;">Rellena el formulario y resérvate tu plaza junto a tu equipo. Te contactaremos para confirmar tu inscripción.</p>
+
 
     <h2 class="section-title form-section-title">Formulario de <span class="accent">inscripción</span></h2>
     <form class="form-wrap" id="inscripcionForm">
@@ -1623,7 +1634,7 @@
       <div class="player-preview">
         <img id="pv-icon" class="player-icon" src="" alt="Icono de jugador">
         <div>
-          <h3 id="pv-name">—</h3>
+          <h3 id="pv-name" data-i18n-skip>—</h3>
           <span id="pv-tag" class="player-tag">#000000</span>
         </div>
         <div class="prestige-badge" id="pv-prestige-badge" title="Prestigio">
@@ -1669,7 +1680,7 @@
   <div class="modal-card" id="equipoModalCard">
     <button type="button" class="modal-close" id="equipoModalClose" aria-label="Cerrar">✕</button>
     <span class="section-kicker">Equipo</span>
-    <h3 id="equipoModalNombre" style="margin-bottom:6px;">—</h3>
+    <h3 id="equipoModalNombre" data-i18n-skip style="margin-bottom:6px;">—</h3>
     <p class="modal-hint" id="equipoModalRecord" style="margin-bottom:0;"></p>
     <ul class="clasif-team-roster" id="equipoModalRoster"></ul>
   </div>
@@ -1682,7 +1693,7 @@
       <div class="team-profile-kicker">El equipo <span class="accent">detrás</span> del show</div>
       <img class="team-profile-poster" id="teamProfilePoster" src="" alt="">
       <div class="team-profile-copy">
-        <h2 id="teamProfileName"></h2>
+        <h2 id="teamProfileName" data-i18n-skip></h2>
         <p class="team-profile-bio" id="teamProfileBio"></p>
         <div class="team-profile-socials" id="teamProfileSocials"></div>
       </div>
@@ -1723,7 +1734,7 @@
       <div class="player-preview">
         <img id="cpv-icon" class="player-icon" src="" alt="Icono de jugador">
         <div>
-          <h3 id="cpv-name">—</h3>
+          <h3 id="cpv-name" data-i18n-skip>—</h3>
           <span id="cpv-tag" class="player-tag">#000000</span>
         </div>
         <div class="prestige-badge" title="Prestigio">
@@ -1880,15 +1891,6 @@
   </div>
 </section>
 
-<!-- PATROCINADORES -->
-<section id="patrocinadores" style="background:var(--crema);">
-  <div class="section-inner">
-    <span class="section-kicker">🤝 Gracias por vuestro apoyo</span>
-    <h2 class="section-title">Nuestros <span class="accent">patrocinadores</span></h2>
-    <p class="section-lead" id="sponsorNote">Todavía no hay patrocinadores publicados. Si tu marca quiere colaborar con Showcast, escríbenos.</p>
-    <div class="sponsor-grid" id="sponsorGrid"></div>
-  </div>
-</section>
 
 <!-- CONTACTO + RRSS -->
 <footer id="contacto">
@@ -1945,33 +1947,95 @@
 </footer>
 
 <script src="content.js"></script>
+<script src="showcast-public-data.js"></script>
+<script src="showcast-i18n.js"></script>
 <script src="assets/js/clasificaciones-logic.js"></script>
 <script>
-  // Desplegables "Torneos" / "Comunidad": abrir uno cierra el otro, clic
-  // fuera o en un enlace los cierra — mismo patrón para ambos.
-  const navDropdowns = [
-    { btn: document.getElementById('torneosBtn'), menu: document.getElementById('torneosMenu') },
-    { btn: document.getElementById('comunidadBtn'), menu: document.getElementById('comunidadMenu') },
-  ];
-  function closeAllDropdowns(except) {
-    navDropdowns.forEach(d => {
-      if (d === except) return;
-      d.menu.classList.remove('open');
-      d.btn.setAttribute('aria-expanded', 'false');
-    });
+  // Navegación principal: mismo contenido en escritorio y en el menú táctil.
+  const siteNav = document.getElementById('siteNav');
+  const navToggle = document.getElementById('navToggle');
+  const mobileNav = matchMedia('(max-width: 800px)');
+  const navDropdowns = [...siteNav.querySelectorAll('.nav-dropdown-btn')].map(btn => ({
+    btn, menu: document.getElementById(btn.getAttribute('aria-controls'))
+  }));
+
+  function setDropdown(dropdown, open) {
+    dropdown.menu.classList.toggle('open', open);
+    dropdown.btn.setAttribute('aria-expanded', String(open));
   }
-  navDropdowns.forEach(d => {
-    d.btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isOpen = d.menu.classList.toggle('open');
-      d.btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      if (isOpen) closeAllDropdowns(d);
-    });
-    d.menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => closeAllDropdowns()));
+
+  function closeDropdowns() {
+    navDropdowns.forEach(dropdown => setDropdown(dropdown, false));
+  }
+
+  function setMobileMenu(open) {
+    siteNav.classList.toggle('is-open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+    siteNav.inert = mobileNav.matches && !open;
+    if (!open) closeDropdowns();
+  }
+
+  navToggle.addEventListener('click', () => {
+    const open = navToggle.getAttribute('aria-expanded') !== 'true';
+    setMobileMenu(open);
+    if (open) siteNav.querySelector('a').focus();
   });
-  document.addEventListener('click', (e) => {
-    const insideAny = navDropdowns.some(d => d.menu.contains(e.target) || e.target === d.btn);
-    if (!insideAny) closeAllDropdowns();
+  mobileNav.addEventListener('change', () => {
+    const focused = document.activeElement;
+    const focusWasInMenu = siteNav.contains(focused);
+    setMobileMenu(false);
+    if (mobileNav.matches && focusWasInMenu) navToggle.focus();
+    if (!mobileNav.matches && (focused === navToggle || focusWasInMenu)) {
+      siteNav.querySelector('a').focus();
+    }
+  });
+  setMobileMenu(false);
+
+  navDropdowns.forEach(dropdown => {
+    dropdown.btn.addEventListener('click', () => {
+      const open = dropdown.btn.getAttribute('aria-expanded') !== 'true';
+      closeDropdowns();
+      setDropdown(dropdown, open);
+    });
+  });
+
+  siteNav.addEventListener('click', e => {
+    if (e.target.closest('button[data-language]')) {
+      closeDropdowns();
+      document.getElementById('siteLanguage').focus();
+      return;
+    }
+    const link = e.target.closest('a[href^="#"]');
+    if (!link || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    setMobileMenu(false);
+    const target = document.getElementById(link.hash.slice(1));
+    if (target) {
+      requestAnimationFrame(() => {
+        target.setAttribute('tabindex', '-1');
+        target.focus({preventScroll: true});
+      });
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (navToggle.contains(e.target) || siteNav.contains(e.target)) return;
+    if (mobileNav.matches && siteNav.contains(document.activeElement)) navToggle.focus();
+    setMobileMenu(false);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const expanded = navDropdowns.find(dropdown => dropdown.menu.classList.contains('open'));
+    if (expanded) {
+      closeDropdowns();
+      expanded.btn.focus();
+    } else if (mobileNav.matches && siteNav.classList.contains('is-open')) {
+      setMobileMenu(false);
+      navToggle.focus();
+    }
+  });
+  document.querySelector('body > header').addEventListener('focusout', e => {
+    if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setMobileMenu(false);
   });
 
   // La navegación muestra una sección principal a la vez y conserva el hash
@@ -2071,9 +2135,9 @@
     const ganador = m.winner_id;
     return `
       <div class="clasif-match clickable" data-match-id="${esc(m.id)}">
-        <span class="cm-team${ganador === aId ? ' winner' : ''}">${esc(nombreA)}</span>
+        <span class="cm-team${ganador === aId ? ' winner' : ''}" data-i18n-skip>${esc(nombreA)}</span>
         <span class="cm-score">${esc(m.scores || '—')}</span>
-        <span class="cm-team${ganador === bId ? ' winner' : ''}">${esc(nombreB)}</span>
+        <span class="cm-team${ganador === bId ? ' winner' : ''}" data-i18n-skip>${esc(nombreB)}</span>
         <span class="cm-state${m.state === 'complete' ? ' complete' : ''}">${clasifEstadoLabel(m.state)}</span>
       </div>`;
   }
@@ -2097,12 +2161,12 @@
   // no existía en la versión anterior, que solo listaba partidos por ronda.
   function clasifStandingsHtml(standings, localById) {
     if (!standings.length) return '<p class="clasif-note">Todavía no hay partidos completados en la fase de grupos.</p>';
-    return `<div class="standings-wrap"><table class="standings-table">
+    return `<div class="standings-wrap" tabindex="0" role="region" aria-label="Tabla de posiciones"><table class="standings-table">
       <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>V</th><th>D</th><th>E</th><th>Sets</th></tr></thead>
       <tbody>${standings.map((s, i) => `
         <tr class="standings-row" data-team-id="${esc(s.id)}">
           <td><span class="sr-pos">${i + 1}</span></td>
-          <td>${esc((localById[s.id] && localById[s.id].nombreEquipo) || s.nombre)}</td>
+          <td data-i18n-skip>${esc((localById[s.id] && localById[s.id].nombreEquipo) || s.nombre)}</td>
           <td>${s.pj}</td><td>${s.v}</td><td>${s.d}</td><td>${s.e}</td>
           <td>${s.setsDiff > 0 ? '+' : ''}${s.setsDiff}</td>
         </tr>`).join('')}</tbody>
@@ -2129,7 +2193,7 @@
     matches.forEach(m => { (porRonda[m.round] = porRonda[m.round] || []).push(m); });
     const rondas = Object.keys(porRonda).map(Number).sort((a, b) => a - b);
     const ultimaRonda = rondas[rondas.length - 1];
-    return `<div class="clasif-bracket">${rondas.map(r => {
+    return `<div class="clasif-bracket" tabindex="0" role="region" aria-label="Cuadro de eliminatorias">${rondas.map(r => {
       const partidos = porRonda[r].slice().sort((a, b) => (a.suggested_play_order || 0) - (b.suggested_play_order || 0));
       return `
       <div class="bracket-round">
@@ -2223,7 +2287,7 @@
     return `
       <div class="cmm-jugador${clickable}"${dataTag}>
         ${iconHtml}
-        <span class="cj-nombre">${esc(p.jugador)}</span>
+        <span class="cj-nombre" data-i18n-skip>${esc(p.jugador)}</span>
         <span class="cj-brawler">${esc(p.brawler || '?')}</span>
       </div>`;
   }
@@ -2279,9 +2343,9 @@
     document.getElementById('partidoModalRonda').textContent =
       (CD.isGroupStageMatch(m, clasifDataActual.participantsById) ? 'Fase de grupos' : 'Fase final') + (m.round ? ` — Ronda ${m.round}` : '');
     document.getElementById('partidoModalTeams').innerHTML = `
-      <span class="cmm-team" data-team-id="${esc(aId)}">${esc(nombreA)}</span>
+      <span class="cmm-team" data-team-id="${esc(aId)}" data-i18n-skip>${esc(nombreA)}</span>
       <span class="cmm-score">${esc(m.scores || clasifEstadoLabel(m.state))}</span>
-      <span class="cmm-team" data-team-id="${esc(bId)}">${esc(nombreB)}</span>`;
+      <span class="cmm-team" data-team-id="${esc(bId)}" data-i18n-skip>${esc(nombreB)}</span>`;
 
     const localMatch = clasifLocalActual.matches && clasifLocalActual.matches[matchId];
     const juegos = localMatch && localMatch.juegos;
@@ -2408,7 +2472,7 @@
       .catch(() => {
         btn.disabled = false;
         btn.textContent = 'Enviar predicción';
-        alert('No se ha podido enviar la predicción. Inténtalo de nuevo.');
+        alert(ShowCastI18n.t('predictions.failed', 'No se ha podido enviar la predicción. Inténtalo de nuevo.'));
       });
   }
 
@@ -2438,7 +2502,7 @@
             const nombre = (prediccionesParticipantsById[id] || {}).name || '?';
             return `
               <div class="pred-resultado-item">
-                <span class="pr-name">${esc(nombre)}</span>
+                <span class="pr-name" data-i18n-skip>${esc(nombre)}</span>
                 <span class="pr-bar-wrap"><span class="pr-bar" style="width:${pct}%;"></span></span>
                 <span class="pr-pct">${pct}%</span>
               </div>`;
@@ -2743,23 +2807,32 @@
     if(data.evento){
       const ev = data.evento;
       const t = document.getElementById('eventoTitulo');
-      if(t && ev.titulo) t.innerHTML = ev.titulo.replace(/(\S+)$/, '<span class="accent">$1</span>');
+      if (t && typeof ev.titulo === 'string') {
+        if (ev.titulo === 'Torneo 3v3') {
+          t.innerHTML = 'Torneo <span class="accent">3v3</span>';
+        } else {
+          t.setAttribute('data-i18n-skip', '');
+          t.textContent = ev.titulo;
+        }
+      }
       const setText = (id, val) => { const el = document.getElementById(id); if(el && val) el.textContent = val; };
       setText('eventoJuego', ev.juego);
       setText('eventoLugar', ev.lugar);
       setText('eventoFecha', ev.fecha);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(ev.fecha)) document.getElementById('eventoFecha').dataset.i18nDate = ev.fecha;
     }
 
     if(data.quienesSomos){
       const intro = document.getElementById('qsIntro');
-      if(intro && data.quienesSomos.intro) intro.textContent = data.quienesSomos.intro;
+      if(intro && data.quienesSomos.intro) ShowCastI18n.bindContent(intro, data.quienesSomos.intro);
       const pillarsWrap = document.getElementById('qsPillars');
       if(pillarsWrap && Array.isArray(data.quienesSomos.pilares) && data.quienesSomos.pilares.length){
         pillarsWrap.innerHTML = data.quienesSomos.pilares.map((texto, i) => `
           <div class="pillar">
             <span class="num">${String(i+1).padStart(2,'0')}</span>
-            <p>${texto}</p>
+            <p></p>
           </div>`).join('');
+        pillarsWrap.querySelectorAll('p').forEach((p, i) => ShowCastI18n.bindContent(p, data.quienesSomos.pilares[i]));
       }
     }
 
@@ -2768,8 +2841,10 @@
       : (Array.isArray(data.galeria) && data.galeria.length ? [{ titulo: 'Galería', items: data.galeria }] : []);
 
     function renderGallery(galeriaEdiciones){
-      if(!galeriaEdiciones.length) return;
       const wrap = document.getElementById('galleryAccordion');
+      if(!galeriaEdiciones.length){ wrap.replaceChildren(); return; }
+      const previous = new Map([...wrap.querySelectorAll('[data-gallery-key]')].map(el =>
+        [el.dataset.galleryKey, el.classList.contains('open')]));
 
       // Cada edición real (año) se agrupa bajo su ciudad — dos categorías
       // principales (Puçol / Sagunto) con los años como subdivisión interna.
@@ -2788,7 +2863,7 @@
           if(item.tipo === 'youtube'){
             const embedUrl = youtubeEmbedUrl(item.src);
             media = embedUrl
-              ? `<iframe src="${embedUrl}" title="${esc(item.caption || 'Vídeo de YouTube')}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+              ? `<iframe loading="lazy" src="${embedUrl}" title="${esc(item.caption || 'Vídeo de YouTube')}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
               : '';
           } else if(item.tipo === 'video'){
             media = `<video src="${esc(item.src)}" muted loop playsinline autoplay></video>`;
@@ -2797,7 +2872,7 @@
             media = `<img src="${esc(item.src)}" alt="${esc(item.caption || 'Foto Showcast')}" loading="lazy">`;
           }
           // Las fotos (no vídeos/YouTube) abren el menú de descarga al pulsarlas.
-          return `<div class="gallery-tile has-photo${esFoto ? ' gallery-tile-photo' : ''}">${media}${item.caption ? `<span>${esc(item.caption)}</span>` : ''}</div>`;
+          return `<div class="gallery-tile has-photo${esFoto ? ' gallery-tile-photo' : ''}">${media}${item.caption ? `<span data-i18n-skip>${esc(item.caption)}</span>` : ''}</div>`;
         }).join('');
         const galleryHtml = items.length
           ? `<div class="gallery-grid">${tilesHtml}</div>`
@@ -2807,18 +2882,20 @@
           : '';
         return `
           <div class="edicion-meta">
-            <span>📅 ${esc(edicion.fecha || 'Próximamente')}</span>
+            <span>${/^\d{4}-\d{2}-\d{2}$/.test(edicion.fecha)
+              ? '📅 <time data-i18n-date="' + esc(edicion.fecha) + '" datetime="' + esc(edicion.fecha) + '">' + esc(edicion.fecha) + '</time>'
+              : '📅 ' + esc(edicion.fecha || 'Próximamente')}</span>
             ${edicion.ubicacion ? `<span>📍 ${esc(edicion.ubicacion)}</span>` : ''}
           </div>
           ${mapaHtml}
           ${galleryHtml}`;
       }
 
-      function edicionHtml(edicion, abierta){
+      function edicionHtml(edicion, abierta, key){
         return `
-        <div class="gallery-edicion sub${abierta ? ' open' : ''}">
+        <div class="gallery-edicion sub${abierta ? ' open' : ''}" data-gallery-key="${esc(key)}">
           <button type="button" class="gallery-edicion-toggle" aria-expanded="${abierta ? 'true' : 'false'}">
-            <span>${esc(edicion.anio || edicion.titulo || 'Sin título')}</span>
+            <span${edicion.anio || edicion.titulo ? ' data-i18n-skip' : ''}>${esc(edicion.anio || edicion.titulo || 'Sin título')}</span>
             <span class="chev" aria-hidden="true"></span>
           </button>
           <div class="gallery-edicion-body"><div>${edicionCuerpoHtml(edicion)}</div></div>
@@ -2827,11 +2904,20 @@
 
       wrap.innerHTML = ciudades.map((ciudad, idx) => {
         const edicionesCiudad = porCiudad[ciudad];
-        const subAccordionHtml = edicionesCiudad.map((edicion, i) => edicionHtml(edicion, idx === 0 && i === 0)).join('');
+        const cityKey = JSON.stringify([ciudad]);
+        const cityOpen = previous.get(cityKey) ?? idx === 0;
+        const counts = new Map();
+        const subAccordionHtml = edicionesCiudad.map((edicion, i) => {
+          const title = edicion.anio || edicion.titulo;
+          const occurrence = counts.get(title) || 0;
+          counts.set(title, occurrence + 1);
+          const key = JSON.stringify([ciudad, title, occurrence]);
+          return edicionHtml(edicion, previous.get(key) ?? (idx === 0 && i === 0), key);
+        }).join('');
         return `
-        <div class="gallery-edicion${idx === 0 ? ' open' : ''}">
-          <button type="button" class="gallery-edicion-toggle" aria-expanded="${idx === 0 ? 'true' : 'false'}">
-            <span>${esc(ciudad)}</span>
+        <div class="gallery-edicion${cityOpen ? ' open' : ''}" data-gallery-key="${esc(cityKey)}">
+          <button type="button" class="gallery-edicion-toggle" aria-expanded="${cityOpen ? 'true' : 'false'}">
+            <span${ciudad !== "Sin ciudad" ? " data-i18n-skip" : ""}>${esc(ciudad)}</span>
             <span class="chev" aria-hidden="true"></span>
           </button>
           <div class="gallery-edicion-body"><div>
@@ -2856,46 +2942,21 @@
       });
     }
 
-    renderGallery(galeriaLocal);
-    const galleryEndpoint = new URL('https://34.10.158.213.sslip.io/api/gallery');
-    fetch(galleryEndpoint, {credentials:'omit', cache:'no-store', signal:AbortSignal.timeout(5000)})
-      .then(response => {
-        if (!response.ok) throw new Error('Galería temporalmente inaccesible');
-        return response.json();
-      })
-      .then(payload => {
-        if (!Array.isArray(payload) || !payload.length) return;
-        const str = (value,max) => typeof value === 'string' ? value.slice(0,max) : '';
-        const dynamic = payload.flatMap(row => {
-          if (!row || !Array.isArray(row.items)) return [];
-          const ciudad = str(row.ciudad,80).trim(), titulo = str(row.titulo,100).trim();
-          if (!ciudad || !titulo) return [];
-          const items = row.items.flatMap(photo => {
-            if (photo?.tipo !== 'foto' || typeof photo.src !== 'string') return [];
-            const url = URL.canParse(photo.src) ? new URL(photo.src) : null;
-            if (!url || url.origin !== galleryEndpoint.origin || url.username || url.password || url.search || url.hash ||
-                !/^\/api\/gallery\/media\/[0-9a-f-]{36}$/.test(url.pathname)) return [];
-            return [{tipo:'foto',src:url.href,caption:str(photo.caption,250)}];
-          });
-          return [{ciudad,titulo,fecha:str(row.fecha,10),items}];
-        });
-        if (dynamic.length) renderGallery([...galeriaLocal,...dynamic]);
-      })
-      .catch(() => {});
-
-    if(Array.isArray(data.patrocinadores) && data.patrocinadores.length){
-      const grid = document.getElementById('sponsorGrid');
-      grid.innerHTML = data.patrocinadores.map(s => {
-        const card = `
-          <img src="${s.logo}" alt="${s.nombre || 'Patrocinador'}">
-          <span class="sponsor-name">${s.nombre || ''}</span>`;
-        return s.url
-          ? `<a class="sponsor-card" href="${s.url}" target="_blank" rel="noopener">${card}</a>`
-          : `<div class="sponsor-card">${card}</div>`;
-      }).join('');
-      const note = document.getElementById('sponsorNote');
-      if(note) note.style.display = 'none';
-    }
+    let openedAlbum = false;
+    window.ShowCastPublicData.subscribeGallery(ediciones => {
+      renderGallery([...galeriaLocal, ...ediciones]);
+      const album = new URLSearchParams(location.search).get('album');
+      if (!album || openedAlbum || location.hash !== '#galeria') return;
+      const edition = [...document.querySelectorAll('.gallery-edicion.sub[data-gallery-key]')]
+        .find(node => node.dataset.galleryKey === album);
+      if (!edition) return;
+      openedAlbum = true;
+      const city = edition.parentElement.closest('.gallery-edicion');
+      for (const entry of [city, edition]) {
+        if (entry && !entry.classList.contains('open')) entry.querySelector(':scope > button').click();
+      }
+      requestAnimationFrame(() => edition.scrollIntoView({block: 'center'}));
+    });
 
     if(Array.isArray(data.equipo) && data.equipo.length){
       const grid = document.getElementById('teamGrid');
@@ -2907,7 +2968,7 @@
         return `
         <${tag} class="team-card"${isPresentation ? ` role="button" tabindex="0" data-team-profile="${key}" aria-haspopup="dialog" aria-label="Ver presentación de ${m.nombre || 'miembro del equipo'}"` : ''}>
           <div class="avatar-placeholder">${m.foto ? `<img src="${m.foto}" alt="${m.nombre || ''}">` : (m.nombre ? m.nombre.charAt(0).toUpperCase() : '?')}</div>
-          <h4>${m.nombre || 'Miembro del equipo'}</h4>
+          <h4${m.nombre ? " data-i18n-skip" : ""}>${esc(m.nombre || 'Miembro del equipo')}</h4>
           <div class="role">${m.rol || 'Cargo pendiente'}</div>
         </${tag}>`;
       }).join('');
@@ -2957,6 +3018,7 @@
     const errorMsg = document.getElementById('tagModalErrorMsg');
 
     function getEndpoint(){
+      if (['127.0.0.1','localhost'].includes(location.hostname)) return 'proxy/brawlstars.php';
       return (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.brawlProxyEndpoint) || 'proxy/brawlstars.php';
     }
 
@@ -2974,20 +3036,21 @@
     }
 
     function fetchAndShow(entry){
+      if (!entry) return;
       activeTagInput = entry.querySelector('[name="playerTag"]');
       activeTagStatus = entry.querySelector('.tag-status');
       const tag = activeTagInput.value.trim();
       if(!tag){
-        tagInput.focus();
+        activeTagInput.focus();
         return;
       }
       openModal();
       showState('loading');
 
       fetch(getEndpoint() + '?tag=' + encodeURIComponent(tag))
-        .then(res => res.json().then(body => ({ status: res.status, body })))
-        .then(({ body }) => {
-          if(!body.ok) throw new Error(body.error || 'No se ha podido comprobar la cuenta.');
+        .then(async res => {
+          const body = await res.json();
+          if(!res.ok || !body.ok) throw new Error(body.error || 'No se ha podido comprobar la cuenta.');
 
           document.getElementById('pv-icon').src = body.iconUrl || '';
           document.getElementById('pv-name').textContent = body.name || '(sin nombre)';
@@ -3019,7 +3082,7 @@
       const checkBtn = e.target.closest('.check-tag-btn');
       if(checkBtn) fetchAndShow(checkBtn.closest('[data-registration-entry]'));
     });
-    retryBtn.addEventListener('click', fetchAndShow);
+    retryBtn.addEventListener('click', () => fetchAndShow(activeTagInput?.closest('[data-registration-entry]')));
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(); });
 
@@ -3057,6 +3120,21 @@
   // ---------- INSCRIPCIÓN: envío a Google Sheets vía Apps Script ----------
   const inscriptionForm = document.getElementById('inscripcionForm');
   const inscriptionEntries = document.getElementById('inscripcionEntradas');
+  const registrationTemplate = inscriptionEntries.querySelector('[data-registration-entry]').cloneNode(true);
+  inscriptionForm.addEventListener('invalid', e => {
+    const field = e.target;
+    field.setCustomValidity('');
+    if (field.validity.valueMissing) {
+      field.setCustomValidity(ShowCastI18n.t('register.required', 'Completa este campo.'));
+    } else if (field.type === 'email' && field.validity.typeMismatch) {
+      field.setCustomValidity(ShowCastI18n.t('register.invalidEmail', 'Introduce un correo electrónico válido.'));
+    }
+  }, true);
+  inscriptionForm.addEventListener('input', e => e.target.setCustomValidity?.(''));
+  document.addEventListener('showcast:language', () => {
+    for (const field of inscriptionForm.elements) field.setCustomValidity?.('');
+  });
+
   const addRegistrationBtn = document.getElementById('addRegistrationBtn');
   let nextRegistrationNumber = 1;
 
@@ -3087,7 +3165,7 @@
   }
   function addRegistrationEntry(){
     const number = ++nextRegistrationNumber;
-    const entry = inscriptionEntries.querySelector('[data-registration-entry]').cloneNode(true);
+    const entry = registrationTemplate.cloneNode(true);
     entry.dataset.entryNumber = number;
     const idMap = new Map();
     entry.querySelectorAll('[id]').forEach(element => {
@@ -3140,7 +3218,7 @@
     const submitBtn = inscriptionForm.querySelector('button[type="submit"]');
 
     if(!endpoint){
-      alert('El formulario todavía no está conectado a Google Sheets.\n\nPide a quien mantenga la web que despliegue el Apps Script (ver google-apps-script/Code.gs) y añada la URL en content.js → "formEndpoint".');
+      alert(ShowCastI18n.t('register.unavailable', 'El formulario todavía no está conectado a Google Sheets.'));
       return;
     }
 
@@ -3168,10 +3246,10 @@
       entries.forEach(entry => { if(entry !== firstEntry) entry.remove(); });
       clearRegistrationEntry(firstEntry,1);
       nextRegistrationNumber = 1;
-      alert(`¡Listo! Se han enviado ${sent} inscripciones. Cada participante aparecerá en una fila individual de la hoja.`);
+      alert(ShowCastI18n.t('register.success', 'Se han enviado {sent} inscripciones.', {sent: ShowCastI18n.formatNumber(sent)}));
     }catch(error){
       requests.slice(0,sent).forEach(({entry}) => entry.remove());
-      alert(`Se enviaron ${sent} de ${requests.length} inscripciones. Las restantes siguen en el formulario para que puedas reintentarlo.`);
+      alert(ShowCastI18n.t('register.partial', 'Se enviaron {sent} de {total} inscripciones.', {sent: ShowCastI18n.formatNumber(sent), total: ShowCastI18n.formatNumber(requests.length)}));
     }finally{
       submitBtn.disabled = false;
       addRegistrationBtn.disabled = false;
