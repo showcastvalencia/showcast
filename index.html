@@ -2763,17 +2763,18 @@
       }
     }
 
-    const galeriaEdiciones = Array.isArray(data.galeriaEdiciones) && data.galeriaEdiciones.length
+    const galeriaLocal = Array.isArray(data.galeriaEdiciones) && data.galeriaEdiciones.length
       ? data.galeriaEdiciones
       : (Array.isArray(data.galeria) && data.galeria.length ? [{ titulo: 'Galería', items: data.galeria }] : []);
 
-    if(galeriaEdiciones.length){
+    function renderGallery(galeriaEdiciones){
+      if(!galeriaEdiciones.length) return;
       const wrap = document.getElementById('galleryAccordion');
 
       // Cada edición real (año) se agrupa bajo su ciudad — dos categorías
       // principales (Puçol / Sagunto) con los años como subdivisión interna.
       const ciudades = [];
-      const porCiudad = {};
+      const porCiudad = Object.create(null);
       galeriaEdiciones.forEach(edicion => {
         const ciudad = edicion.ciudad || 'Sin ciudad';
         if(!(ciudad in porCiudad)){ porCiudad[ciudad] = []; ciudades.push(ciudad); }
@@ -2787,27 +2788,27 @@
           if(item.tipo === 'youtube'){
             const embedUrl = youtubeEmbedUrl(item.src);
             media = embedUrl
-              ? `<iframe src="${embedUrl}" title="${item.caption || 'Vídeo de YouTube'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+              ? `<iframe src="${embedUrl}" title="${esc(item.caption || 'Vídeo de YouTube')}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
               : '';
           } else if(item.tipo === 'video'){
-            media = `<video src="${item.src}" muted loop playsinline autoplay></video>`;
+            media = `<video src="${esc(item.src)}" muted loop playsinline autoplay></video>`;
           } else {
             esFoto = true;
-            media = `<img src="${item.src}" alt="${item.caption || 'Foto Showcast'}" loading="lazy">`;
+            media = `<img src="${esc(item.src)}" alt="${esc(item.caption || 'Foto Showcast')}" loading="lazy">`;
           }
           // Las fotos (no vídeos/YouTube) abren el menú de descarga al pulsarlas.
-          return `<div class="gallery-tile has-photo${esFoto ? ' gallery-tile-photo' : ''}">${media}${item.caption ? `<span>${item.caption}</span>` : ''}</div>`;
+          return `<div class="gallery-tile has-photo${esFoto ? ' gallery-tile-photo' : ''}">${media}${item.caption ? `<span>${esc(item.caption)}</span>` : ''}</div>`;
         }).join('');
         const galleryHtml = items.length
           ? `<div class="gallery-grid">${tilesHtml}</div>`
           : `<p class="gallery-edicion-empty">Todavía no hay fotos en este apartado.</p>`;
         const mapaHtml = edicion.ubicacion
-          ? `<div class="edicion-map"><iframe src="https://www.google.com/maps?q=${encodeURIComponent(edicion.ubicacion + ', Valencia')}&output=embed" loading="lazy" title="Mapa ${edicion.ubicacion}"></iframe></div>`
+          ? `<div class="edicion-map"><iframe src="https://www.google.com/maps?q=${encodeURIComponent(edicion.ubicacion + ', Valencia')}&output=embed" loading="lazy" title="Mapa ${esc(edicion.ubicacion)}"></iframe></div>`
           : '';
         return `
           <div class="edicion-meta">
-            <span>📅 ${edicion.fecha || 'Próximamente'}</span>
-            ${edicion.ubicacion ? `<span>📍 ${edicion.ubicacion}</span>` : ''}
+            <span>📅 ${esc(edicion.fecha || 'Próximamente')}</span>
+            ${edicion.ubicacion ? `<span>📍 ${esc(edicion.ubicacion)}</span>` : ''}
           </div>
           ${mapaHtml}
           ${galleryHtml}`;
@@ -2817,7 +2818,7 @@
         return `
         <div class="gallery-edicion sub${abierta ? ' open' : ''}">
           <button type="button" class="gallery-edicion-toggle" aria-expanded="${abierta ? 'true' : 'false'}">
-            <span>${edicion.anio || edicion.titulo || 'Sin título'}</span>
+            <span>${esc(edicion.anio || edicion.titulo || 'Sin título')}</span>
             <span class="chev" aria-hidden="true"></span>
           </button>
           <div class="gallery-edicion-body"><div>${edicionCuerpoHtml(edicion)}</div></div>
@@ -2830,7 +2831,7 @@
         return `
         <div class="gallery-edicion${idx === 0 ? ' open' : ''}">
           <button type="button" class="gallery-edicion-toggle" aria-expanded="${idx === 0 ? 'true' : 'false'}">
-            <span>${ciudad}</span>
+            <span>${esc(ciudad)}</span>
             <span class="chev" aria-hidden="true"></span>
           </button>
           <div class="gallery-edicion-body"><div>
@@ -2854,6 +2855,33 @@
         });
       });
     }
+
+    renderGallery(galeriaLocal);
+    const galleryEndpoint = new URL('https://34.10.158.213.sslip.io/api/gallery');
+    fetch(galleryEndpoint, {credentials:'omit', cache:'no-store', signal:AbortSignal.timeout(5000)})
+      .then(response => {
+        if (!response.ok) throw new Error('Galería temporalmente inaccesible');
+        return response.json();
+      })
+      .then(payload => {
+        if (!Array.isArray(payload) || !payload.length) return;
+        const str = (value,max) => typeof value === 'string' ? value.slice(0,max) : '';
+        const dynamic = payload.flatMap(row => {
+          if (!row || !Array.isArray(row.items)) return [];
+          const ciudad = str(row.ciudad,80).trim(), titulo = str(row.titulo,100).trim();
+          if (!ciudad || !titulo) return [];
+          const items = row.items.flatMap(photo => {
+            if (photo?.tipo !== 'foto' || typeof photo.src !== 'string') return [];
+            const url = URL.canParse(photo.src) ? new URL(photo.src) : null;
+            if (!url || url.origin !== galleryEndpoint.origin || url.username || url.password || url.search || url.hash ||
+                !/^\/api\/gallery\/media\/[0-9a-f-]{36}$/.test(url.pathname)) return [];
+            return [{tipo:'foto',src:url.href,caption:str(photo.caption,250)}];
+          });
+          return [{ciudad,titulo,fecha:str(row.fecha,10),items}];
+        });
+        if (dynamic.length) renderGallery([...galeriaLocal,...dynamic]);
+      })
+      .catch(() => {});
 
     if(Array.isArray(data.patrocinadores) && data.patrocinadores.length){
       const grid = document.getElementById('sponsorGrid');
