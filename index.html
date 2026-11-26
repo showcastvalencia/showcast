@@ -1437,6 +1437,7 @@
   }
 </style>
 <link rel="stylesheet" href="showcast-public.css">
+<link rel="stylesheet" href="showcast-event.css">
 </head>
 <body>
 
@@ -1482,6 +1483,11 @@
   </div>
 </header>
 
+<aside class="sc-public-news" id="showcastNews" aria-label="ShowCast News" data-i18n-skip hidden>
+  <strong>SC NEWS</strong>
+  <a href="#evento"></a>
+</aside>
+
 <section class="hero" id="top">
   <div class="spray-splat splat1"></div>
   <div class="spray-splat splat2"></div>
@@ -1520,6 +1526,17 @@
       <div>
         <div class="label">Fecha</div>
         <div class="value" id="eventoFecha">20 Junio</div>
+      </div>
+    </div>
+    <div class="public-countdown" id="eventCountdown" data-i18n-skip>
+      <h3 id="countdownGoal">Cuenta atrás del torneo</h3>
+      <p data-countdown-status>Fecha y hora por confirmar.</p>
+      <time hidden></time>
+      <div class="public-countdown-grid" data-countdown-clock role="timer" aria-labelledby="countdownGoal" hidden>
+        <div><strong data-countdown-value>00</strong><span data-countdown-unit="days">Días</span></div>
+        <div><strong data-countdown-value>00</strong><span data-countdown-unit="hours">Horas</span></div>
+        <div><strong data-countdown-value>00</strong><span data-countdown-unit="minutes">Minutos</span></div>
+        <div><strong data-countdown-value>00</strong><span data-countdown-unit="seconds">Segundos</span></div>
       </div>
     </div>
   </div>
@@ -1949,6 +1966,7 @@
 <script src="content.js"></script>
 <script src="showcast-public-data.js"></script>
 <script src="showcast-i18n.js"></script>
+<script src="showcast-event.js" defer></script>
 <script src="assets/js/clasificaciones-logic.js"></script>
 <script>
   // Navegación principal: mismo contenido en escritorio y en el menú táctil.

@@ -1,0 +1,57 @@
+.sc-public-news {
+  display: flex;
+  align-items: stretch;
+  min-height: 44px;
+  background: var(--naranja);
+  color: var(--negro);
+}
+.sc-public-news[hidden] { display: none; }
+.sc-public-news strong {
+  display: grid;
+  place-items: center;
+  padding-inline: max(12px, env(safe-area-inset-left));
+  flex: none;
+  background: var(--negro);
+  color: var(--crema);
+  letter-spacing: .04em;
+}
+.sc-public-news a {
+  padding: 10px max(12px, env(safe-area-inset-right)) 10px 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+.public-countdown {
+  margin-top: 20px;
+  padding: clamp(12px, 4vw, 24px);
+  border: 1px solid var(--naranja);
+  border-top-width: 3px;
+  background: var(--negro);
+  color: var(--crema);
+}
+.public-countdown h3 {
+  color: var(--naranja);
+  font-size: clamp(1rem, 3.5vw, 1.4rem);
+  margin-bottom: 6px;
+}
+.public-countdown time { font-weight: 700; }
+.public-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(4px, 2vw, 14px);
+  margin-top: 12px;
+}
+.public-countdown-grid[hidden] { display: none; }
+.public-countdown-grid div {
+  display: grid;
+  place-items: center;
+  padding: 6px 2px;
+  background: rgba(251, 157, 69, .08);
+  border: 1px solid var(--naranja);
+}
+.public-countdown-grid strong {
+  font-size: clamp(1.4rem, 5vw, 3rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--blanco);
+}
+.public-countdown-grid span { font-size: clamp(.74rem, 2.5vw, 1rem); font-weight: 700; }

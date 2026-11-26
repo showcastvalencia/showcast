@@ -214,5 +214,13 @@
   "format.kilobytes": "{amount} kB",
   "format.megabytes": "{amount} MB",
   "register.required": "Completa este camp.",
-  "register.invalidEmail": "Introduïx un correu electrònic vàlid."
+  "register.invalidEmail": "Introduïx un correu electrònic vàlid.",
+  "news.venue": "Pròxim torneig · {venue}",
+  "countdown.title": "Compte arrere del torneig",
+  "countdown.pending": "Data i hora per confirmar.",
+  "countdown.elapsed": "L’hora prevista ja ha passat.",
+  "countdown.unit.days": "Dies",
+  "countdown.unit.hours": "Hores",
+  "countdown.unit.minutes": "Minuts",
+  "countdown.unit.seconds": "Segons"
 }

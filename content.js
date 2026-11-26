@@ -11,7 +11,8 @@ window.SHOWCAST_CONTENT = {
     "titulo": "Torneo 3v3",
     "juego": "Brawl Stars",
     "lugar": "Casal Jove, Puerto de Sagunto",
-    "fecha": "23 de Diciembre"
+    "fecha": "2026-12-23",
+    "cuentaAtras": { "inicio": "2026-12-23T10:00:00+01:00" }
   },
   "quienesSomos": {
     "intro": "Somos una organización juvenil altruista nacida en Puçol y en expansión hacia otras localidades de la provincia de Valencia. Organizamos torneos de Brawl Stars desde 2023, creando un ambiente divertido, familiar y lleno de emoción.",

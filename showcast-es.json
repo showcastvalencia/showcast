@@ -214,5 +214,13 @@
   "format.kilobytes": "{amount} KB",
   "format.megabytes": "{amount} MB",
   "register.required": "Completa este campo.",
-  "register.invalidEmail": "Introduce un correo electrónico válido."
+  "register.invalidEmail": "Introduce un correo electrónico válido.",
+  "news.venue": "Próximo torneo · {venue}",
+  "countdown.title": "Cuenta atrás del torneo",
+  "countdown.pending": "Fecha y hora por confirmar.",
+  "countdown.elapsed": "La hora prevista ya ha pasado.",
+  "countdown.unit.days": "Días",
+  "countdown.unit.hours": "Horas",
+  "countdown.unit.minutes": "Minutos",
+  "countdown.unit.seconds": "Segundos"
 }

@@ -214,5 +214,13 @@
   "format.kilobytes": "{amount} KB",
   "format.megabytes": "{amount} MB",
   "register.required": "Fill in this field.",
-  "register.invalidEmail": "Enter a valid email address."
+  "register.invalidEmail": "Enter a valid email address.",
+  "news.venue": "Upcoming tournament · {venue}",
+  "countdown.title": "Tournament countdown",
+  "countdown.pending": "Date and time to be confirmed.",
+  "countdown.elapsed": "The scheduled start time has passed.",
+  "countdown.unit.days": "Days",
+  "countdown.unit.hours": "Hours",
+  "countdown.unit.minutes": "Minutes",
+  "countdown.unit.seconds": "Seconds"
 }
