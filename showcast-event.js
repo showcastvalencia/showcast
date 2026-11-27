@@ -15,28 +15,34 @@
   const utcDate = validShape ? new Date(raw.slice(0, 10) + 'T00:00:00Z') : null;
   const start = utcDate && Number.isFinite(+utcDate) && utcDate.toISOString().slice(0, 10) === raw.slice(0, 10) ? parsed : NaN;
   let timer;
+  let inView = false;
+  let numberFormat;
 
   function tick() {
     clearTimeout(timer);
     const seconds = Math.max(0, Math.ceil((start - Date.now()) / 1000));
     const available = Number.isFinite(start) && seconds > 0;
+    if (!available) {
+      const message = Number.isFinite(start)
+        ? t('countdown.elapsed', 'La hora prevista ya ha pasado.')
+        : t('countdown.pending', 'Fecha y hora por confirmar.');
+      if (status.textContent !== message) status.textContent = message;
+    }
     clock.hidden = !available;
     status.hidden = available;
-    status.textContent = Number.isFinite(start)
-      ? t('countdown.elapsed', 'La hora prevista ya ha pasado.')
-      : t('countdown.pending', 'Fecha y hora por confirmar.');
-    if (!available) return;
+    if (!available || !inView || document.hidden) return;
 
     const values = [Math.floor(seconds / 86400), Math.floor(seconds / 3600) % 24, Math.floor(seconds / 60) % 60, seconds % 60];
-    const format = new Intl.NumberFormat(locale(), {minimumIntegerDigits: 2, useGrouping: false});
+
     outputs.forEach((output, index) => {
-      const value = format.format(values[index]);
+      const value = numberFormat.format(values[index]);
       if (output.textContent !== value) output.textContent = value;
     });
-    if (!document.hidden) timer = setTimeout(tick, 1000 - Date.now() % 1000);
+    timer = setTimeout(tick, 1000 - Date.now() % 1000);
   }
 
   function render() {
+    numberFormat = new Intl.NumberFormat(locale(), {minimumIntegerDigits: 2, useGrouping: false});
     const notice = localized(event.avisoPublico).trim();
     const venue = localized(event.lugar).trim();
     if (!ticker.hasAttribute('data-news-managed')) {
@@ -57,6 +63,10 @@
     tick();
   }
 
+  new IntersectionObserver(([entry]) => {
+    inView = entry.isIntersecting;
+    tick();
+  }, {rootMargin: '160px 0px'}).observe(panel);
   document.addEventListener('showcast:language', render);
   document.addEventListener('visibilitychange', tick);
   render();

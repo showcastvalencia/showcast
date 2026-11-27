@@ -557,8 +557,8 @@
     transform:rotate(45deg);transition:transform .25s;
   }
   .gallery-edicion.open > .gallery-edicion-toggle .chev{transform:rotate(-135deg);}
-  .gallery-edicion-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;}
-  .gallery-edicion.open > .gallery-edicion-body{grid-template-rows:1fr;animation:nav-window-in .2s ease-out both;transform-origin:top center;}.gallery-edicion.open > .gallery-edicion-body > div > *{animation:gallery-content-in .2s ease-out both;}.gallery-edicion.open > .gallery-edicion-body > div > *:nth-child(2){animation-delay:35ms;}.gallery-edicion.open > .gallery-edicion-body > div > *:nth-child(3){animation-delay:70ms;}.gallery-edicion.open > .gallery-edicion-body > div > *:nth-child(4){animation-delay:105ms;}@keyframes gallery-content-in{from{opacity:0;transform:scale(.86);transform-origin:top center;}to{opacity:1;transform:scale(1);transform-origin:top center;}}
+  .gallery-edicion.open > .gallery-edicion-body{animation:gallery-content-in .18s ease-out both;}
+  @keyframes gallery-content-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
   .gallery-edicion-body[hidden]{display:none !important;}
   .gallery-edicion-body > div{overflow:hidden;}
   .gallery-edicion-empty{padding:0 22px 22px;font-style:italic;opacity:.6;font-size:.9rem;}
@@ -570,36 +570,6 @@
   .gallery-edicion.sub .gallery-edicion-toggle{font-size:1rem;padding:14px 18px;}
   .avatar-placeholder img{
     width:100%;height:100%;object-fit:cover;border-radius:50%;
-  }
-
-  /* ---------- PATROCINADORES ---------- */
-  .sponsor-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:20px;
-    margin-top:40px;
-  }
-  .sponsor-card{
-    background:var(--blanco);
-    border:3px solid var(--negro);
-    padding:24px 18px;
-    text-align:center;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px;
-    transition:transform .2s;
-  }
-  .sponsor-card:hover{transform:translateY(-6px);}
-  .sponsor-card img{
-    max-height:64px;
-    width:auto;
-    max-width:100%;
-    object-fit:contain;
-  }
-  .sponsor-card .sponsor-name{
-    font-weight:700;
-    font-size:.95rem;
   }
 
   /* ---------- FORM (INSCRIPCIÓN) ---------- */
@@ -1436,6 +1406,7 @@
     nav a, .nav-dropdown-btn{font-size:.82rem;}
   }
 </style>
+<link rel="preload" href="anton.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="showcast-public.css">
 <link rel="stylesheet" href="showcast-event.css">
 </head>
@@ -1491,7 +1462,7 @@
 <section class="hero" id="top">
   <div class="spray-splat splat1"></div>
   <div class="spray-splat splat2"></div>
-  <img src="assets/logo.png" alt="Showcast" class="hero-logo">
+  <img src="assets/logo.png" alt="Showcast" class="hero-logo" width="120" height="120" fetchpriority="high">
   <span class="hero-badge">Organización de eventos gaming</span>
   <h1>SHOWCAST</h1>
   <div class="subtitle">¡El escenario es tuyo!</div>
@@ -1965,6 +1936,8 @@
 
 <script src="content.js"></script>
 <script src="showcast-public-data.js"></script>
+<script src="showcast-gallery-previews.js" defer></script>
+<script src="showcast-gallery.js" defer></script>
 <script src="showcast-i18n.js"></script>
 <script src="showcast-event.js" defer></script>
 <script src="showcast-news.js" defer></script>
@@ -2097,6 +2070,17 @@
   // público (solo hace falta para escribir, desde admin.html).
   const FIREBASE_DB_URL = 'https://showcast-md-default-rtdb.europe-west1.firebasedatabase.app';
 
+  if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    const entrance = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entrance.unobserve(entry.target);
+        entry.target.classList.add('sc-section-enter');
+      }
+    }, {threshold: 0.04});
+    document.querySelectorAll('body > section:not(.hero) > .section-inner').forEach(section => entrance.observe(section));
+  }
+
   const clasifCache = {};
   let clasifCategoriaActual = 0;
   let clasifVistaActual = 'grupos';
@@ -2110,10 +2094,13 @@
     if (!id) return Promise.resolve(null);
     if (clasifCache[id]) return clasifCache[id];
     const endpoint = (window.SHOWCAST_CONTENT && window.SHOWCAST_CONTENT.challongeProxyEndpoint) || 'proxy/challonge.php';
-    clasifCache[id] = fetch(endpoint + '?tournament=' + encodeURIComponent(id))
+    clasifCache[id] = fetch(endpoint + '?tournament=' + encodeURIComponent(id), {signal: AbortSignal.timeout(12000)})
       .then(r => r.json())
       .then(body => (body.ok ? body : null))
-      .catch(() => null);
+      .catch(() => null).then(data => {
+        if (!data) delete clasifCache[id];
+        return data;
+      });
     return clasifCache[id];
   }
 
@@ -2262,7 +2249,9 @@
     }
   }
 
+  let clasifStarted = false;
   function clasifRenderCategoria(idx) {
+    clasifStarted = true;
     clasifCategoriaActual = idx;
     const id = (clasifCategorias[idx] || {}).torneoId;
     const vistaTabs = document.getElementById('clasifVistaTabs');
@@ -2286,12 +2275,14 @@
   // ---------- CLASIFICACIONES: iconos de Brawler (para el modal de partido) ----------
   let clasifBrawlerIcons = {};
   function clasifNormBrawler(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
-  fetch('assets/brawlers.json').then(r => r.json()).then(list => {
-    // brawlers.json guarda las rutas de icono relativas a una página que vive
-    // UN nivel por debajo de la raíz (enfrentamientos/, historial/) — index.html
-    // vive en la raíz, así que hay que quitar el "../" inicial.
-    (list || []).forEach(b => { clasifBrawlerIcons[clasifNormBrawler(b.name)] = (b.icon || '').replace(/^\.\.\//, ''); });
-  }).catch(() => {});
+  let brawlerIconsRequest;
+  function loadBrawlerIcons() {
+    return brawlerIconsRequest ??= fetch('assets/brawlers.json')
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(list => {
+        list.forEach(b => { clasifBrawlerIcons[clasifNormBrawler(b.name)] = (b.icon || '').replace(/^\.\.\//, ''); });
+      }).catch(() => { brawlerIconsRequest = undefined; });
+  }
 
   function clasifJugadorCardHtml(p) {
     const primerBrawler = (p.brawler || '').split('/')[0];
@@ -2368,11 +2359,19 @@
 
     const localMatch = clasifLocalActual.matches && clasifLocalActual.matches[matchId];
     const juegos = localMatch && localMatch.juegos;
-    document.getElementById('partidoModalJuegos').innerHTML = (juegos && juegos.length)
-      ? juegos.map(clasifJuegoHtml).join('')
-      : '<p class="hint" style="padding:16px 0;">Sin datos de Brawl Stars cruzados para este partido todavía.</p>';
-
-    document.getElementById('partidoModalOverlay').classList.add('open');
+    const overlay = document.getElementById('partidoModalOverlay');
+    const gameList = document.getElementById('partidoModalJuegos');
+    overlay.dataset.matchId = matchId;
+    overlay.classList.add('open');
+    if (!juegos?.length) {
+      gameList.innerHTML = '<p class="hint" style="padding:16px 0;">Sin datos de Brawl Stars cruzados para este partido todavía.</p>';
+      return;
+    }
+    const renderGames = () => { gameList.innerHTML = juegos.map(clasifJuegoHtml).join(''); };
+    renderGames();
+    loadBrawlerIcons().then(() => {
+      if (overlay.classList.contains('open') && overlay.dataset.matchId === String(matchId)) renderGames();
+    });
   }
 
   // ---------- CLASIFICACIONES: visor de perfil de jugador ----------
@@ -2580,12 +2579,15 @@
     });
   });
 
-  clasifRenderCategoria(0);
-
-  function youtubeEmbedUrl(url){
-    if(!url) return '';
-    const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,15})/);
-    return m ? 'https://www.youtube.com/embed/' + m[1] : '';
+  if (!clasifCategorias[0]?.torneoId) {
+    clasifRenderCategoria(0);
+  } else {
+    const classification = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      classification.disconnect();
+      if (!clasifStarted) clasifRenderCategoria(0);
+    }, {rootMargin: '300px 0px'});
+    classification.observe(document.getElementById('clasificaciones'));
   }
 
   // ---------- GALERÍA: menú de descarga (original / mediana / pequeña) ----------
@@ -2609,14 +2611,18 @@
   }
 
   function generarVersionReducida(img, escala, calidadJpeg){
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       const w = Math.max(1, Math.round(img.naturalWidth * escala));
       const h = Math.max(1, Math.round(img.naturalHeight * escala));
       const canvas = document.createElement('canvas');
       canvas.width = w;
       canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      canvas.toBlob(blob => resolve({ blob, w, h }), 'image/jpeg', calidadJpeg);
+      canvas.toBlob(blob => {
+        canvas.width = canvas.height = 0;
+        if (blob) resolve({blob, w, h});
+        else reject(new Error('No se pudo crear una versión de la foto'));
+      }, 'image/jpeg', calidadJpeg);
     });
   }
 
@@ -2651,19 +2657,24 @@
     });
   }
 
+  let galleryDownloadRequest = 0;
   async function abrirMenuDescarga(src){
+    const requestId = ++galleryDownloadRequest;
     const overlay = document.getElementById('descargaModalOverlay');
     overlay.classList.add('open');
     document.getElementById('descargaOpciones').innerHTML = '<div class="spinner"></div>';
 
+    let objectUrl;
     try {
-      const img = await cargarImagen(src);
-      const extensionOriginal = (src.split('.').pop() || 'jpg').toLowerCase();
-      const [origBlob, mediana, pequena] = await Promise.all([
-        fetch(src).then(r => r.blob()),
-        generarVersionReducida(img, 0.8, 0.85),
-        generarVersionReducida(img, 0.6, 0.75)
-      ]);
+      const response = await fetch(src);
+      if (!response.ok) throw new Error('Imagen no disponible');
+      const origBlob = await response.blob();
+      const extensionOriginal = (origBlob.type.split('/')[1] || 'jpeg').replace('jpeg', 'jpg');
+      objectUrl = URL.createObjectURL(origBlob);
+      const img = await cargarImagen(objectUrl);
+      const mediana = await generarVersionReducida(img, 0.8, 0.85);
+      const pequena = await generarVersionReducida(img, 0.6, 0.75);
+      if (!overlay.classList.contains('open') || requestId !== galleryDownloadRequest) return;
       pintarOpcionesDescarga([
         {
           etiqueta: 'Original',
@@ -2682,13 +2693,17 @@
         }
       ]);
     } catch (err) {
-      document.getElementById('descargaOpciones').innerHTML = '<p class="hint">No se ha podido preparar la descarga de esta imagen.</p>';
+      if (requestId === galleryDownloadRequest) {
+        document.getElementById('descargaOpciones').innerHTML = '<p class="hint">No se ha podido preparar la descarga de esta imagen.</p>';
+      }
+    } finally {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     }
   }
 
   document.getElementById('galleryAccordion').addEventListener('click', e => {
-    const img = e.target.closest('.gallery-tile-photo img');
-    if (img) abrirMenuDescarga(img.getAttribute('src'));
+    const tile = e.target.closest('[data-gallery-original]');
+    if (tile) abrirMenuDescarga(tile.dataset.galleryOriginal);
   });
   document.getElementById('descargaModalClose').addEventListener('click', () => {
     document.getElementById('descargaModalOverlay').classList.remove('open');
@@ -2854,128 +2869,6 @@
         pillarsWrap.querySelectorAll('p').forEach((p, i) => ShowCastI18n.bindContent(p, data.quienesSomos.pilares[i]));
       }
     }
-
-    const galeriaLocal = Array.isArray(data.galeriaEdiciones) && data.galeriaEdiciones.length
-      ? data.galeriaEdiciones
-      : (Array.isArray(data.galeria) && data.galeria.length ? [{ titulo: 'Galería', items: data.galeria }] : []);
-
-    function renderGallery(galeriaEdiciones){
-      const wrap = document.getElementById('galleryAccordion');
-      if(!galeriaEdiciones.length){ wrap.replaceChildren(); return; }
-      const previous = new Map([...wrap.querySelectorAll('[data-gallery-key]')].map(el =>
-        [el.dataset.galleryKey, el.classList.contains('open')]));
-
-      // Cada edición real (año) se agrupa bajo su ciudad — dos categorías
-      // principales (Puçol / Sagunto) con los años como subdivisión interna.
-      const ciudades = [];
-      const porCiudad = Object.create(null);
-      galeriaEdiciones.forEach(edicion => {
-        const ciudad = edicion.ciudad || 'Sin ciudad';
-        if(!(ciudad in porCiudad)){ porCiudad[ciudad] = []; ciudades.push(ciudad); }
-        porCiudad[ciudad].push(edicion);
-      });
-
-      function edicionCuerpoHtml(edicion){
-        const items = Array.isArray(edicion.items) ? edicion.items : [];
-        const tilesHtml = items.map(item => {
-          let media, esFoto = false;
-          if(item.tipo === 'youtube'){
-            const embedUrl = youtubeEmbedUrl(item.src);
-            media = embedUrl
-              ? `<iframe loading="lazy" src="${embedUrl}" title="${esc(item.caption || 'Vídeo de YouTube')}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
-              : '';
-          } else if(item.tipo === 'video'){
-            media = `<video src="${esc(item.src)}" muted loop playsinline autoplay></video>`;
-          } else {
-            esFoto = true;
-            media = `<img src="${esc(item.src)}" alt="${esc(item.caption || 'Foto Showcast')}" loading="lazy">`;
-          }
-          // Las fotos (no vídeos/YouTube) abren el menú de descarga al pulsarlas.
-          return `<div class="gallery-tile has-photo${esFoto ? ' gallery-tile-photo' : ''}">${media}${item.caption ? `<span data-i18n-skip>${esc(item.caption)}</span>` : ''}</div>`;
-        }).join('');
-        const galleryHtml = items.length
-          ? `<div class="gallery-grid">${tilesHtml}</div>`
-          : `<p class="gallery-edicion-empty">Todavía no hay fotos en este apartado.</p>`;
-        const mapaHtml = edicion.ubicacion
-          ? `<div class="edicion-map"><iframe src="https://www.google.com/maps?q=${encodeURIComponent(edicion.ubicacion + ', Valencia')}&output=embed" loading="lazy" title="Mapa ${esc(edicion.ubicacion)}"></iframe></div>`
-          : '';
-        return `
-          <div class="edicion-meta">
-            <span>${/^\d{4}-\d{2}-\d{2}$/.test(edicion.fecha)
-              ? '📅 <time data-i18n-date="' + esc(edicion.fecha) + '" datetime="' + esc(edicion.fecha) + '">' + esc(edicion.fecha) + '</time>'
-              : '📅 ' + esc(edicion.fecha || 'Próximamente')}</span>
-            ${edicion.ubicacion ? `<span>📍 ${esc(edicion.ubicacion)}</span>` : ''}
-          </div>
-          ${mapaHtml}
-          ${galleryHtml}`;
-      }
-
-      function edicionHtml(edicion, abierta, key){
-        return `
-        <div class="gallery-edicion sub${abierta ? ' open' : ''}" data-gallery-key="${esc(key)}">
-          <button type="button" class="gallery-edicion-toggle" aria-expanded="${abierta ? 'true' : 'false'}">
-            <span${edicion.anio || edicion.titulo ? ' data-i18n-skip' : ''}>${esc(edicion.anio || edicion.titulo || 'Sin título')}</span>
-            <span class="chev" aria-hidden="true"></span>
-          </button>
-          <div class="gallery-edicion-body"><div>${edicionCuerpoHtml(edicion)}</div></div>
-        </div>`;
-      }
-
-      wrap.innerHTML = ciudades.map((ciudad, idx) => {
-        const edicionesCiudad = porCiudad[ciudad];
-        const cityKey = JSON.stringify([ciudad]);
-        const cityOpen = previous.get(cityKey) ?? idx === 0;
-        const counts = new Map();
-        const subAccordionHtml = edicionesCiudad.map((edicion, i) => {
-          const title = edicion.anio || edicion.titulo;
-          const occurrence = counts.get(title) || 0;
-          counts.set(title, occurrence + 1);
-          const key = JSON.stringify([ciudad, title, occurrence]);
-          return edicionHtml(edicion, previous.get(key) ?? (idx === 0 && i === 0), key);
-        }).join('');
-        return `
-        <div class="gallery-edicion${cityOpen ? ' open' : ''}" data-gallery-key="${esc(cityKey)}">
-          <button type="button" class="gallery-edicion-toggle" aria-expanded="${cityOpen ? 'true' : 'false'}">
-            <span${ciudad !== "Sin ciudad" ? " data-i18n-skip" : ""}>${esc(ciudad)}</span>
-            <span class="chev" aria-hidden="true"></span>
-          </button>
-          <div class="gallery-edicion-body"><div>
-            <div class="gallery-accordion nested">${subAccordionHtml}</div>
-          </div></div>
-        </div>`;
-      }).join('');
-
-      wrap.querySelectorAll('.gallery-edicion').forEach(edicion => {
-        const btn = edicion.querySelector(':scope > .gallery-edicion-toggle');
-        const body = edicion.querySelector(':scope > .gallery-edicion-body');
-        const inicialmenteAbierta = edicion.classList.contains('open');
-        btn.setAttribute('aria-expanded', String(inicialmenteAbierta));
-        body.hidden = !inicialmenteAbierta;
-        btn.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          const isOpen = edicion.classList.toggle('open');
-          body.hidden = !isOpen;
-          btn.setAttribute('aria-expanded', String(isOpen));
-        });
-      });
-    }
-
-    let openedAlbum = false;
-    window.ShowCastPublicData.subscribeGallery(ediciones => {
-      renderGallery([...galeriaLocal, ...ediciones]);
-      const album = new URLSearchParams(location.search).get('album');
-      if (!album || openedAlbum || location.hash !== '#galeria') return;
-      const edition = [...document.querySelectorAll('.gallery-edicion.sub[data-gallery-key]')]
-        .find(node => node.dataset.galleryKey === album);
-      if (!edition) return;
-      openedAlbum = true;
-      const city = edition.parentElement.closest('.gallery-edicion');
-      for (const entry of [city, edition]) {
-        if (entry && !entry.classList.contains('open')) entry.querySelector(':scope > button').click();
-      }
-      requestAnimationFrame(() => edition.scrollIntoView({block: 'center'}));
-    });
 
     if(Array.isArray(data.equipo) && data.equipo.length){
       const grid = document.getElementById('teamGrid');

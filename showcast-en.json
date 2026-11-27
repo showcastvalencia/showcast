@@ -222,5 +222,9 @@
   "countdown.unit.days": "Days",
   "countdown.unit.hours": "Hours",
   "countdown.unit.minutes": "Minutes",
-  "countdown.unit.seconds": "Seconds"
+  "countdown.unit.seconds": "Seconds",
+  "gallery.new": "New",
+  "gallery.cover": "Cover photo",
+  "gallery.unavailableImage": "Image unavailable",
+  "gallery.noAlbums": "No albums available."
 }

@@ -222,5 +222,9 @@
   "countdown.unit.days": "Dies",
   "countdown.unit.hours": "Hores",
   "countdown.unit.minutes": "Minuts",
-  "countdown.unit.seconds": "Segons"
+  "countdown.unit.seconds": "Segons",
+  "gallery.new": "Nou",
+  "gallery.cover": "Portada",
+  "gallery.unavailableImage": "Imatge no disponible",
+  "gallery.noAlbums": "No hi ha àlbums disponibles."
 }

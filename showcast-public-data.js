@@ -29,15 +29,31 @@ window.ShowCastPublicData = (() => {
     return '';
   }
 
+  function publicationTime(value) {
+    if (Number.isSafeInteger(value) && value >= 946684800000 && value <= 8640000000000000) return value;
+    if (typeof value !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
+    const instant = Date.parse(value);
+    const date = new Date(value.slice(0, 10) + 'T00:00:00Z');
+    return Number.isFinite(instant) && Number.isFinite(+date) &&
+      date.toISOString().slice(0, 10) === value.slice(0, 10) ? instant : null;
+  }
+
   function readGallery(payload, fromPages) {
     if (!Array.isArray(payload)) throw new Error('Respuesta de galería inválida');
     return payload.flatMap(row => {
       const ciudad = text(row?.ciudad, 80);
       const titulo = text(row?.titulo, 100);
-      if (!ciudad || !titulo || !Array.isArray(row.items)) return [];
+      if (!ciudad || !titulo || row.visible === false || !Array.isArray(row.items)) return [];
       const items = row.items.flatMap(photo => {
-        const src = photo?.tipo === 'foto' ? mediaUrl(photo.src, fromPages) : '';
-        return src ? [{tipo: 'foto', src, caption: text(photo.caption, 250)}] : [];
+        if (photo?.tipo !== 'foto' || photo.visible === false) return [];
+        const src = mediaUrl(photo.src, fromPages);
+        if (!src) return [];
+        return [{
+          tipo: 'foto', src, caption: text(photo.caption, 250),
+          miniatura: mediaUrl(photo.miniatura, fromPages),
+          publicadoEn: publicationTime(photo.publicadoEn)
+        }];
       });
       const portada = mediaUrl(row.portada, fromPages);
       return [{
@@ -59,7 +75,7 @@ window.ShowCastPublicData = (() => {
 
   function refreshGallery() {
     if (!pending) {
-      const get = url => fetch(url, {credentials: 'omit', cache: 'no-store', signal: AbortSignal.timeout(5000)});
+      const get = url => fetch(url, {credentials: 'omit', cache: 'no-cache', signal: AbortSignal.timeout(5000)});
       pending = get(manifest)
         .then(async response => {
           if (response.status === 404) {
@@ -72,7 +88,7 @@ window.ShowCastPublicData = (() => {
           if (data.version !== 1 || !/^[a-f0-9]{64}$/.test(data.revision)) throw new Error('Formato de galería inválido');
           return readGallery(data.editions, true);
         })
-        .catch(() => gallery)
+        .catch(() => [])
         .then(publish)
         .finally(() => { pending = undefined; });
     }

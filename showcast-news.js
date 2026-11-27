@@ -6,7 +6,16 @@
   const allowedLinks = new Set(['#evento','#inscripcion','#galeria','#torneos']);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const label = ticker.querySelector('strong');
-  let record, signature, animation, windowWidth, requestPending;
+  let record, signature, animation, windowWidth, requestPending, timer, resizeFrame;
+  let visible = false;
+  let hovered = false;
+  let focused = false;
+
+  function syncMotion() {
+    if (!animation) return;
+    if (visible && !document.hidden && !hovered && !focused) animation.play();
+    else animation.pause();
+  }
 
   function render() {
     animation?.cancel();
@@ -41,6 +50,7 @@
     for (let i = 0; i < Math.ceil(viewport.clientWidth / cycle) + 1; i++) append(true);
     animation = track.animate([{transform:'translateX(0)'},{transform:`translateX(${-cycle}px)`}],
       {duration:cycle * 1000 / record.speed,iterations:Infinity});
+    syncMotion();
   }
 
   async function refresh() {
@@ -66,18 +76,33 @@
       requestPending = false;
     }
   }
-  ticker.addEventListener('mouseenter',()=>animation?.pause());
-  ticker.addEventListener('mouseleave',()=>{if(!ticker.contains(document.activeElement))animation?.play()});
-  ticker.addEventListener('focusin',()=>animation?.pause());
-  ticker.addEventListener('focusout',event=>{if(!ticker.contains(event.relatedTarget))animation?.play()});
-  document.addEventListener('visibilitychange',refresh);
-  reduced.addEventListener('change',()=>{if(record)render()});
-  window.addEventListener('resize',()=>{
-    if (record && ticker.clientWidth !== windowWidth) {
-      windowWidth = ticker.clientWidth;
-      render();
-    }
+  ticker.addEventListener('mouseenter', () => { hovered = true; syncMotion(); });
+  ticker.addEventListener('mouseleave', () => { hovered = false; syncMotion(); });
+  ticker.addEventListener('focusin', () => { focused = true; syncMotion(); });
+  ticker.addEventListener('focusout', event => {
+    focused = ticker.contains(event.relatedTarget);
+    syncMotion();
   });
-  refresh();
-  setInterval(refresh,30000);
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    syncMotion();
+  }).observe(ticker);
+  function schedule() {
+    clearInterval(timer);
+    if (!document.hidden) {
+      refresh();
+      timer = setInterval(refresh, 30000);
+    }
+    syncMotion();
+  }
+  document.addEventListener('visibilitychange', schedule);
+  reduced.addEventListener('change', () => { if (record) render(); });
+  window.addEventListener('resize', () => {
+    if (resizeFrame !== undefined) return;
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = undefined;
+      if (record && ticker.clientWidth !== windowWidth) render();
+    });
+  });
+  schedule();
 })();

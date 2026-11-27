@@ -81,15 +81,17 @@
     if (element.textContent !== formatted) element.textContent = formatted;
   }
 
+  const skip = '[data-i18n-skip], [data-i18n-content], script, style, svg, [data-i18n-date]';
+  const translatableAttributes = attributes.map(name => '[' + name + ']').join(',');
+
   function apply(root) {
-    const skip = '[data-i18n-skip], [data-i18n-content], script, style, svg, [data-i18n-date]';
     const applyText = node => {
       if (!node.parentElement?.closest(skip)) {
         applyValue(node, 'text', node.data, value => { node.data = value; }, true);
       }
     };
     if (root.nodeType === Node.TEXT_NODE) return applyText(root);
-    if (root.nodeType !== Node.ELEMENT_NODE) return;
+    if (root.nodeType !== Node.ELEMENT_NODE || root.closest('[data-i18n-skip], script, style, svg')) return;
     if (root.matches('[data-i18n-date]')) applyDate(root);
     root.querySelectorAll('[data-i18n-date]').forEach(applyDate);
     for (const node of [root, ...root.querySelectorAll('[data-i18n-content]')]) {
@@ -99,8 +101,7 @@
     }
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) applyText(walker.currentNode);
-    const selector = attributes.map(name => '[' + name + ']').join(',');
-    for (const node of [root, ...root.querySelectorAll(selector)]) {
+    for (const node of [root, ...root.querySelectorAll(translatableAttributes)]) {
       if (node.closest(skip)) continue;
       for (const name of attributes) {
         applyValue(node, name, node.getAttribute(name), value => node.setAttribute(name, value), true);
@@ -193,7 +194,7 @@
         else {
           const node = record.target;
           const name = record.attributeName;
-          if (!node.closest('[data-i18n-skip], [data-i18n-content], script, style, svg, [data-i18n-date]')) {
+          if (!node.closest(skip)) {
             applyValue(node, name, node.getAttribute(name), value => node.setAttribute(name, value), true);
           }
         }

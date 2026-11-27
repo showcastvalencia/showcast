@@ -166,7 +166,7 @@ nav a, .nav-dropdown-btn { min-height: var(--touch-size); }
   .hero-ctas { gap: 10px; margin-top: 24px; }
   .section-title { font-size: clamp(1.7rem, 6vw, 2.85rem); overflow-wrap: anywhere; }
   .section-lead { font-size: 1.08rem; }
-  .grid, .pillars, .team-grid, .contact-grid, .sponsor-grid { gap: 14px; }
+  .grid, .pillars, .team-grid, .contact-grid { gap: 14px; }
   .grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
   .gallery-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 10px; }
   .gallery-edicion-toggle, .gallery-edicion.sub .gallery-edicion-toggle { min-height: var(--touch-size); }
@@ -223,4 +223,49 @@ nav a, .nav-dropdown-btn { min-height: var(--touch-size); }
 }
 @media (prefers-reduced-motion: reduce) {
   #siteNav { transition: none; }
+}
+
+/* Los álbumes se montan al abrirse. Las fotos conservan el formato de las tarjetas existentes. */
+.gallery-tile-photo { width: 100%; font-family: inherit; appearance: none; }
+.gallery-tile-photo [hidden], .gallery-edicion-toggle [hidden] { display: none !important; }
+.gallery-tile-photo:focus-visible { outline-offset: -5px; }
+.gallery-tile-photo:disabled { cursor: default; }
+.gallery-edicion-toggle .gallery-new, .gallery-tile.has-photo .gallery-new, .gallery-tile.has-photo .gallery-cover-label {
+  display: inline-flex;
+  position: static;
+  flex: none;
+  width: max-content;
+  padding: 3px 7px;
+  align-items: center;
+  gap: 3px;
+  background: var(--naranja);
+  color: var(--negro);
+  font-family: Rajdhani, sans-serif;
+  font-size: .86rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.gallery-edicion-toggle .gallery-new { margin-inline-start: auto; }
+.gallery-tile.has-photo .gallery-new, .gallery-tile.has-photo .gallery-cover-label {
+  position: absolute;
+  top: 6px;
+  bottom: auto;
+  z-index: 3;
+}
+.gallery-tile.has-photo .gallery-new { left: 6px; right: auto; }
+.gallery-tile.has-photo .gallery-cover-label { right: 6px; left: auto; }
+.gallery-new::before { content: '★'; }
+.gallery-tile.has-photo .gallery-image-error { background: var(--negro); padding: 8px; }
+@media (prefers-reduced-motion: no-preference) {
+  .btn:active, .burger:active, .gallery-edicion-toggle:active { transform: scale(.985); }
+  .sc-section-enter { animation: sc-section-in .24s ease-out both; }
+}
+@keyframes sc-section-in {
+  from { opacity: .65; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn, .gallery-edicion-toggle .chev, .gallery-tile-photo img { transition: none; }
 }
