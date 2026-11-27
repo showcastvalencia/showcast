@@ -39,8 +39,10 @@
   function render() {
     const notice = localized(event.avisoPublico).trim();
     const venue = localized(event.lugar).trim();
-    ticker.hidden = !notice && !venue;
-    newsLink.textContent = notice || t('news.venue', 'Próximo torneo · {venue}', {venue});
+    if (!ticker.hasAttribute('data-news-managed')) {
+      ticker.hidden = !notice && !venue;
+      newsLink.textContent = notice || t('news.venue', 'Próximo torneo · {venue}', {venue});
+    }
     heading.textContent = t('countdown.title', 'Cuenta atrás del torneo');
     for (const unit of clock.querySelectorAll('[data-countdown-unit]')) {
       unit.textContent = t('countdown.unit.' + unit.dataset.countdownUnit, unit.textContent);

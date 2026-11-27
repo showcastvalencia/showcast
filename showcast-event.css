@@ -6,6 +6,9 @@
   color: var(--negro);
 }
 .sc-public-news[hidden] { display: none; }
+.sc-news-window { flex: 1; min-width: 0; overflow: hidden; display: grid; align-items: center; }
+.sc-news-track { display: flex; flex-wrap: wrap; align-items: center; }
+.sc-news-track.is-moving { width: max-content; flex-wrap: nowrap; white-space: nowrap; }
 .sc-public-news strong {
   display: grid;
   place-items: center;
