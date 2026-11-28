@@ -1881,6 +1881,15 @@
 </section>
 
 
+<section id="colaboraciones" class="sponsor-invitation">
+  <div class="sponsor-invitation-inner">
+    <span class="section-kicker">Colaboraciones</span>
+    <h2 class="section-title">Crece con <span>nosotros</span></h2>
+    <p>Colabora con ShowCast y conecta con nuestra comunidad gaming en eventos, retransmisiones, redes sociales y nuestra web.</p>
+    <a class="btn btn-primary" href="#contacto">Quiero ser patrocinador</a>
+  </div>
+</section>
+
 <!-- CONTACTO + RRSS -->
 <footer id="contacto">
   <div class="section-inner" style="max-width:1100px;margin:0 auto 50px;">
@@ -1920,6 +1929,7 @@
         <li><a href="#quienes-somos">Quiénes somos</a></li>
         <li><a href="#unete">Únete</a></li>
         <li><a href="#galeria">Galería</a></li>
+        <li><a href="#colaboraciones">Colaboraciones</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -1932,7 +1942,16 @@
       </div>
     </div>
   </div>
-  <div class="bottom-bar">© 2026 Showcast — @showcast.es</div>
+  <div class="footer-utility">
+    <label for="footerLanguage">Idioma</label>
+    <select id="footerLanguage">
+      <option value="es">Castellano</option>
+      <option value="ca-valencia">Valencià</option>
+      <option value="en">English</option>
+    </select>
+    <a href="#top">Volver arriba ↑</a>
+  </div>
+  <div class="bottom-bar">© <span id="footerYear">2026</span> Showcast — @showcast.es</div>
 </footer>
 
 <script src="content.js"></script>
@@ -1940,6 +1959,17 @@
 <script src="showcast-gallery-previews.js" defer></script>
 <script src="showcast-gallery.js" defer></script>
 <script src="showcast-i18n.js"></script>
+<script>
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+  const footerLanguage = document.getElementById('footerLanguage');
+  footerLanguage.addEventListener('change', () => {
+    const option = document.querySelector('#languageMenu [data-language="' + footerLanguage.value + '"]');
+    if (option) option.click();
+  });
+  document.addEventListener('showcast:language', event => {
+    footerLanguage.value = event.detail.language;
+  });
+</script>
 <script src="showcast-event.js" defer></script>
 <script src="showcast-news.js" defer></script>
 <script src="assets/js/clasificaciones-logic.js"></script>

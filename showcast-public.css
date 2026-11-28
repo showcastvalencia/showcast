@@ -269,3 +269,32 @@ nav a, .nav-dropdown-btn { min-height: var(--touch-size); }
   html { scroll-behavior: auto; }
   .btn, .gallery-edicion-toggle .chev, .gallery-tile-photo img { transition: none; }
 }
+
+.sponsor-invitation {
+  background: #090909;
+  color: var(--crema);
+  padding: clamp(56px, 8vw, 100px) 22px;
+  border-top: 3px solid var(--naranja);
+}
+.sponsor-invitation-inner { max-width: 1100px; margin: auto; }
+.sponsor-invitation .section-title { color: var(--blanco); }
+.sponsor-invitation .section-title span { color: var(--naranja); }
+.sponsor-invitation p { max-width: 650px; margin: 16px 0 24px; font-size: 1.1rem; line-height: 1.6; }
+.footer-inner { border-top: 1px solid #333; padding-top: 32px; }
+.footer-utility {
+  max-width: 1100px;
+  margin: 28px auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-utility select {
+  background: #151515;
+  border: 1px solid var(--naranja);
+  color: var(--crema);
+  padding: 10px;
+}
+.footer-utility a { color: var(--crema); margin-left: auto; }
+.footer-utility a:hover { color: var(--naranja); }
+.footer-utility :focus-visible { outline: 2px solid var(--naranja); outline-offset: 3px; }

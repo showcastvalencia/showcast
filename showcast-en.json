@@ -226,5 +226,11 @@
   "gallery.new": "New",
   "gallery.cover": "Cover photo",
   "gallery.unavailableImage": "Image unavailable",
-  "gallery.noAlbums": "No albums available."
+  "gallery.noAlbums": "No albums available.",
+  "sponsor.collab": "Partnerships",
+  "sponsor.grow": "Grow with",
+  "sponsor.us": "us",
+  "sponsor.description": "Partner with ShowCast and connect with our gaming community at events, on broadcasts, social media and our website.",
+  "sponsor.action": "Become a sponsor",
+  "footer.top": "Back to top ↑"
 }

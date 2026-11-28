@@ -226,5 +226,11 @@
   "gallery.new": "Nou",
   "gallery.cover": "Portada",
   "gallery.unavailableImage": "Imatge no disponible",
-  "gallery.noAlbums": "No hi ha àlbums disponibles."
+  "gallery.noAlbums": "No hi ha àlbums disponibles.",
+  "sponsor.collab": "Col·laboracions",
+  "sponsor.grow": "Creix amb",
+  "sponsor.us": "nosaltres",
+  "sponsor.description": "Col·labora amb ShowCast i connecta amb la nostra comunitat gaming en esdeveniments, retransmissions, xarxes socials i la nostra web.",
+  "sponsor.action": "Vull ser patrocinador",
+  "footer.top": "Tornar a dalt ↑"
 }
