@@ -58,3 +58,4 @@
   color: var(--blanco);
 }
 .public-countdown-grid span { font-size: clamp(.74rem, 2.5vw, 1rem); font-weight: 700; }
+.public-countdown[hidden] { display: none; }
