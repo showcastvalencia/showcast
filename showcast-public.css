@@ -298,3 +298,36 @@ nav a, .nav-dropdown-btn { min-height: var(--touch-size); }
 .footer-utility a { color: var(--crema); margin-left: auto; }
 .footer-utility a:hover { color: var(--naranja); }
 .footer-utility :focus-visible { outline: 2px solid var(--naranja); outline-offset: 3px; }
+
+/* Vídeo de fondo de la portada */
+.hero { isolation: isolate; }
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+  pointer-events: none;
+}
+.hero::before {
+  z-index: -1;
+  background: rgba(0, 0, 0, .60);
+}
+.hero .spray-splat { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-video { display: none; }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 0;
+    padding: 30px 16px 34px;
+  }
+  .hero-logo { width: 84px; height: 84px; margin-bottom: 16px; }
+  .hero-badge { font-size: .68rem; margin-bottom: 14px; }
+  .hero h1 { font-size: clamp(2.7rem, 12vw, 4rem); }
+  .hero .subtitle { margin-top: 12px; }
+  .hero .years { margin-top: 6px; }
+  .hero-ctas { margin-top: 18px; }
+}

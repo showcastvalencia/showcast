@@ -1460,6 +1460,9 @@
 </aside>
 
 <section class="hero" id="top">
+  <video class="hero-video" muted loop playsinline preload="none" aria-hidden="true">
+    <source src="assets/portada-video.mp4" type="video/mp4">
+  </video>
   <div class="spray-splat splat1"></div>
   <div class="spray-splat splat2"></div>
   <img src="assets/logo.png" alt="Showcast" class="hero-logo" width="120" height="120" fetchpriority="high">
@@ -1954,6 +1957,26 @@
   <div class="bottom-bar">© <span id="footerYear">2026</span> Showcast — @showcast.es</div>
 </footer>
 
+<script>
+  (() => {
+    const video = document.querySelector('.hero-video');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let visible = false;
+    function updateVideo() {
+      if (visible && !document.hidden && !reduced.matches) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    }
+    new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
+      updateVideo();
+    }).observe(video.closest('.hero'));
+    document.addEventListener('visibilitychange', updateVideo);
+    reduced.addEventListener('change', updateVideo);
+  })();
+</script>
 <script src="content.js"></script>
 <script src="showcast-public-data.js"></script>
 <script src="showcast-gallery-previews.js" defer></script>
